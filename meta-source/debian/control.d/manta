@@ -1,0 +1,27 @@
+Package: linux-headers-manta
+Architecture: armhf
+Section: devel
+Priority: optional
+Depends: ${misc:Depends}, linux-headers-${kernel-abi-version}-manta 
+Description: Linux kernel headers for the Nexus10 (manta).
+ This package will always depend on the latest kernel headers available
+ for Nexus10 (manta).
+
+Package: linux-image-manta
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-manta
+Description: Linux kernel image for the Nexus10 (manta).
+ This package will always depend on the latest kernel image available
+ for Nexus10 (manta).
+
+Package: linux-manta
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-image-manta (= ${source:Version}), linux-headers-manta (= ${source:Version})
+Description: Complete Linux kernel for the Nexus10 (manta).
+ This package will always depend on the latest complete Linux kernel available
+ for Nexus10 (manta).
+
