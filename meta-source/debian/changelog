@@ -1,195 +1,158 @@
-linux-meta (2.6.28.11.13) jaunty; urgency=low
+linux-meta-lts-quantal (3.5.0.19.26) precise-proposed; urgency=low
 
-  * Use *-lpia as the target for generic metapackage dependencies on lpia.
+  * Add -signed packages for generic on amd64.  (LP: #1075181)
 
- -- Colin Watson <cjwatson@ubuntu.com>  Sat, 21 Mar 2009 09:30:39 +0000
+ -- Andy Whitcroft <apw@canonical.com>  Fri, 23 Nov 2012 17:36:48 +0000
 
-linux-meta (2.6.28.11.12) jaunty; urgency=low
+linux-meta-lts-quantal (3.5.0.19.25) precise-proposed; urgency=low
 
-  * Build linux, linux-image, linux-restricted-modules, and
-    linux-backports-modules-jaunty for lpia, since there is only one kernel
-    flavour there.
+  * Ubuntu-lts-3.5.0-19.30
 
- -- Colin Watson <cjwatson@ubuntu.com>  Fri, 20 Mar 2009 16:24:37 +0000
+ -- Luis Henriques <luis.henriques@canonical.com>  Wed, 14 Nov 2012 14:53:00 +0000
 
-linux-meta (2.6.28.11.11) jaunty; urgency=low
+linux-meta-lts-quantal (3.5.0.18.24) precise-proposed; urgency=low
 
-  * ABI Bump
+  * Ubuntu-lts-3.5.0-18.29
 
- -- Tim Gardner <tim.gardner@canonical.com>  Wed, 18 Mar 2009 17:57:43 +0000
+ -- Luis Henriques <luis.henriques@canonical.com>  Mon, 22 Oct 2012 16:18:00 +0100
 
-linux-meta (2.6.28.10.10) jaunty; urgency=low
+linux-meta-lts-quantal (3.5.0.17.23) precise-proposed; urgency=low
 
-  * ABI Bump
+  * First upload pursuant to
+    https://blueprints.launchpad.net/ubuntu/+spec/desktop-q-xorg-lts-updates
+    -LP: #1068281
 
- -- Tim Gardner <tim.gardner@canonical.com>  Mon, 16 Mar 2009 17:21:20 +0000
+ -- Tim Gardner <tim.gardner@canonical.com>  Thu, 18 Oct 2012 13:08:17 -0600
 
-linux-meta (2.6.28.9.9) jaunty; urgency=low
+linux-meta-lts-quantal (3.5.0.16.22) precise; urgency=low
 
-  * ABI Bump
-  * Added imx51 and mv78xx0 flavours.
+  * Ubuntu-lts-3.5.0-16.24
 
- -- Tim Gardner <tim.gardner@canonical.com>  Tue, 10 Mar 2009 16:45:39 +0000
+ -- Tim Gardner <tim.gardner@canonical.com>  Sat, 29 Sep 2012 07:13:25 -0600
 
-linux-meta (2.6.28.8.8) jaunty; urgency=low
+linux-meta-lts-quantal (3.5.0.15.21) precise; urgency=low
 
-  * Added LPIA arch meta packages.
-  * ABI Bump
+  * Ubuntu-lts-3.5.0-15.20
 
- -- Tim Gardner <tim.gardner@canonical.com>  Tue, 17 Feb 2009 03:04:15 +0000
+ -- Tim Gardner <tim.gardner@canonical.com>  Tue, 18 Sep 2012 06:23:27 -0600
 
-linux-meta (2.6.28.7.7) jaunty; urgency=low
+linux-meta-lts-quantal (3.5.0.14.20) precise; urgency=low
 
-  * ABI bump 
+  * Ubuntu-lts-3.5.0-14.15
 
- -- Tim Gardner <tim.gardner@canonical.com>  Mon, 09 Feb 2009 13:15:43 +0000
+ -- Tim Gardner <tim.gardner@canonical.com>  Fri, 07 Sep 2012 06:43:52 -0600
 
-linux-meta (2.6.28.6.6) jaunty; urgency=low
+linux-meta-lts-quantal (3.5.0.13.19) precise; urgency=low
 
-  * ABI bump
+  * Ubuntu-lts-3.5.0-13.13
 
- -- Tim Gardner <tim.gardner@canonical.com>  Wed, 28 Jan 2009 12:55:38 +0000
+ -- Tim Gardner <tim.gardner@canonical.com>  Tue, 28 Aug 2012 06:06:04 -0600
 
-linux-meta (2.6.28.5.5) jaunty; urgency=low
+linux-meta-lts-quantal (3.5.0.12.18) precise; urgency=low
 
-  * ABI bump
+  * Ubuntu-lts-3.5.0-12.12
 
- -- Tim Gardner <tim.gardner@canonical.com>  Fri, 23 Jan 2009 06:00:08 +0000
+ -- Tim Gardner <tim.gardner@canonical.com>  Mon, 27 Aug 2012 06:11:17 -0600
 
-linux-meta (2.6.28.4.4) jaunty; urgency=low
+linux-meta-lts-quantal (3.5.0.11.17) precise; urgency=low
 
-  * ABI bump
+  * Ubuntu-lts-3.5.0-11.11
 
- -- Tim Gardner <tim.gardner@canonical.com>  Sun, 28 Dec 2008 17:08:29 +0000
+ -- Leann Ogasawara <leann.ogasawara@canonical.com>  Thu, 16 Aug 2012 14:19:18 -0700
 
-linux-meta (2.6.28.3.3) jaunty; urgency=low
+linux-meta-lts-quantal (3.5.0.10.16) precise; urgency=low
 
-  * ABI bump
+  * Ubuntu-lts-3.5.0-10.10
 
- -- Tim Gardner <tim.gardner@canonical.com>  Tue, 16 Dec 2008 20:33:41 +0000
+ -- Leann Ogasawara <leann.ogasawara@canonical.com>  Mon, 13 Aug 2012 14:34:22 -0700
 
-linux-meta (2.6.28.2.2) jaunty; urgency=low
+linux-meta-lts-quantal (3.5.0.9.15) precise; urgency=low
 
-  * Fix lrm meta packages s/intrepid/jaunty/
+  * Ubuntu-lts-3.5.0-9.9
 
- -- Ben Collins <ben.collins@canonical.com>  Fri, 05 Dec 2008 14:47:47 -0500
+ -- Leann Ogasawara <leann.ogasawara@canonical.com>  Thu, 09 Aug 2012 16:06:38 -0700
 
-linux-meta (2.6.28.2.1) jaunty; urgency=low
+linux-meta-lts-quantal (3.5.0.8.14) precise; urgency=low
 
-  * 2.6.28 first upload, -2 ABI
-  * Add armel flavours, no lrm
+  * Ubuntu-lts-3.5.0-8.8
 
- -- Ben Collins <ben.collins@canonical.com>  Fri, 05 Dec 2008 13:46:01 -0500
+ -- Tim Gardner <tim.gardner@canonical.com>  Tue, 07 Aug 2012 10:41:57 -0600
 
-linux-meta (2.6.27.7.11) intrepid; urgency=low
+linux-meta-lts-quantal (3.5.0.7.13) precise; urgency=low
 
-  * lbm-virtual should depend on the -server binary package
+  * Ubuntu-lts-3.5.0-7.7
 
- -- Ben Collins <ben.collins@canonical.com>  Fri, 24 Oct 2008 10:14:48 -0400
+ -- Tim Gardner <tim.gardner@canonical.com>  Tue, 31 Jul 2012 16:52:00 -0600
 
-linux-meta (2.6.27.7.10) intrepid; urgency=low
+linux-meta-lts-quantal (3.5.0.6.12) precise; urgency=low
 
-  * Add linux-source meta package. LP: #253904
+  * Added linux-generic-lts-quantal 
+    Depends on both image and headers packages.
 
- -- Ben Collins <ben.collins@canonical.com>  Thu, 16 Oct 2008 12:29:01 -0400
+ -- Tim Gardner <tim.gardner@canonical.com>  Thu, 26 Jul 2012 08:00:25 -0600
 
-linux-meta (2.6.27.7.9) intrepid; urgency=low
+linux-meta-lts-quantal (3.5.0.6.11) precise; urgency=low
 
-  * linux-image-<flav> now depends on linux-firmware for upgrades
+  * Ubuntu-lts-3.5.0-6.6
 
- -- Ben Collins <ben.collins@canonical.com>  Wed, 15 Oct 2008 07:52:02 -0400
+ -- Tim Gardner <tim.gardner@canonical.com>  Tue, 24 Jul 2012 14:15:49 -0600
 
-linux-meta (2.6.27.7.8) intrepid; urgency=low
+linux-meta-lts-quantal (3.5.0.5.10) precise; urgency=low
 
-  * ABI bump.
+  * Ubuntu-lts-3.5.0-5.5
 
- -- Tim Gardner <tim.gardner@canonical.com>  Fri, 10 Oct 2008 09:44:01 -0600
+ -- Tim Gardner <tim.gardner@canonical.com>  Tue, 17 Jul 2012 14:26:45 -0600
 
-linux-meta (2.6.27.6.7) intrepid; urgency=low
+linux-meta-lts-quantal (3.5.0.4.9) precise; urgency=low
 
-  * ABI bump.
+  * Ubuntu-lts-3.5.0-4.4
 
- -- Tim Gardner <tim.gardner@canonical.com>  Tue, 07 Oct 2008 12:51:59 +0000
+ -- Tim Gardner <tim.gardner@canonical.com>  Tue, 10 Jul 2012 13:06:26 -0600
 
-linux-meta (2.6.27.5.6) intrepid; urgency=low
+linux-meta-lts-quantal (3.5.0.3.8) precise; urgency=low
 
-  [ Soren Hansen ]
+  * Ubuntu-lts-3.5.0-3.3
 
-  * Re-add meta packages for virtual kernel flavour (LP: #276292)
-  * Remove "restricted/" from linux-server's Section. It has no dependencies
-    in restricted.
+ -- Leann Ogasawara <leann.ogasawara@canonical.com>  Tue, 03 Jul 2012 08:58:47 -0700
 
- -- Ben Collins <ben.collins@canonical.com>  Tue, 07 Oct 2008 06:10:08 -0400
+linux-meta-lts-quantal (3.5.0.2.7) precise; urgency=low
 
-linux-meta (2.6.27.5.5) intrepid; urgency=low
+  * Upload to the correct release.
 
-  * ABI bump.
+ -- Tim Gardner <tim.gardner@canonical.com>  Wed, 27 Jun 2012 12:37:09 -0600
 
- -- Tim Gardner <tim.gardner@canonical.com>  Sun, 05 Oct 2008 17:13:11 +0000
+linux-meta-lts-quantal (3.5.0.2.6) precise; urgency=low
 
-linux-meta (2.6.27.4.4) intrepid; urgency=low
+  * Ubuntu-lts-3.5.0-2.2
 
-  * ABI bump.
+ -- Tim Gardner <tim.gardner@canonical.com>  Tue, 26 Jun 2012 11:16:20 -0600
 
- -- Tim Gardner <tim.gardner@canonical.com>  Mon, 22 Sep 2008 08:52:04 -0600
+linux-meta-lts-quantal (3.5.0.1.5) precise; urgency=low
 
-linux-meta (2.6.27.3.3) intrepid; urgency=low
+  * Ubuntu-lts-3.5.0-1.1
 
-  * ABI bump.
+ -- Tim Gardner <tim.gardner@canonical.com>  Wed, 20 Jun 2012 07:55:19 -0600
 
- -- Tim Gardner <tim.gardner@canonical.com>  Thu, 11 Sep 2008 12:00:45 -0600
+linux-meta-lts-quantal (3.4.0.4.4) precise; urgency=low
 
-linux-meta (2.6.27.2.2) intrepid; urgency=low
+  * Ubuntu-lts-3.4.0-4.9
 
-  * ABI bump.
+ -- Tim Gardner <tim.gardner@canonical.com>  Mon, 04 Jun 2012 14:04:42 -0600
 
- -- Ben Collins <ben.collins@canonical.com>  Fri, 29 Aug 2008 10:39:57 -0400
+linux-meta-lts-quantal (3.4.0.3.3) precise-proposed; urgency=low
 
-linux-meta (2.6.27.1.1) intrepid; urgency=low
+  * Dropped -backport from all names, including this source package.
 
-  * Version/ABI bump.
+ -- Tim Gardner <tim.gardner@canonical.com>  Wed, 30 May 2012 12:37:14 -0600
 
- -- Ben Collins <ben.collins@canonical.com>  Wed, 27 Aug 2008 12:23:04 -0400
+linux-meta-lts-backport-quantal (3.4.0.3.2) precise; urgency=low
 
-linux-meta (2.6.26.5.7) intrepid; urgency=low
+  * linux-lts-backport-quantal 3.4.0-3.7
 
-  * ABI Bump
+ -- Tim Gardner <tim.gardner@canonical.com>  Tue, 22 May 2012 09:08:49 -0600
 
- -- Ben Collins <ben.collins@canonical.com>  Tue, 29 Jul 2008 10:49:54 -0400
+linux-meta-lts-backport-quantal (3.3.0.2.1) precise-proposed; urgency=low
 
-linux-meta (2.6.26.4.6) intrepid; urgency=low
+  * Initial backport for Quantal linux 3.4.0-2.4
 
-  * Change linux-crashdump-FLAV to just linux-crashdump, since it is not
-    indepedent of kernel flavour.
-  * Remove debug meta packages since they are no longer publicly built (they
-    are now ddeb's)
-
- -- Ben Collins <ben.collins@canonical.com>  Sat, 26 Jul 2008 15:05:00 -0400
-
-linux-meta (2.6.26.4.5) intrepid; urgency=low
-
-  * ABI bump.
-
- -- Ben Collins <ben.collins@canonical.com>  Tue, 15 Jul 2008 12:25:02 -0400
-
-linux-meta (2.6.26.3.4) intrepid; urgency=low
-
-  * ABI bump
-  * Remove dep on linux-image-debug from linux-crashdump
-  * Overrides .3.3 that cjwatson did.
-
- -- Ben Collins <ben.collins@canonical.com>  Mon, 23 Jun 2008 14:33:13 -0400
-
-linux-meta (2.6.26.2.2) intrepid; urgency=low
-
-  * ABI bump
-  * Add linux-crashdump-* packages. They depend on a matching
-    linux-image-debug, kexec-tools and makedumpfile.
-
- -- Ben Collins <ben.collins@canonical.com>  Thu, 19 Jun 2008 14:05:35 -0400
-
-linux-meta (2.6.26.1.1) intrepid; urgency=low
-
-  * Initial package for intrepid.
-
- -- Ben Collins <ben.collins@canonical.com>  Fri, 13 Jun 2008 06:47:07 -0400
+ -- Tim Gardner <tim.gardner@canonical.com>  Tue, 15 May 2012 10:02:33 -0600
