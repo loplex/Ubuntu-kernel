@@ -1,0 +1,27 @@
+Package: linux-headers-maguro
+Architecture: armhf
+Section: devel
+Priority: optional
+Depends: ${misc:Depends}, linux-headers-${kernel-abi-version}-maguro 
+Description: Linux kernel headers for the Galaxy Nexus (maguro).
+ This package will always depend on the latest kernel headers available
+ for Galaxy Nexus (maguro).
+
+Package: linux-image-maguro
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-maguro
+Description: Linux kernel image for the Galaxy Nexus (maguro).
+ This package will always depend on the latest kernel image available
+ for Galaxy Nexus (maguro).
+
+Package: linux-maguro
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-image-maguro (= ${source:Version}), linux-headers-maguro (= ${source:Version})
+Description: Complete Linux kernel for the Galaxy Nexus (maguro).
+ This package will always depend on the latest complete Linux kernel available
+ for Galaxy Nexus (maguro).
+
