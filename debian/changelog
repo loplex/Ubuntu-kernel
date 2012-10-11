@@ -1,3 +1,9 @@
+linux-backports-modules-3.5.0 (3.5.0-18.1) UNRELEASED; urgency=low
+
+  * Open Quantal LBM
+
+ -- Leann Ogasawara <leann.ogasawara@canonical.com>  Wed, 10 Oct 2012 22:28:55 -0700
+
 linux-backports-modules-3.2.0 (3.2.0-32.17) precise-proposed; urgency=low
 
   * Bump ABI for Precise 3.2.0-32.51
