@@ -7,7 +7,7 @@ E1000E:
 #git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
 
 IXGBE:
-http://www.intel.com/support/ethernetcomponents/controllers/x540/sb/CS-032780.htm ixgbe-3.8.21.tar.gz
+#http://www.intel.com/support/ethernetcomponents/controllers/x540/sb/CS-032780.htm ixgbe-3.8.21.tar.gz
 
 R8169:
 #git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v3.1
