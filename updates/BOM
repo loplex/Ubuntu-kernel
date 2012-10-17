@@ -1,5 +1,5 @@
 WIRELESS:
-cw-3.4: Followed http://linuxwireless.org/en/users/Download/hacking#Generating_stable_releases using v3.4.4
+cw-3.6: http://www.orbit-lab.org/kernel/compat-wireless-3-stable/v3.6/compat-wireless-3.6.2-1-snpc.tar.bz2
 
 Remember to remove the .gitignore file lest you not get all of the files committed that you thought.
 

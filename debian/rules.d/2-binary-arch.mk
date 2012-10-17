@@ -44,9 +44,9 @@ $(stampdir)/stamp-prepare-%: $(confdir)/$(arch)
 		sed -i 's/compat_firmware/compat_firmware_'$(abinum)_$(target_flavour)'/g' \
 			$${cw_dir}/compat/compat_firmware_class.c \
 			$${cw_dir}/compat/scripts/compat_firmware_install \
-			$${cw_dir}/udev/ubuntu/50-compat_firmware.rules; \
-		mv -v $${cw_dir}/udev/ubuntu/50-compat_firmware.rules $${cw_dir}/udev/ubuntu/50-compat_firmware_$(abinum)_$(target_flavour).rules; \
-		mv -v $${cw_dir}/udev/ubuntu/compat_firmware.sh $${cw_dir}/udev/ubuntu/compat_firmware_$(abinum)_$(target_flavour).sh; \
+			$${cw_dir}/udev/50-compat_firmware.rules; \
+		mv -v $${cw_dir}/udev/50-compat_firmware.rules $${cw_dir}/udev/50-compat_firmware_$(abinum)_$(target_flavour).rules; \
+		mv -v $${cw_dir}/udev/compat_firmware.sh $${cw_dir}/udev/compat_firmware_$(abinum)_$(target_flavour).sh; \
 	done
 
 	cat $(confdir)/$(arch) > $(builddir)/build-$*/.config
@@ -109,9 +109,9 @@ install-%: build-modules-%
 			chmod 755 $${cwpkgdir}/DEBIAN/$$script;                                 \
 		done; \
 		install -d $${cwpkgdir}/lib/udev; \
-		install --mode=0755 $${cwblddir}/udev/ubuntu/compat_firmware_$(abinum)_$(target_flavour).sh $${cwpkgdir}/lib/udev; \
+		install --mode=0755 $${cwblddir}/udev/compat_firmware_$(abinum)_$(target_flavour).sh $${cwpkgdir}/lib/udev; \
 		install -d $${cwpkgdir}/lib/udev/rules.d; \
-		install --mode=0644 $${cwblddir}/udev/ubuntu/50-compat_firmware_$(abinum)_$(target_flavour).rules $${cwpkgdir}/lib/udev/rules.d; \
+		install --mode=0644 $${cwblddir}/udev/50-compat_firmware_$(abinum)_$(target_flavour).rules $${cwpkgdir}/lib/udev/rules.d; \
 \
 		install -d $${firmdir}; \
 		if [ -d firmware/iwlwifi ] ; then cp firmware/iwlwifi/*/*.ucode $${firmdir}/; fi; \
