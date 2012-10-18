@@ -29,9 +29,6 @@ include debian/rules.d/$(arch).mk
 # Maintainer targets
 include debian/rules.d/1-maintainer.mk
 
-# Udeb stuff
-include debian/rules.d/3-udebs.mk
-
 # Debian Build System targets
 binary: binary-indep binary-arch
 
@@ -45,7 +42,6 @@ clean: debian/control.stub
 	dh_testroot
 	dh_clean
 
-	rm -rf $(udebdir)
 	rm -rf $(builddir)
 	rm -rf debian/linux-backports-modules*
 	rm -rf debian/linux-headers*
@@ -56,9 +52,6 @@ clean: debian/control.stub
 
 # Builds the image, arch headers and debug packages
 include debian/rules.d/2-binary-arch.mk
-
-# Rules for building the udebs (debian-installer)
-#include debian/rules.d/5-udebs.mk
 
 # Misc stuff
 debian/control.stub: debian/d-i/kernel-versions.in	\
@@ -84,15 +77,3 @@ debian/control.stub: debian/d-i/kernel-versions.in	\
 
 .PHONY: debian/control
 debian/control: debian/control.stub
-	rm -rf $(udebdir)
-	if [ -d debian/d-i/firmware ]; then \
-		install -d $(udebdir)/firmware/$(arch); \
-		cp debian/d-i/firmware/* $(udebdir)/firmware/$(arch)/; \
-	fi
-	install -d $(udebdir)/modules/$(arch)
-	cp debian/d-i/modules/* $(udebdir)/modules/$(arch)/
-	cp debian/d-i/package-list debian/d-i/kernel-versions \
-		$(udebdir)/
-	ln -s .. $(udebdir)/debian
-
-	(cd $(udebdir); kernel-wedge gen-control) > $@

@@ -178,4 +178,4 @@ binary-modules-%: install-%
 	done
 
 binary-debs: $(addprefix binary-modules-,$(flavours))
-binary-arch: binary-debs binary-udebs
+binary-arch: binary-debs

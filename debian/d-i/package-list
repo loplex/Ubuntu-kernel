@@ -1,4 +1,0 @@
-Package: updates-modules
-Priority: standard
-Section: debian-installer
-Description: Ubuntu supplied kernel modules

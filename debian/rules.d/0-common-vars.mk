@@ -23,7 +23,6 @@ arch		:= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 confdir		:= $(CURDIR)/debian/config
 builddir	:= $(CURDIR)/debian/build
 stampdir	:= $(CURDIR)/debian/stamps
-udebdir		:= $(CURDIR)/debian/d-i-$(arch)
 
 #
 # This is a way to support some external variables. A good example is
