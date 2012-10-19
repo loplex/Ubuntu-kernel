@@ -54,12 +54,11 @@ clean: debian/control.stub
 include debian/rules.d/2-binary-arch.mk
 
 # Misc stuff
-debian/control.stub: debian/d-i/kernel-versions.in	\
-		debian/scripts/control-create		\
+debian/control.stub: debian/scripts/control-create		\
 		debian/control.stub.in			\
 		debian/changelog			\
 		$(wildcard debian/control.d/*)
-	for i in debian/d-i/kernel-versions.in debian/control.stub.in; do	\
+	for i in debian/control.stub.in; do					\
 	  new=`echo $$i | sed 's/\.in$$//'`;					\
 	  cat $$i | sed -e 's/PKGVER/$(pkgversion)/g' -e 's/ABINUM/$(abinum)/g' > \
 		$$new;								\
