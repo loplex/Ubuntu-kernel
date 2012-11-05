@@ -2,5 +2,5 @@ Source: linux-signed
 Section: utils
 Priority: optional
 Maintainer: Canonical Kernel Team <kernel-team@lists.ubuntu.com>
-Build-Depends: debhelper (>= 9), lsb-release, python3, python3-apt, BINARIES
+Build-Depends: debhelper (>= 9), lsb-release, python3, python3-apt, sbsigntool, BINARIES
 Standards-Version: 3.9.3

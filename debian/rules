@@ -38,6 +38,10 @@ pre-clean:
 pre-binary: download-signed
 	./download-signed "linux-image-$(src_abi)-$(flavour_first)" \
 		"$(src_version)" "$(src_package)"
+	for flavour in $(flavours); do					\
+		sbattach --detach vmlinuz-$(src_abi)-$$flavour.efi.signature \
+			vmlinuz-$(src_abi)-$$flavour.efi.signed;	\
+	done
 
 PHONY: pre-clean pre-binary
 
@@ -50,7 +54,7 @@ binary-arch:: pre-binary
 
 override_dh_auto_install:
 	for flavour in $(flavours); do					\
-		echo "vmlinuz-$(src_abi)-$$flavour.efi.signed boot"	\
+		echo "vmlinuz-$(src_abi)-$$flavour.efi.signature usr/lib/linux"	\
 			 >"debian/linux-signed-image-$(src_abi)-$$flavour.install"; \
 		echo "vmlinuz-$(src_abi)-$$flavour.efi.signed boot"	\
 			 >"debian/kernel-signed-image-$(src_abi)-$$flavour-di.install"; \
@@ -59,7 +63,10 @@ override_dh_auto_install:
 
 override_dh_installdeb:
 	for flavour in $(flavours); do					\
-		cp debian/control-scripts.stub debian/linux-signed-image-$(src_abi)-$$flavour.postinst; \
-		cp debian/control-scripts.stub debian/linux-signed-image-$(src_abi)-$$flavour.postrm; \
+		sed <debian/control-scripts.stub			\
+			-e "s/KERNEL/vmlinuz-$(src_abi)-$$flavour/g"	\
+			>debian/linux-signed-image-$(src_abi)-$$flavour.postinst; \
+		cp debian/linux-signed-image-$(src_abi)-$$flavour.postinst \
+			debian/linux-signed-image-$(src_abi)-$$flavour.postrm; \
 	done
 	dh_installdeb
