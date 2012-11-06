@@ -1,4 +1,4 @@
-linux-meta (3.7.0.0.1) UNRELEASED; urgency=low
+linux-meta (3.7.0.0.1) raring; urgency=low
 
   * Reset versioning for Raring Ringtail.
   * Drop linux-backports-modules meta packages.
