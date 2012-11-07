@@ -8,7 +8,7 @@ export DH_VERBOSE := 1
 # is the name of this package with -signed stripped.  The version is identical
 # to this package less any rebuild suffic (+signedN).
 src_package := $(shell LC_ALL=C dpkg-parsechangelog | grep ^Source: | cut -d ' ' -f 2 | sed -e 's/-signed//')
-src_version = $(shell LC_ALL=C dpkg-parsechangelog | grep ^Version: | cut -d ' ' -f 2 | sed -e 's/+signed[0-9]*//')
+src_version = $(shell LC_ALL=C dpkg-parsechangelog | grep ^Version: | cut -d ' ' -f 2 | sed -e 's/+signed[0-9]*.*//')
 src_abi = $(shell echo "$(src_version)" | sed -ne 's/\([0-9]*\.[0-9]*\.[0-9]*\-[0-9]*\)\..*/\1/p')
 
 # Flavours in the master package.
