@@ -1,11 +1,12 @@
-linux-signed (3.5.0-17.28+signed3) UNRELEASED; urgency=low
+linux-signed (3.7.0-0.4) raring; urgency=low
 
   * rules: include only the signature for the kernel image.  (LP: #1075181)
   * control.stub: add sbsigntool build-dep: to allow signature manipulation.
   * flavour.stub: add sbsigntool depends: to allow signature manipulation.
   * rules: fix version handling for PPA use.
+  * Version 3.7.0-0.4
 
- -- Andy Whitcroft <apw@canonical.com>  Wed, 31 Oct 2012 22:31:09 +0000
+ -- Andy Whitcroft <apw@canonical.com>  Thu, 08 Nov 2012 18:24:03 +0000
 
 linux-signed (3.5.0-17.28+signed2) quantal-proposed; urgency=low
 
