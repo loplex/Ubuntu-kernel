@@ -1,3 +1,10 @@
+linux-meta (3.7.0.0.4) UNRELEASED; urgency=low
+
+  * renable linux-tools for armel and armhf and remove the binary
+    dependancies instead.
+
+ -- Andy Whitcroft <apw@canonical.com>  Fri, 09 Nov 2012 13:20:46 +0000
+
 linux-meta (3.7.0.0.3) raring; urgency=low
 
   * disable linux-tools for armel and armhf until the binary package build
