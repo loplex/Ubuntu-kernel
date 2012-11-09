@@ -1,8 +1,9 @@
-linux-signed (3.7.0-0.4+signed1) UNRELEASED; urgency=low
+linux-signed (3.7.0-0.5) raring; urgency=low
 
   * update-version: fix commit command
+  * Version 3.7.0-0.5
 
- -- Andy Whitcroft <apw@canonical.com>  Fri, 09 Nov 2012 11:02:28 +0000
+ -- Andy Whitcroft <apw@canonical.com>  Fri, 09 Nov 2012 11:05:42 +0000
 
 linux-signed (3.7.0-0.4) raring; urgency=low
 
