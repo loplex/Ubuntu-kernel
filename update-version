@@ -28,6 +28,6 @@ if dpkg --compare-versions "$here_version" lt "$master_version"; then
 	dch --distribution "$here_series" --release ""
 	echo "Updated to version: $master_version"
 
-	echo "git commit -s -m 'UBUNTU: Ubuntu-$master_version'"
+	echo "git commit -s -m 'UBUNTU: Ubuntu-$master_version' debian/changelog"
 	echo "git tag -s -m 'Ubuntu-$master_version' 'Ubuntu-$master_version'"
 fi
