@@ -1,4 +1,4 @@
-linux-meta (3.7.0.0.4) UNRELEASED; urgency=low
+linux-meta (3.7.0.0.4) raring; urgency=low
 
   * renable linux-tools for armel and armhf and remove the binary
     dependancies instead.
