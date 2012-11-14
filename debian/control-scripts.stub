@@ -9,14 +9,14 @@ case "$0-$1" in
 	sbattach --attach /usr/lib/linux/$kernel.efi.signature /boot/$kernel.efi.signed
 	
 	if which update-grub >/dev/null 2>&1; then
-		update-grub
+		update-grub || true
 	fi
 	;;
 *.postrm-remove)
 	rm -f /boot/$kernel.efi.signed
 
 	if which update-grub >/dev/null 2>&1; then
-		update-grub
+		update-grub || true
 	fi
 	;;
 esac
