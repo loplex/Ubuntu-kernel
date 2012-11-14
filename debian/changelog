@@ -1,4 +1,4 @@
-linux-signed (3.7.0-0.5+signed1) UNRELEASED; urgency=low
+linux-signed (3.7.0-0.5+signed1) raring; urgency=low
 
   * control-scripts.stub: update-grub may fail in a livefs environment and
     in that context is not fatal.  For now just ignore update-grub errors.
