@@ -1,3 +1,9 @@
+linux-meta-lts-quantal (3.5.0.19.25) precise-proposed; urgency=low
+
+  * Ubuntu-lts-3.5.0-19.30
+
+ -- Luis Henriques <luis.henriques@canonical.com>  Wed, 14 Nov 2012 14:53:00 +0000
+
 linux-meta-lts-quantal (3.5.0.18.24) precise-proposed; urgency=low
 
   * Ubuntu-lts-3.5.0-18.29
