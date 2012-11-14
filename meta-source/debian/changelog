@@ -1,3 +1,9 @@
+linux-meta (3.7.0.1.5) raring; urgency=low
+
+  * linux 3.7.0-1.6
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Wed, 14 Nov 2012 06:51:02 -0700
+
 linux-meta (3.7.0.0.4) raring; urgency=low
 
   * renable linux-tools for armel and armhf and remove the binary
