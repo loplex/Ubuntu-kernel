@@ -1,3 +1,9 @@
+linux-meta (3.7.0.2.6) raring; urgency=low
+
+  * linux ABI 3.7.0-2
+
+ -- Andy Whitcroft <apw@canonical.com>  Thu, 15 Nov 2012 16:15:15 +0000
+
 linux-meta (3.7.0.1.5) raring; urgency=low
 
   * linux 3.7.0-1.6
