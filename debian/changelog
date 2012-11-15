@@ -1,3 +1,9 @@
+linux-signed (3.7.0-2.8) raring; urgency=low
+
+  * Version 3.7.0-2.8
+
+ -- Andy Whitcroft <apw@canonical.com>  Thu, 15 Nov 2012 16:19:35 +0000
+
 linux-signed (3.7.0-1.6) raring; urgency=low
 
   * linux 3.7.0-1.6
