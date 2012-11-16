@@ -4,6 +4,36 @@ linux-ti-omap4 (3.5.0-214.22) UNRELEASED; urgency=low
   CHANGELOG: Use the printchanges target to see the curent changes.
   CHANGELOG: Use the insertchanges target to create the final log.
 
+  [ Ubuntu: 3.5.0-19.30 ]
+
+  * Release Tracking Bug
+    - LP: #1078041
+  * [Config] update Vcs-git: to point to quantal
+    - LP: #1069204
+  * SAUCE: ALSA: hda - add quirk for Thinkpad T430
+    - LP: #1060372
+  * [Config] CONFIG_USB_OTG=n for all but armel/armhf
+    - LP: #1047527
+  * [Config] remove ndiswrapper from Provides:
+    - LP: #1076395
+  * [Config] ONFIG_AMD_IOMMU_V2=m
+    - LP: #1071520
+  * kernel/sys.c: fix stack memory content leak via UNAME26
+    - LP: #1065622, #1060521
+    - CVE-2012-0957
+  * use clamp_t in UNAME26 fix
+    - LP: #1065622, #1060521
+    - CVE-2012-0957
+  * net: fix divide by zero in tcp algorithm illinois
+    - LP: #1077091
+    - CVE-2012-4565
+  * SAUCE: Bluetooth: Add a load_firmware callback to struct hci_dev
+    - LP: #1065400
+  * SAUCE: Bluetooth: Implement broadcom patchram firmware loader
+    - LP: #1065400
+  * SAUCE: Bluetooth: Add support for 13d3:3388 and 13d3:3389
+    - LP: #1065400
+
  -- Paolo Pisati <paolo.pisati@canonical.com>  Fri, 16 Nov 2012 10:39:59 +0100
 
 linux-ti-omap4 (3.5.0-214.21) quantal-proposed; urgency=low
