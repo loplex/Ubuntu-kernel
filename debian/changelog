@@ -1,9 +1,10 @@
-linux-signed (3.7.0-2.8+signed1) UNRELEASED; urgency=low
+linux-signed (3.7.0-3.9) raring; urgency=low
 
+  * Version 3.7.0-3.9
   * Add Built-Using: fields pointing to the original linux source packages.
   * Standard-Version: 3.9.4
 
- -- Andy Whitcroft <apw@canonical.com>  Tue, 20 Nov 2012 16:48:06 +0000
+ -- Leann Ogasawara <leann.ogasawara@canonical.com>  Tue, 20 Nov 2012 14:10:53 -0800
 
 linux-signed (3.7.0-2.8) raring; urgency=low
 
