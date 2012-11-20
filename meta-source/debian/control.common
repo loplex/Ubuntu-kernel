@@ -8,7 +8,7 @@ Vcs-Git: http://kernel.ubuntu.com/git-repos/ubuntu/ubuntu-quantal-meta.git
 
 Package: linux
 Architecture: i386 amd64 
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-${generic-depends}
 Description: Generic complete Linux kernel.
@@ -26,7 +26,7 @@ Description: Linux kernel source with Ubuntu patches
 
 Package: linux-image
 Architecture: i386 amd64 
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-${generic-depends}
 Description: Generic Linux kernel image.
@@ -49,7 +49,7 @@ Description: Linux kernel crashdump setup for the latest generic kernel
 
 Package: linux-tools
 Architecture: i386 amd64 armel armhf
-Section: metapackages
+Section: kernel
 Depends: ${misc:Depends}, linux-tools-${kernel-abi-version} [i386 amd64]
 Description: Linux kernel versioned Tools
  This package will always depend on the latest Linux kernel versioned tools 

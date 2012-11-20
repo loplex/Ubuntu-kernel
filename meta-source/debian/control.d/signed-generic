@@ -1,6 +1,6 @@
 Package: linux-signed-image-generic
 Architecture: amd64
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-signed-image-${kernel-abi-version}-generic, linux-firmware
 Description: Signed Generic Linux kernel image
@@ -9,7 +9,7 @@ Description: Signed Generic Linux kernel image
 
 Package: linux-signed-generic
 Architecture: amd64
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-signed-image-generic, linux-headers-generic
 Description: Complete Signed Generic Linux kernel and headers

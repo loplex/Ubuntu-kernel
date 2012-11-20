@@ -1,6 +1,6 @@
 Package: linux-headers-generic-pae
 Architecture: i386
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-headers-generic
 Description: Transitional package
@@ -8,7 +8,7 @@ Description: Transitional package
 
 Package: linux-image-generic-pae
 Architecture: i386
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-generic
 Description: Transitional package
@@ -16,7 +16,7 @@ Description: Transitional package
 
 Package: linux-generic-pae
 Architecture: i386
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-generic
 Description: Transitional package.
