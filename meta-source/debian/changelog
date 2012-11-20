@@ -1,3 +1,12 @@
+linux-meta (3.7.0.3.7) raring; urgency=low
+
+  * linux ABI 3.7.0-3
+  * Move metapackages to Section: kernel
+    -LP: #1074787
+  * Update RELEASE_NAME and Vcs-Git to Raring
+
+ -- Leann Ogasawara <leann.ogasawara@canonical.com>  Tue, 20 Nov 2012 12:40:22 -0800
+
 linux-meta (3.7.0.2.6) raring; urgency=low
 
   * linux ABI 3.7.0-2
