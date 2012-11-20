@@ -1,6 +1,6 @@
 Package: linux-headers-server
 Architecture: amd64 i386
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-headers-${kernel-abi-version}-generic [amd64], linux-headers-generic-pae [i386]
 Description: Linux kernel headers on Server Equipment.
@@ -9,7 +9,7 @@ Description: Linux kernel headers on Server Equipment.
 
 Package: linux-image-server
 Architecture: amd64 i386
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-generic [amd64], linux-firmware [amd64], linux-image-generic-pae [i386]
 Description: Linux kernel image on Server Equipment.
@@ -18,7 +18,7 @@ Description: Linux kernel image on Server Equipment.
 
 Package: linux-server
 Architecture: amd64 i386
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-server (= ${binary:Version}) [amd64], linux-generic-pae [i386]
 Description: Complete Linux kernel on Server Equipment.

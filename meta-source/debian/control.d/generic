@@ -1,6 +1,6 @@
 Package: linux-headers-generic
 Architecture: i386 amd64
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-headers-${kernel-abi-version}-generic
 Description: Generic Linux kernel headers
@@ -9,7 +9,7 @@ Description: Generic Linux kernel headers
 
 Package: linux-image-generic
 Architecture: i386 amd64
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-generic, linux-firmware
 Description: Generic Linux kernel image
@@ -18,7 +18,7 @@ Description: Generic Linux kernel image
 
 Package: linux-generic
 Architecture: i386 amd64
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-generic (= ${binary:Version})
 Description: Complete Generic Linux kernel

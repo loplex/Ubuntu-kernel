@@ -1,6 +1,6 @@
 Package: linux-headers-highbank
 Architecture: armhf
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-headers-${kernel-abi-version}-highbank 
 Description: Linux kernel headers for the Calxeda Highbank flavour.
@@ -9,7 +9,7 @@ Description: Linux kernel headers for the Calxeda Highbank flavour.
 
 Package: linux-image-highbank
 Architecture: armhf
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-highbank, linux-firmware
 Description: Linux kernel image for the Calxeda Highbank flavour.
@@ -18,7 +18,7 @@ Description: Linux kernel image for the Calxeda Highbank flavour.
 
 Package: linux-highbank
 Architecture: armhf
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-highbank (= ${binary:Version})
 Description: Complete Linux kernel for the Calxeda Highbank architecture.

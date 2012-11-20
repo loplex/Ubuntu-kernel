@@ -8,7 +8,7 @@ Vcs-Git: http://kernel.ubuntu.com/git-repos/ubuntu/ubuntu-precise-meta.git
 
 Package: linux
 Architecture: i386 amd64 
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image (= ${binary:Version})
 Description: Generic complete Linux kernel.
@@ -26,7 +26,7 @@ Description: Linux kernel source with Ubuntu patches
 
 Package: linux-image
 Architecture: i386 amd64 
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-${generic-depends} (= ${binary:Version})
 Description: Generic Linux kernel image.
@@ -49,7 +49,7 @@ Description: Linux kernel crashdump setup for the latest generic kernel
 
 Package: linux-tools
 Architecture: i386 amd64 armel armhf
-Section: metapackages
+Section: kernel
 Depends: ${misc:Depends}, linux-tools-${kernel-abi-version}
 Description: Linux kernel versioned Tools
  This package will always depend on the latest Linux kernel versioned tools 
@@ -66,7 +66,7 @@ Description: Linux kernel versioned Tools
 #
 Package: linux-image-hwe-generic
 Architecture: i386 amd64 
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-generic [amd64], linux-image-generic-pae [i386]
 Description: Depends on the generic hardware enablement kernel image and headers.
@@ -75,7 +75,7 @@ Description: Depends on the generic hardware enablement kernel image and headers
 
 Package: linux-hwe-generic
 Architecture: i386 amd64 
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-hwe-generic, linux-headers-generic [amd64], linux-headers-generic-pae [i386]
 Description: Depends on the generic hardware enablement kernel image and headers.
@@ -84,7 +84,7 @@ Description: Depends on the generic hardware enablement kernel image and headers
 
 Package: linux-image-current-generic
 Architecture: i386 amd64 
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-hwe-generic
 Description: Depends on the most recently released generic kernel image and headers.
@@ -93,7 +93,7 @@ Description: Depends on the most recently released generic kernel image and head
 
 Package: linux-current-generic
 Architecture: i386 amd64 
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-hwe-generic
 Description: Depends on the most recently released generic kernel image and headers.

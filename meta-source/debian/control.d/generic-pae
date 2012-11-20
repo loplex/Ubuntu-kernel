@@ -1,6 +1,6 @@
 Package: linux-headers-generic-pae
 Architecture: i386
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-headers-${kernel-abi-version}-generic-pae
 Description: Generic Linux kernel headers
@@ -9,7 +9,7 @@ Description: Generic Linux kernel headers
 
 Package: linux-image-generic-pae
 Architecture: i386
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-generic-pae, linux-firmware
 Description: Generic Linux kernel image
@@ -18,7 +18,7 @@ Description: Generic Linux kernel image
 
 Package: linux-generic-pae
 Architecture: i386
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-generic-pae (= ${binary:Version})
 Description: Complete Generic Linux kernel

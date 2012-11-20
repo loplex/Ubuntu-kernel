@@ -3,7 +3,7 @@
 #
 Package: linux-powerpc
 Architecture: powerpc
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: linux-powerpc-smp (= ${binary:Version})
 Description: Complete Linux kernel on PowerPC.
@@ -12,7 +12,7 @@ Description: Complete Linux kernel on PowerPC.
 
 Package: linux-image-powerpc
 Architecture: powerpc
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: linux-image-powerpc-smp (= ${binary:Version}), linux-firmware
 Description: Linux kernel image on PowerPC
@@ -21,7 +21,7 @@ Description: Linux kernel image on PowerPC
 
 Package: linux-headers-powerpc
 Architecture: powerpc
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: linux-headers-powerpc-smp (= ${binary:Version})
 Description: Linux kernel headers on PowerPC
