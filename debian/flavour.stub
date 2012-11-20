@@ -2,6 +2,7 @@
 Package: linux-signed-image-ABI-FLAVOUR
 Architecture: linux-amd64
 Depends: ${misc:Depends}, sbsigntool, linux-image-ABI-FLAVOUR (>= VERSION), linux-image-extra-ABI-FLAVOUR (>= VERSION)
+Built-Using: linux (= ${linux:Version})
 Description: Signed kernel image FLAVOUR
  A kernel image for FLAVOUR.  This version of it is signed with
  Canonical's UEFI signing key.
@@ -12,6 +13,7 @@ Section: debian-installer
 Priority: extra
 Provides: kernel-signed-image
 Architecture: linux-amd64
+Built-Using: linux (= ${linux:Version})
 Description: Signed kernel image FLAVOUR for the Debian installer
  A kernel image for FLAVOUR.  This version of it is signed with
  Canonical's UEFI signing key.  It is intended for the Debian installer,

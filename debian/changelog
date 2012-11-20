@@ -1,3 +1,9 @@
+linux-signed (3.7.0-2.8+signed1) UNRELEASED; urgency=low
+
+  * Add Built-Using: fields pointing to the original linux source packages.
+
+ -- Andy Whitcroft <apw@canonical.com>  Tue, 20 Nov 2012 16:48:06 +0000
+
 linux-signed (3.7.0-2.8) raring; urgency=low
 
   * Version 3.7.0-2.8

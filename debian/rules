@@ -70,3 +70,7 @@ override_dh_installdeb:
 			debian/linux-signed-image-$(src_abi)-$$flavour.postrm; \
 	done
 	dh_installdeb
+
+override_dh_gencontrol:
+	dh_gencontrol -- -Vlinux:Version=$(shell cat version)
+
