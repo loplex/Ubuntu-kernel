@@ -1,3 +1,9 @@
+linux-meta-lts-quantal (3.5.0.19.26) precise-proposed; urgency=low
+
+  * Add -signed packages for generic on amd64.  (LP: #1075181)
+
+ -- Andy Whitcroft <apw@canonical.com>  Fri, 23 Nov 2012 17:36:48 +0000
+
 linux-meta-lts-quantal (3.5.0.19.25) precise-proposed; urgency=low
 
   * Ubuntu-lts-3.5.0-19.30
