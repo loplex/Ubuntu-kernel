@@ -1,3 +1,9 @@
+linux-meta (3.7.0.4.8) raring; urgency=low
+
+  * linux ABI 3.7.0-4
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Tue, 27 Nov 2012 07:15:23 -0700
+
 linux-meta (3.7.0.3.7) raring; urgency=low
 
   * linux ABI 3.7.0-3
