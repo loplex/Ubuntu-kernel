@@ -1,8 +1,8 @@
 ubuntu-autotest (0.0.6-1) unstable; urgency=low
 
- * Start new release
+ * UBUNTU: SAUCE: [results2junit.py] Clean the text so the parser can deal with it.
 
- -- Steve Conklin <sconklin@canonical.com>  Fri, 05 Oct 2012 12:53:27 -0600
+ -- Brad Figg <brad.figg@canonical.com>  Tue, 04 Dec 2012 11:43:33 -0800
 
 ubuntu-autotest (0.0.5-1) unstable; urgency=low
 
