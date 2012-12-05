@@ -1,9 +1,182 @@
-linux-lts-backport-oneiric (3.0.0-28.45~lucid1) lucid-proposed; urgency=low
+linux-lts-backport-oneiric (3.0.0-29.46~lucid1) lucid-proposed; urgency=low
 
   [Luis Henriques]
 
   * Release Tracking Bug
-    - LP: #1079256
+    - LP: #1086597
+
+  [ Upstream Kernel Changes ]
+
+  * ath9k: fix stale pointers potentially causing access to free'd skbs
+    - LP: #1081645
+  * rt2800: validate step value for temperature compensation
+    - LP: #1081645
+  * target: Don't return success from module_init() if setup fails
+    - LP: #1081645
+  * cfg80211: fix antenna gain handling
+    - LP: #1081645
+  * wireless: drop invalid mesh address extension frames
+    - LP: #1081645
+  * mac80211: don't inspect Sequence Control field on control frames
+    - LP: #1081645
+  * DRM/Radeon: Fix Load Detection on legacy primary DAC.
+    - LP: #1081645
+  * mac80211: check management frame header length
+    - LP: #1081645
+  * mac80211: fix SSID copy on IBSS JOIN
+    - LP: #1081645
+  * nfsv3: Make v3 mounts fail with ETIMEDOUTs instead EIO on mountd
+    timeouts
+    - LP: #1081645
+  * nfs: Show original device name verbatim in /proc/*/mount{s,info}
+    - LP: #1081645
+  * NFSv4: nfs4_locku_done must release the sequence id
+    - LP: #1081645
+  * nfsd: add get_uint for u32's
+    - LP: #1081645
+  * NFS: fix bug in legacy DNS resolver.
+    - LP: #1081645
+  * NFS: Fix Oopses in nfs_lookup_revalidate and nfs4_lookup_revalidate
+    - LP: #1081645
+  * drm: restore open_count if drm_setup fails
+    - LP: #1081645
+  * hwmon: (w83627ehf) Force initial bank selection
+    - LP: #1081645
+  * ALSA: PCM: Fix some races at disconnection
+    - LP: #1081645
+  * ALSA: usb-audio: Fix races at disconnection
+    - LP: #1081645
+  * ALSA: usb-audio: Use rwsem for disconnect protection
+    - LP: #1081645
+  * ALSA: usb-audio: Fix races at disconnection in mixer_quirks.c
+    - LP: #1081645
+  * ALSA: Add a reference counter to card instance
+    - LP: #1081645
+  * ALSA: Avoid endless sleep after disconnect
+    - LP: #1081645
+  * sctp: fix call to SCTP_CMD_PROCESS_SACK in sctp_cmd_interpreter()
+    - LP: #1081645
+  * netlink: use kfree_rcu() in netlink_release()
+    - LP: #1081645
+  * tcp: fix FIONREAD/SIOCINQ
+    - LP: #1081645
+  * ipv6: Set default hoplimit as zero.
+    - LP: #1081645
+  * net: usb: Fix memory leak on Tx data path
+    - LP: #1081645
+  * l2tp: fix oops in l2tp_eth_create() error path
+    - LP: #1081645
+  * ipv6: send unsolicited neighbour advertisements to all-nodes
+    - LP: #1081645
+  * futex: Handle futex_pi OWNER_DIED take over correctly
+    - LP: #1081645
+  * drm/vmwgfx: Fix hibernation device reset
+    - LP: #1081645
+  * drm/i915: fixup infoframe support for sdvo
+    - LP: #1081645
+  * drm/i915: clear the entire sdvo infoframe buffer
+    - LP: #1081645
+  * USB: mos7840: remove unused variable
+    - LP: #1081645
+  * xfs: fix reading of wrapped log data
+    - LP: #1081645
+  * intel-iommu: Fix AB-BA lockdep report
+    - LP: #1081645
+  * ALSA: Fix card refcount unbalance
+    - LP: #1081645
+  * ALSA: usb-audio: Fix mutex deadlock at disconnection
+    - LP: #1081645
+  * Linux 3.0.52
+    - LP: #1081645
+  * mm: bugfix: set current->reclaim_state to NULL while returning from
+    kswapd()
+    - LP: #1083318
+  * fanotify: fix missing break
+    - LP: #1083318
+  * crypto: cryptd - disable softirqs in cryptd_queue_worker to prevent
+    data corruption
+    - LP: #1083318
+  * ALSA: hda: Cirrus: Fix coefficient index for beep configuration
+    - LP: #1083318
+  * ALSA: hda - Force to reset IEC958 status bits for AD codecs
+    - LP: #1083318, #359361
+  * ASoC: wm8978: pll incorrectly configured when codec is master
+    - LP: #1083318
+  * ASoC: dapm: Use card_list during DAPM shutdown
+    - LP: #1083318
+  * UBIFS: fix mounting problems after power cuts
+    - LP: #1083318
+  * UBIFS: introduce categorized lprops counter
+    - LP: #1083318
+  * s390/gup: add missing TASK_SIZE check to get_user_pages_fast()
+    - LP: #1083318
+  * USB: option: add Novatel E362 and Dell Wireless 5800 USB IDs
+    - LP: #1083318
+  * USB: option: add Alcatel X220/X500D USB IDs
+    - LP: #1083318
+  * wireless: allow 40 MHz on world roaming channels 12/13
+    - LP: #1083318
+  * m68k: fix sigset_t accessor functions
+    - LP: #1083318
+  * ipv4: avoid undefined behavior in do_ip_setsockopt()
+    - LP: #1083318
+  * ipv6: setsockopt(IPIPPROTO_IPV6, IPV6_MINHOPCOUNT) forgot to set return
+    value
+    - LP: #1083318
+  * net: correct check in dev_addr_del()
+    - LP: #1083318
+  * net-rps: Fix brokeness causing OOO packets
+    - LP: #1083318
+  * r8169: use unlimited DMA burst for TX
+    - LP: #1083318
+  * kbuild: Fix gcc -x syntax
+    - LP: #1083318
+  * netfilter: Validate the sequence number of dataless ACK packets as well
+    - LP: #1083318
+  * netfilter: Mark SYN/ACK packets as invalid from original direction
+    - LP: #1083318
+  * netfilter: nf_nat: don't check for port change on ICMP tuples
+    - LP: #1083318
+  * usb: use usb_serial_put in usb_serial_probe errors
+    - LP: #1083318
+  * sky2: Fix for interrupt handler
+    - LP: #1083318
+  * drm/i915: fix overlay on i830M
+    - LP: #1083318
+  * NFS: Wait for session recovery to finish before returning
+    - LP: #1083318
+  * reiserfs: Fix lock ordering during remount
+    - LP: #1083318
+  * reiserfs: Protect reiserfs_quota_on() with write lock
+    - LP: #1083318
+  * reiserfs: Move quota calls out of write lock
+    - LP: #1083318
+  * reiserfs: Protect reiserfs_quota_write() with write lock
+    - LP: #1083318
+  * selinux: fix sel_netnode_insert() suspicious rcu dereference
+    - LP: #1083318
+  * PCI : ability to relocate assigned pci-resources
+    - LP: #1083318
+  * PCI : Calculate right add_size
+    - LP: #1083318
+  * Resource: fix wrong resource window calculation
+    - LP: #1083318
+  * Linux 3.0.53
+    - LP: #1083318
+  * mm/hotplug: correctly add new zone to all other nodes' zone lists
+    - LP: #1079860
+    - CVE-2012-5517
+  * Bluetooth: ath3k: Add support for VAIO VPCEH [0489:e027]
+    - LP: #898826
+
+ -- Luis Henriques <luis.henriques@canonical.com>  Wed, 05 Dec 2012 10:06:44 +0000
+
+linux (3.0.0-28.45) oneiric-proposed; urgency=low
+
+  [Luis Henriques]
+
+  * Release Tracking Bug
+    - LP: #1078663
 
   [ Tim Gardner ]
 
@@ -426,7 +599,7 @@ linux-lts-backport-oneiric (3.0.0-28.45~lucid1) lucid-proposed; urgency=low
     - LP: #1077091
     - CVE-2012-4565
 
- -- Luis Henriques <luis.henriques@canonical.com>  Thu, 15 Nov 2012 16:01:23 +0000
+ -- Luis Henriques <luis.henriques@canonical.com>  Wed, 14 Nov 2012 10:58:19 +0000
 
 linux (3.0.0-27.44) oneiric-proposed; urgency=low
 
