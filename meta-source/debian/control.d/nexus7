@@ -12,6 +12,7 @@ Architecture: armhf
 Section: metapackages
 Priority: optional
 Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-nexus7, linux-firmware
+Recommends: linux-firmware-nexus7
 Description: Linux kernel image for the Nexus7.
  This package will always depend on the latest kernel image available
  for Nexus7.
