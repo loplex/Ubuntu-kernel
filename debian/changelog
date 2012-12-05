@@ -1,7 +1,9 @@
 ubuntu-kernel-tests (0.0.11-1) unstable; urgency=low
- * Start new release
 
- -- Brad Figg <brad.figg@canonical.com>  Fri, 09 Nov 2012 07:51:33 -0800
+ * [kernel-test-expander]: Add apparmor dependencies for raring series
+ * [kernel-test-expander]: added chromium-browser to power test dependencies
+
+ -- Brad Figg <brad.figg@canonical.com>  Wed, 05 Dec 2012 13:50:09 -0800
 
 ubuntu-kernel-tests (0.0.10-1) unstable; urgency=low
 
