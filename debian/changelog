@@ -1,3 +1,9 @@
+ubuntu-kernel-tests (0.0.12-1) unstable; urgency=low
+
+ * Start new release
+
+ -- Brad Figg <brad.figg@canonical.com>  Thu, 06 Dec 2012 09:49:54 -0800
+
 ubuntu-kernel-tests (0.0.11-1) unstable; urgency=low
 
  * [kernel-test-expander]: Add apparmor dependencies for raring series
