@@ -1,3 +1,9 @@
+linux-meta-ti-omap4 (3.2.0.1423.23) precise-proposed; urgency=low
+
+  * linux-ti-omap4 ABI 3.2.0-1423
+
+ -- Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>  Fri, 07 Dec 2012 16:41:45 -0200
+
 linux-meta-ti-omap4 (3.2.0.1422.22) precise-proposed; urgency=low
 
   * linux-ti-omap4 ABI 3.2.0-1422
