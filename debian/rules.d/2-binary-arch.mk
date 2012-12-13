@@ -52,9 +52,6 @@ ifneq ($(CWDIRS),)
 endif
 
 	cat $(confdir)/$(arch) > $(builddir)/build-$*/.config
-ifeq ($(do_net),true)
-	cat $(confdir)/$(arch) > $(builddir)/build-$*/net/.config
-endif
 	# XXX: generate real config
 	touch $(builddir)/build-$*/ubuntu-config.h
 	touch $(builddir)/build-$*/ubuntu-build
@@ -73,7 +70,7 @@ ifneq ($(CWDIRS),)
 	done
 endif
 ifeq ($(do_net),true)
-	BUILD_KERNEL=$(NET_BUILD_KERNEL) $(kmake) $(conc_level) obj=net modules
+	BUILD_KERNEL=$(NET_BUILD_KERNEL) $(kmake) $(conc_level) M=$(builddir)/build-$(target_flavour)/net modules
 endif
 	touch $@
 
