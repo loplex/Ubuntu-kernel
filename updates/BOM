@@ -14,3 +14,6 @@ http://www.intel.com/support/ethernetcomponents/controllers/x540/sb/CS-032780.ht
 
 R8169:
 #git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v3.1
+
+HV:
+This is a backport from the v3.7 version in raring.

@@ -71,7 +71,7 @@ debian/control.stub: debian/d-i/kernel-versions.in	\
 	  cat $$i | sed -e 's/PKGVER/$(pkgversion)/g' -e 's/ABINUM/$(abinum)/g' > \
 		$$new;								\
 	done
-	$(SHELL) debian/scripts/control-head $@ $(release)-$(abinum) > $@.tmp
+	$(SHELL) debian/scripts/control-head $@ $(release) $(abinum) > $@.tmp
 	flavours="$(wildcard debian/control.d/vars.*)";				\
 	for i in $$flavours; do							\
 	  $(SHELL) debian/scripts/control-create $$i |				\

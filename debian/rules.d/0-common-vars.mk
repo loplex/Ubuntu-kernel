@@ -53,6 +53,7 @@ no_compat_wireless_flavours="xen virtual"
 #
 do_compat_wireless := 3.3 3.4 3.5 3.6
 do_net=true
+do_hv=true
 
 #
 # Compat wireless versions for which packages are created.
