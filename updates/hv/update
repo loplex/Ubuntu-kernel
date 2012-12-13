@@ -1,0 +1,21 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+	echo "Usage: $0 <clean raring tree>" 1>&2
+	exit 1
+fi
+
+raring="$1"
+
+# Update the main driver from Raring (v3.7/8)
+git rm drivers/hv/*.c drivers/hv/include/linux/*.h
+mkdir -p drivers/hv/include/linux
+cp -p "$raring"/drivers/hv/*.c drivers/hv
+cp -p "$raring"/include/linux/hyperv.h drivers/hv/include/linux
+git add drivers/hv/*.c drivers/hv/include/linux/*.h
+# ... and the tools.
+git rm tools/hv/*
+mkdir -p tools/hv
+cp -p "$raring"/tools/hv/* tools/hv
+sed -i -e 's@#include <linux/hyperv.h>@#include "hyperv.h"@' tools/hv/*.c
+git add tools/hv
