@@ -1,9 +1,12 @@
 #!/bin/bash
 
 input="$1"
-version="$2"
+ver="$2"
+abi="$3"
 
-deps=""
+version="$ver-$abi"
+
+deps=", linux-source-${ver}"
 
 for var in debian/control.d/vars.*; do
 	flavour=$(basename $var | sed 's/.*\.//')

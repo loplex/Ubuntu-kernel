@@ -51,6 +51,26 @@ ifneq ($(CWDIRS),)
 	done
 endif
 
+ifeq ($(do_hv),true)
+	# Extract the files we will need to rebuild from the source tarball
+	# for the latest build.
+	(cd $(builddir)/build-$* && \
+		tar xvf /usr/src/linux-source-$(release)/linux-source-$(release).tar.bz2 \
+		linux-source-$(release)/drivers/hid/hid-hyperv.c \
+		linux-source-$(release)/drivers/net/hyperv/netvsc_drv.c \
+		linux-source-$(release)/drivers/net/hyperv/rndis_filter.c \
+		linux-source-$(release)/drivers/net/hyperv/netvsc.c \
+		linux-source-$(release)/drivers/net/hyperv/hyperv_net.h \
+		linux-source-$(release)/drivers/scsi/storvsc_drv.c; \
+		find linux-source-$(release) -type f -print | \
+		while read f; do \
+			fd=`echo "$$f" | sed -e "s/linux-source-$(release)/hv/"`; \
+			echo cp -p "$$f" "$$fd"; \
+			cp -p "$$f" "$$fd"; \
+		done; \
+	)
+endif
+
 	cat $(confdir)/$(arch) > $(builddir)/build-$*/.config
 	# XXX: generate real config
 	touch $(builddir)/build-$*/ubuntu-config.h
@@ -72,16 +92,25 @@ endif
 ifeq ($(do_net),true)
 	BUILD_KERNEL=$(NET_BUILD_KERNEL) $(kmake) $(conc_level) M=$(builddir)/build-$(target_flavour)/net modules
 endif
+ifeq ($(do_hv),true)
+	BUILD_KERNEL=$(NET_BUILD_KERNEL) $(kmake) $(conc_level) M=$(builddir)/build-$(target_flavour)/hv modules
+
+	ln -s ../../drivers/hv/include/linux/hyperv.h $(builddir)/build-$*/hv/tools/hv/hyperv.h
+	make -C $(builddir)/build-$*/hv/tools/hv CROSS_COMPILE=$(CROSS_COMPILE)
+endif
 	touch $@
 
 # Install the finished build
 install-%: csmoddir = $(cspkgdir)/lib/modules/$(release)-$(abinum)-$*
 install-%: netpkgdir = $(CURDIR)/debian/linux-backports-modules-net-$(release)-$(abinum)-$*
 install-%: netmoddir = $(netpkgdir)/lib/modules/$(release)-$(abinum)-$*
+install-%: hvpkgdir = $(CURDIR)/debian/linux-backports-modules-hv-$(release)-$(abinum)-$*
+install-%: hvmoddir = $(hvpkgdir)/lib/modules/$(release)-$(abinum)-$*
 install-%: lbmbasehdrpkg = linux-headers-lbm-$(release)$(debnum)
 install-%: lbmhdrpkg = $(lbmbasehdrpkg)-$*
 install-%: hdrdir = $(CURDIR)/debian/$(lbmhdrpkg)/usr/src/$(lbmhdrpkg)
 install-%: target_flavour = $*
+install-%: build_arch_t = $(call custom_override,build_arch,$*)
 install-%: build-modules-%
 	dh_testdir
 	dh_testroot
@@ -140,6 +169,22 @@ ifeq ($(do_net),true)
 	done
 endif
 
+ifeq ($(do_hv),true)
+	#
+	# Build the hv package.
+	#
+	BUILD_KERNEL=$(NET_BUILD_KERNEL) $(kmake) INSTALL_MOD_PATH=$(hvpkgdir) INSTALL_MOD_DIR=updates $(conc_level) M=$(builddir)/build-$(target_flavour)/hv modules_install
+
+	find $(hvpkgdir)/ -type f -name \*.ko -print | xargs -r strip --strip-debug
+
+	install -d $(hvpkgdir)/DEBIAN
+	for script in postinst postrm; do					\
+	  sed -e 's/@@KVER@@/$(release)-$(abinum)-$*/g'				\
+	       debian/control-scripts/$$script > $(hvpkgdir)/DEBIAN/$$script;	\
+	  chmod 755 $(hvpkgdir)/DEBIAN/$$script;				\
+	done
+endif
+
 	#
 	# The flavour specific headers package
 	#
@@ -164,6 +209,7 @@ cw_pkg_list_suf = $(addsuffix -$(release)-$(abinum)-$*,$(cw_pkg_list_pre))
 packages-true =
 packages-true += $(cw_pkg_list_suf)
 packages-$(do_net) += linux-backports-modules-net-$(release)-$(abinum)-$*
+packages-$(do_hv) += linux-backports-modules-hv-$(release)-$(abinum)-$*
 
 binary-modules-%: install-%
 	dh_testdir
