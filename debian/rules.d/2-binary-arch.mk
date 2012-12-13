@@ -175,6 +175,10 @@ ifeq ($(do_hv),true)
 	#
 	BUILD_KERNEL=$(NET_BUILD_KERNEL) $(kmake) INSTALL_MOD_PATH=$(hvpkgdir) INSTALL_MOD_DIR=updates $(conc_level) M=$(builddir)/build-$(target_flavour)/hv modules_install
 
+	install -d $(hvpkgdir)/usr/sbin
+	install -s -m755 $(builddir)/build-$*/hv/tools/hv/hv_kvp_daemon \
+	       $(hvpkgdir)/usr/sbin/hv_kvp_daemon_$(release)-$(abinum)_lbm
+
 	find $(hvpkgdir)/ -type f -name \*.ko -print | xargs -r strip --strip-debug
 
 	install -d $(hvpkgdir)/DEBIAN
