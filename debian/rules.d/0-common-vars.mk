@@ -88,7 +88,7 @@ KDIR		= /lib/modules/$(release)-$(abinum)-$(target_flavour)/build
 
 # target_flavour is filled in for each step
 kmake = make -C $(KDIR) \
-	ARCH=$(build_arch_t) M=$(builddir)/build-$(target_flavour) \
+	ARCH=$(build_arch_t) \
 	UBUNTU_FLAVOUR=$(target_flavour)
 ifneq ($(LOCAL_ENV_CC),)
 kmake += CC=$(LOCAL_ENV_CC) DISTCC_HOSTS=$(LOCAL_ENV_DISTCC_HOSTS)
