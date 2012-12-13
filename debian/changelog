@@ -1,11 +1,11 @@
-linux-backports-modules-3.5.0 (3.5.0-21.6) UNRELEASED; urgency=low
+linux-backports-modules-3.5.0 (3.5.0-21.6) quantal-proposed; urgency=low
 
   [ Andy Whitcroft ]
 
   * Add a new HV backport module for use on the Hyper-V platform.
     - LP: #1089970
 
- -- Andy Whitcroft <apw@canonical.com>  Thu, 13 Dec 2012 19:58:40 +0000
+ -- Luis Henriques <luis.henriques@canonical.com>  Thu, 13 Dec 2012 22:21:46 +0000
 
 linux-backports-modules-3.5.0 (3.5.0-21.5) quantal-proposed; urgency=low
 
