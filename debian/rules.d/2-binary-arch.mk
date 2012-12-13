@@ -34,6 +34,7 @@ $(stampdir)/stamp-prepare-%: $(confdir)/$(arch)
 	@echo "Preparing $*..."
 	install -d $(builddir)/build-$*
 	cd updates; tar cf - * | tar -C $(builddir)/build-$* -xf -
+ifneq ($(CWDIRS),)
 	#
 	# compat-wireless preparation
 	#
@@ -48,6 +49,7 @@ $(stampdir)/stamp-prepare-%: $(confdir)/$(arch)
 		mv -v $${cw_dir}/udev/50-compat_firmware.rules $${cw_dir}/udev/50-compat_firmware_$(abinum)_$(target_flavour).rules; \
 		mv -v $${cw_dir}/udev/compat_firmware.sh $${cw_dir}/udev/compat_firmware_$(abinum)_$(target_flavour).sh; \
 	done
+endif
 
 	cat $(confdir)/$(arch) > $(builddir)/build-$*/.config
 ifeq ($(do_net),true)
@@ -65,9 +67,11 @@ $(stampdir)/stamp-build-%: target_flavour = $*
 $(stampdir)/stamp-build-%: build_arch_t = $(call custom_override,build_arch,$*)
 $(stampdir)/stamp-build-%: prepare-%
 	@echo "Building $*..."
+ifneq ($(CWDIRS),)
 	for i in $(CWDIRS); do \
 		cd $(builddir)/build-$*/$$i && $(make_compat); \
 	done
+endif
 ifeq ($(do_net),true)
 	BUILD_KERNEL=$(NET_BUILD_KERNEL) $(kmake) $(conc_level) obj=net modules
 endif
@@ -85,6 +89,7 @@ install-%: build-modules-%
 	dh_testdir
 	dh_testroot
 
+ifneq ($(CWDIRS),)
 	for i in $(CWDIRS); do \
 		cw=$$i; \
 		cwpkgdir=$(CURDIR)/debian/linux-backports-modules-$${cw}-$(release)-$(abinum)-$(target_flavour); \
@@ -116,6 +121,7 @@ install-%: build-modules-%
 		install -d $${firmdir}; \
 		if [ -d firmware/iwlwifi ] ; then cp firmware/iwlwifi/*/*.ucode $${firmdir}/; fi; \
 	done
+endif
 
 ifeq ($(do_net),true)
 	#
