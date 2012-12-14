@@ -32,10 +32,3 @@ Depends: ${misc:Depends}, linux-image-generic
 Description: Transitional package.
  This package will always depend on linux-image-generic.
 
-Package: linux-backports-modules-hv-RELEASE_NAME-virtual
-Architecture: i386 amd64
-Depends: ${misc:Depends}, linux-backports-modules-hv-${kernel-abi-version}-generic
-Description: Backported Hyper-V hypervisor interfaces
- This empty package allows people to keep their Hyper-V updated drivers
- up-to-date when upgrading their Linux kernel.
-
