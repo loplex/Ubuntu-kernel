@@ -38,8 +38,7 @@ Description: Linux kernel extra modules for virtual machines
 
 Package: linux-backports-modules-hv-RELEASE_NAME-virtual
 Architecture: amd64 i386
-Depends: ${misc:Depends}, linux-backports-modules-hv-${kernel-abi-version}-generic
+Depends: ${misc:Depends}, linux-backports-modules-hv-${kernel-abi-version}-virtual
 Description: Backported Hyper-V hypervisor interfaces
  This empty package allows people to keep their Hyper-V updated drivers
  up-to-date when upgrading their Linux kernel.
-
