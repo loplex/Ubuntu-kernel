@@ -1,3 +1,11 @@
+linux-meta (3.5.0.21.27) quantal-proposed; urgency=low
+
+  [ Brad Figg ]
+
+  * UBUNTU: So maybe it does make sense to have the virtual->generic dependency
+
+ -- Brad Figg <brad.figg@canonical.com>  Thu, 13 Dec 2012 20:53:48 -0800
+
 linux-meta (3.5.0.21.26) quantal-proposed; urgency=low
 
   [ Brad Figg ]
