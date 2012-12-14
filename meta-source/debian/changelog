@@ -1,3 +1,12 @@
+linux-meta (3.2.0.35.40) precise-proposed; urgency=low
+
+  [ Brad Figg ]
+
+  * UBUNTU: The -hv- driver should be for the same flavour of kernel generic->generic, virtual->virtual, generic-pae->generic-pae
+    - LP: #1089970
+
+ -- Brad Figg <brad.figg@canonical.com>  Thu, 13 Dec 2012 17:23:44 -0800
+
 linux-meta (3.2.0.35.39) precise-proposed; urgency=low
 
   [ Andy Whitcroft ]
