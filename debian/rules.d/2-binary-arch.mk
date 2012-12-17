@@ -177,7 +177,7 @@ ifeq ($(do_hv),true)
 
 	install -d $(hvpkgdir)/usr/sbin
 	install -s -m755 $(builddir)/build-$*/hv/tools/hv/hv_kvp_daemon \
-	       $(hvpkgdir)/usr/sbin/hv_kvp_daemon_$(release)-$(abinum)_lbm
+	       $(hvpkgdir)/usr/sbin/hv_kvp_daemon_$(release)-$(abinum)-$(target_flavour)
 
 	find $(hvpkgdir)/ -type f -name \*.ko -print | xargs -r strip --strip-debug
 
