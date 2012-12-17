@@ -5,6 +5,8 @@ linux-backports-modules-3.5.0 (3.5.0-21.7) UNRELEASED; urgency=low
   * The hv_kvp_daemon is flavour specific when built from within LBM so
     include the flavour to avoid collisions in /usr/sbin.
     - LP: #1089970
+  * Fix up the hv updater to handle cleanups in the master source (non-source
+    change).
 
  -- Andy Whitcroft <apw@canonical.com>  Mon, 17 Dec 2012 12:11:04 +0000
 
