@@ -17,5 +17,5 @@ git add drivers/hv/*.c drivers/hv/include/linux/*.h
 git rm tools/hv/*
 mkdir -p tools/hv
 cp -p "$raring"/tools/hv/* tools/hv
-sed -i -e 's@#include <linux/hyperv.h>@#include "hyperv.h"@' tools/hv/*.c
+sed -i -e 's@#include [<"].*/hyperv.h[">]@#include "hyperv.h"@' tools/hv/*.c
 git add tools/hv
