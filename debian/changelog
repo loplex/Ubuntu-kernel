@@ -7,6 +7,9 @@ linux-backports-modules-3.2.0 (3.2.0-35.22) UNRELEASED; urgency=low
     - LP: #1089970
   * Fix up the hv updater to handle cleanups in the master source (non-source
     change).
+  * Update daemon to latest to obtain the following fixes:
+   - hv_kvp_daemon -- prevent self-daemonising to allow upstart to track
+   - LP: #1078106
 
  -- Andy Whitcroft <apw@canonical.com>  Mon, 17 Dec 2012 10:00:43 +0000
 
