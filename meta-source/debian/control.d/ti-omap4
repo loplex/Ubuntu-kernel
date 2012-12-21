@@ -1,6 +1,6 @@
 Package: linux-headers-omap4
 Architecture: armhf
-Section: metapackages
+Section: devel
 Priority: optional
 Depends: ${misc:Depends}, linux-headers-${kernel-abi-version}-omap4 
 Description: Linux kernel headers for the OMAP4 architecture.
@@ -9,7 +9,7 @@ Description: Linux kernel headers for the OMAP4 architecture.
 
 Package: linux-image-omap4
 Architecture: armhf
-Section: metapackages
+Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-omap4, linux-firmware
 Description: Linux kernel image for the OMAP4 architecture.
@@ -18,9 +18,9 @@ Description: Linux kernel image for the OMAP4 architecture.
 
 Package: linux-omap4
 Architecture: armhf
-Section: metapackages
+Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-omap4 (= ${binary:Version})
+Depends: ${misc:Depends}, linux-image-omap4 (= ${binary:Version}), linux-headers-omap4 (= ${binary:Version})
 Description: Complete Linux kernel for the OMAP4 architecture.
  This package will always depend on the latest complete Linux kernel available
  for ARM ti-omap4 systems.

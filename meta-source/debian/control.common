@@ -8,7 +8,7 @@ Vcs-Git: http://kernel.ubuntu.com/git-repos/ubuntu/ubuntu-precise-meta.git ti-om
 
 Package: linux-tools-omap4
 Architecture: armhf
-Section: metapackages
+Section: kernel
 Depends: ${misc:Depends}, linux-ti-omap4-tools-${kernel-abi-version}
 Description: Linux kernel versioned Tools
  This package will always depend on the latest Linux kernel versioned tools
