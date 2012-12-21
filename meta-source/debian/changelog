@@ -1,3 +1,10 @@
+linux-meta-nexus7 (3.1.10.8.15) raring; urgency=low
+
+  * Change sections to devel/kernel to match the archive (LP: #1074787)
+  * Make linux-nexus7 depend on linux-headers-nexus7, like with master.
+
+ -- Adam Conrad <adconrad@ubuntu.com>  Thu, 20 Dec 2012 21:18:53 -0700
+
 linux-meta-nexus7 (3.1.10.8.14) raring; urgency=low
 
   * Added a Vcs-Git URL 
