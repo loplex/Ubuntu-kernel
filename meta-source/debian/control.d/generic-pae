@@ -2,7 +2,7 @@ Package: linux-headers-generic-pae
 Architecture: i386
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-headers-generic
+Depends: ${misc:Depends}, linux-headers-generic (= ${binary:Version})
 Description: Transitional package
  This package will always depend on linux-headers-generic
 
@@ -10,7 +10,7 @@ Package: linux-image-generic-pae
 Architecture: i386
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-generic
+Depends: ${misc:Depends}, linux-image-generic (= ${binary:Version})
 Description: Transitional package
  This package will always depend on linux-image-generic
 
@@ -18,6 +18,6 @@ Package: linux-generic-pae
 Architecture: i386
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-generic
+Depends: ${misc:Depends}, linux-generic (= ${binary:Version})
 Description: Transitional package.
  This package will always depend on linux-generic.

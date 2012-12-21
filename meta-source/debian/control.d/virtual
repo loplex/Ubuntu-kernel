@@ -2,7 +2,7 @@ Package: linux-headers-virtual
 Architecture: i386 amd64
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-headers-generic
+Depends: ${misc:Depends}, linux-headers-generic (= ${binary:Version})
 Description: Transitional package.
  This package will always depend on linux-headers-generic.
 
@@ -19,7 +19,7 @@ Package: linux-virtual
 Architecture: i386 amd64
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-virtual, linux-headers-virtual
+Depends: ${misc:Depends}, linux-image-virtual (= ${binary:Version}), linux-headers-virtual (= ${binary:Version})
 Description: Minimal Generic Linux kernel and headers
  This package will always depend on linux-image-virtual and
  linux-headers-virtual.
@@ -28,6 +28,6 @@ Package: linux-image-extra-virtual
 Architecture: i386 amd64
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-generic
+Depends: ${misc:Depends}, linux-image-generic (= ${binary:Version})
 Description: Transitional package.
  This package will always depend on linux-image-generic.

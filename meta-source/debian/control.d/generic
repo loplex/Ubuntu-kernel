@@ -20,7 +20,7 @@ Package: linux-generic
 Architecture: i386 amd64
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-generic, linux-headers-generic
+Depends: ${misc:Depends}, linux-image-generic (= ${binary:Version}), linux-headers-generic (= ${binary:Version})
 Description: Complete Generic Linux kernel and headers
  This package will always depend on the latest complete generic Linux kernel
  and headers.
