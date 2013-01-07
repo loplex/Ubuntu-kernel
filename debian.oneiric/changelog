@@ -1,9 +1,194 @@
-linux-lts-backport-oneiric (3.0.0-29.46~lucid1) lucid-proposed; urgency=low
+linux-lts-backport-oneiric (3.0.0-30.47~lucid1) lucid-proposed; urgency=low
 
   [Luis Henriques]
 
   * Release Tracking Bug
-    - LP: #1086597
+    - LP: #1095807
+
+  [ Colin Ian King ]
+
+  * SAUCE: samsung-laptop: disable in UEFI mode
+    - LP: #1040557
+
+  [ Herton Ronaldo Krzesinski ]
+
+  * SAUCE: usb: cdc-wdm: fix regression on buffer deallocation
+    - LP: #1074157
+  * [Config] updateconfigs for 3.0.57 stable update
+
+  [ Kees Cook ]
+
+  * SAUCE: exec: do not leave bprm->interp on stack
+    - LP: #1068888
+    - CVE-2012-4530
+
+  [ Upstream Kernel Changes ]
+
+  * Revert "sched, autogroup: Stop going ahead if autogroup is disabled"
+    - LP: #1088641
+  * ALSA: pcmcia - Use pcmcia_request_irq()
+    - LP: #1087264
+  * drivers/block/DAC960: fix DAC960_V2_IOCTL_Opcode_T -Wenum-compare
+    warning
+    - LP: #1087264
+  * drivers/block/DAC960: fix -Wuninitialized warning
+    - LP: #1087264
+  * riva/fbdev: fix several -Wuninitialized
+    - LP: #1087264
+  * ifenslave: Fix unused variable warnings.
+    - LP: #1087264
+  * x86-32: Fix invalid stack address while in softirq
+    - LP: #1087264
+  * x86, microcode, AMD: Add support for family 16h processors
+    - LP: #1087264
+  * rtlwifi: rtl8192cu: Add new USB ID
+    - LP: #1087264
+  * mwifiex: report error to MMC core if we cannot suspend
+    - LP: #1087264
+  * SCSI: isci: copy fis 0x34 response into proper buffer
+    - LP: #1087264
+  * ALSA: ua101, usx2y: fix broken MIDI output
+    - LP: #1087264
+  * PARISC: fix virtual aliasing issue in get_shared_area()
+    - LP: #1087264
+  * PARISC: fix user-triggerable panic on parisc
+    - LP: #1087264
+  * mtd: slram: invalid checking of absolute end address
+    - LP: #1087264
+  * dm: fix deadlock with request based dm and queue request_fn recursion
+    - LP: #1087264
+  * futex: avoid wake_futex() for a PI futex_q
+    - LP: #1087264
+  * mac80211: deinitialize ibss-internals after emptiness check
+    - LP: #1087264
+  * radeon: add AGPMode 1 quirk for RV250
+    - LP: #1087264
+  * can: bcm: initialize ifindex for timeouts without previous frame
+    reception
+    - LP: #1087264
+  * jbd: Fix lock ordering bug in journal_unmap_buffer()
+    - LP: #1087264
+  * sparc64: not any error from do_sigaltstack() should fail rt_sigreturn()
+    - LP: #1087264
+  * ALSA: hda - Add new codec ALC283 ALC290 support
+    - LP: #1087264
+  * ALSA: hda - Fix missing beep on ASUS X43U notebook
+    - LP: #1087264
+  * ALSA: hda - Add support for Realtek ALC292
+    - LP: #1081466, #1087264
+  * bas_gigaset: fix pre_reset handling
+    - LP: #1087264
+  * ixgbe: add support for X540-AT1
+    - LP: #1087264
+  * sata_svw: check DMA start bit before reset
+    - LP: #1087264
+  * ixgbe: add support for new 82599 device
+    - LP: #1087264
+  * ixgbe: add support for new 82599 device id
+    - LP: #1087264
+  * get_dvb_firmware: fix download site for tda10046 firmware
+    - LP: #1087264
+  * USB: mct_u232: fix broken close
+    - LP: #1087264
+  * watchdog: using u64 in get_sample_period()
+    - LP: #1087264
+  * Input: bcm5974 - set BUTTONPAD property
+    - LP: #1087264
+  * mmc: sdhci-s3c: fix the wrong number of max bus clocks
+    - LP: #1087264
+  * Linux 3.0.54
+    - LP: #1087264
+  * x86-32: Export kernel_stack_pointer() for modules
+    - LP: #1087267
+  * Linux 3.0.55
+    - LP: #1087267
+  * Dove: Attempt to fix PMU/RTC interrupts
+    - LP: #1088641
+  * Dove: Fix irq_to_pmu()
+    - LP: #1088641
+  * mm/vmemmap: fix wrong use of virt_to_page
+    - LP: #1088641
+  * mm: soft offline: split thp at the beginning of soft_offline_page()
+    - LP: #1088641
+  * workqueue: exit rescuer_thread() as TASK_RUNNING
+    - LP: #1088641
+  * route: release dst_entry.hh_cache when handling redirects
+    - LP: #1088641
+  * ACPI: missing break
+    - LP: #1088641
+  * i915: Quirk no_lvds on Gigabyte GA-D525TUD ITX motherboard
+    - LP: #1088641
+  * drm/i915: Add no-lvds quirk for Supermicro X7SPA-H
+    - LP: #1088641
+  * scsi: Silence unnecessary warnings about ioctl to partition
+    - LP: #1088641
+  * Linux 3.0.56
+    - LP: #1088641
+  * KVM: x86: invalid opcode oops on SET_SREGS with OSXSAVE bit set
+    (CVE-2012-4461)
+    - LP: #1089604
+    - CVE-2012-4461
+  * ARM: 7566/1: vfp: fix save and restore when running on pre-VFPv3 and
+    CONFIG_VFPv3 set
+    - LP: #1091402
+  * powerpc/ptrace: Fix build with gcc 4.6
+    - LP: #1091402
+  * workqueue: convert BUG_ON()s in __queue_delayed_work() to
+    WARN_ON_ONCE()s
+    - LP: #1091402
+  * mm: dmapool: use provided gfp flags for all dma_alloc_coherent() calls
+    - LP: #1091402
+  * x86,AMD: Power driver support for AMD's family 16h processors
+    - LP: #1091402
+  * telephony: ijx: buffer overflow in ixj_write_cid()
+    - LP: #1091402
+  * tmpfs: fix shared mempolicy leak
+    - LP: #1091402
+  * x86: hpet: Fix masking of MSI interrupts
+    - LP: #1091402
+  * USB: add new zte 3g-dongle's pid to option.c
+    - LP: #1091402
+  * USB: option: blacklist network interface on Huawei E173
+    - LP: #1091402
+  * USB: ftdi_sio: Add support for Newport AGILIS motor drivers
+    - LP: #1091402
+  * usb: ftdi_sio: fixup BeagleBone A5+ quirk
+    - LP: #1091402
+  * USB: cp210x: add Virtenio Preon32 device id
+    - LP: #1091402
+  * USB: mark uas driver as BROKEN
+    - LP: #1091402
+  * ACPI / battery: Correct battery capacity values on Thinkpads
+    - LP: #1091402
+  * ACPI / PNP: Do not crash due to stale pointer use during system resume
+    - LP: #1091402
+  * ACPI / video: ignore BIOS initial backlight value for HP Folio 13-2000
+    - LP: #1091402
+  * USB: OHCI: workaround for hardware bug: retired TDs not added to the
+    Done Queue
+    - LP: #1091402
+  * xhci: Extend Fresco Logic MSI quirk.
+    - LP: #1091402
+  * ftrace: Clear bits properly in reset_iter_read()
+    - LP: #1091402
+  * powerpc: Update DSCR on all CPUs when writing sysfs dscr_default
+    - LP: #1091402
+  * powerpc: Keep thread.dscr and thread.dscr_inherit in sync
+    - LP: #1091402
+  * Linux 3.0.57
+    - LP: #1091402
+  * exec: use -ELOOP for max recursion depth
+    - LP: #1068888
+    - CVE-2012-4530
+
+ -- Luis Henriques <luis.henriques@canonical.com>  Mon, 07 Jan 2013 11:21:12 +0000
+
+linux (3.0.0-29.46) oneiric-proposed; urgency=low
+
+  [Luis Henriques]
+
+  * Release Tracking Bug
+    - LP: #1086305
 
   [ Upstream Kernel Changes ]
 
@@ -169,7 +354,7 @@ linux-lts-backport-oneiric (3.0.0-29.46~lucid1) lucid-proposed; urgency=low
   * Bluetooth: ath3k: Add support for VAIO VPCEH [0489:e027]
     - LP: #898826
 
- -- Luis Henriques <luis.henriques@canonical.com>  Wed, 05 Dec 2012 10:06:44 +0000
+ -- Luis Henriques <luis.henriques@canonical.com>  Tue, 04 Dec 2012 09:56:27 +0000
 
 linux (3.0.0-28.45) oneiric-proposed; urgency=low
 
