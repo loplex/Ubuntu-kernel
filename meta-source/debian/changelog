@@ -1,3 +1,9 @@
+linux-meta (3.8.0.0.13) raring; urgency=low
+
+  * linux ABI 3.8.0-0
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Thu, 10 Jan 2013 07:37:28 -0700
+
 linux-meta (3.7.0.7.12) UNRELEASED; urgency=low
 
   * Add direct binary version linkage to ensure correct version pairing.
