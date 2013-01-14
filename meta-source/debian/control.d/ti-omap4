@@ -20,7 +20,7 @@ Package: linux-omap4
 Architecture: armel armhf
 Section: metapackages
 Priority: optional
-Depends: ${misc:Depends}, linux-image-omap4 (= ${binary:Version})
+Depends: ${misc:Depends}, linux-image-omap4 (= ${binary:Version}), linux-headers-omap4 (= ${binary:Version})
 Description: Complete Linux kernel for the OMAP4 architecture.
  This package will always depend on the latest complete Linux kernel available
  for ARM ti-omap4 systems.
