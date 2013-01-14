@@ -20,7 +20,7 @@ Package: linux-generic-pae
 Architecture: i386
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-generic-pae (= ${binary:Version})
+Depends: ${misc:Depends}, linux-image-generic-pae (= ${binary:Version}), linux-headers-generic-pae (= ${binary:Version})
 Description: Complete Generic Linux kernel
  This package will always depend on the latest complete generic Linux kernel
  available.

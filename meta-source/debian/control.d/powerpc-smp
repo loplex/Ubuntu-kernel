@@ -5,7 +5,7 @@ Package: linux-powerpc-smp
 Architecture: powerpc
 Section: kernel
 Priority: optional
-Depends: linux-image-powerpc-smp (= ${binary:Version})
+Depends: linux-image-powerpc-smp (= ${binary:Version}), linux-headers-powerpc-smp (= ${binary:Version})
 Description: Complete Linux kernel on PowerPC SMP.
  This package will always depend on the latest complete Linux kernel available
  for PowerPC with SMP support.

@@ -21,7 +21,7 @@ Package: linux-virtual
 Architecture: i386 amd64
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-virtual (= ${binary:Version})
+Depends: ${misc:Depends}, linux-image-virtual (= ${binary:Version}), linux-headers-virtual (= ${binary:Version})
 Description: Complete Linux kernel for virtual machines
  This package will always depend on the latest complete Linux kernel available
  for virtual machines. Install linux-image-extra-virtual to get all

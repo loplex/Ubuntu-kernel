@@ -20,7 +20,7 @@ Package: linux-server
 Architecture: amd64 i386
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-server (= ${binary:Version}) [amd64], linux-generic-pae [i386]
+Depends: ${misc:Depends}, linux-image-server (= ${binary:Version}) [amd64], linux-headers-server (= ${binary:Version}) [amd64], linux-generic-pae [i386]
 Description: Complete Linux kernel on Server Equipment.
  This package will always depend on the latest complete Linux kernel available
  for Server Equipment.

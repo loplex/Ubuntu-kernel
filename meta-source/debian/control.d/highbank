@@ -20,7 +20,7 @@ Package: linux-highbank
 Architecture: armhf
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-highbank (= ${binary:Version})
+Depends: ${misc:Depends}, linux-image-highbank (= ${binary:Version}), linux-headers-highbank (= ${binary:Version})
 Description: Complete Linux kernel for the Calxeda Highbank architecture.
  This package will always depend on the latest complete Linux kernel available
  for Calxeda Highbank systems.
