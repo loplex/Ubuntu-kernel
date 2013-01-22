@@ -80,6 +80,8 @@ static inline double parse_timestamp(const char *buffer)
 	struct tm tm;
 	double seconds;
 
+	memset(&tm, 0, sizeof(tm));
+
 	/* Time stamp in format: 2011-12-02T01:03:41.720551 */
 	sscanf(buffer, "%d-%d-%d%*c%d:%d:%lf",
 		&tm.tm_year, &tm.tm_mon, &tm.tm_mday,
