@@ -1,3 +1,9 @@
+linux-meta-ti-omap4 (3.5.0.218.19) quantal-proposed; urgency=low
+
+  * Ubuntu-3.5.0-218.26
+
+ -- Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>  Fri, 25 Jan 2013 16:09:31 -0200
+
 linux-meta-ti-omap4 (3.5.0.217.18) quantal; urgency=low
 
   * Ubuntu-3.5.0-217.24
