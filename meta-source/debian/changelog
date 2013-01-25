@@ -1,3 +1,16 @@
+linux-meta-lts-quantal (3.5.0.23.30) precise-proposed; urgency=low
+
+  [ Luis Henriques ]
+
+  * Ubuntu-lts-3.5.0-23.35
+
+  [ Tim Gardner ]
+
+  * UBUNTU: [Config] Build binary dependent tools package
+    - LP: #1088454
+
+ -- Luis Henriques <luis.henriques@canonical.com>  Fri, 25 Jan 2013 16:21:18 +0000
+
 linux-meta-lts-quantal (3.5.0.22.29) precise-proposed; urgency=low
 
   * Ubuntu-lts-3.5.0-22.33
