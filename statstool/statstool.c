@@ -88,8 +88,10 @@ static inline double parse_timestamp(const char *buffer)
 		&tm.tm_hour, &tm.tm_min, &seconds);
 
 	tm.tm_sec = (int)seconds;
+	/* tm_year is years since 1900 */
+	tm.tm_year -= 1900;
 
-	return seconds - tm.tm_sec + (unsigned int)mktime(&tm);
+	return seconds - tm.tm_sec + mktime(&tm);
 }
 
 static void data_append_point(data_t *data, point_t *p)
