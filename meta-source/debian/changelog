@@ -1,3 +1,9 @@
+linux-meta-nexus7 (3.1.10.9.16) raring; urgency=low
+
+  * ABI: 3.1.10-9
+
+ -- Andy Whitcroft <apw@canonical.com>  Tue, 29 Jan 2013 11:28:09 +0000
+
 linux-meta-nexus7 (3.1.10.8.15) raring; urgency=low
 
   * Change sections to devel/kernel to match the archive (LP: #1074787)
