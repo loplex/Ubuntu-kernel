@@ -1,3 +1,9 @@
+linux-signed (3.8.0-3.7) raring; urgency=low
+
+  * Version 3.8.0-3.7
+
+ -- Leann Ogasawara <leann.ogasawara@canonical.com>  Thu, 31 Jan 2013 06:49:24 -0800
+
 linux-signed (3.8.0-2.6) raring; urgency=low
 
   * Version 3.8.0-2.6
