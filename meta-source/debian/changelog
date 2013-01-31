@@ -1,3 +1,9 @@
+linux-meta (3.8.0.3.16) raring; urgency=low
+
+  * linux ABI 3.8.0-3
+
+ -- Leann Ogasawara <leann.ogasawara@canonical.com>  Thu, 31 Jan 2013 06:43:13 -0800
+
 linux-meta (3.8.0.2.15) raring; urgency=low
 
   * linux ABI 3.8.0-2
