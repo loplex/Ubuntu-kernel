@@ -76,7 +76,7 @@ Description: Backported ethernet drivers for generic kernel image.
 #
 
 Package: linux-backports-modules-hv-RELEASE_NAME-generic-pae
-Architecture: amd64 i386
+Architecture: i386
 Depends: ${misc:Depends}, linux-backports-modules-hv-${kernel-abi-version}-generic-pae
 Description: Backported Hyper-V hypervisor interfaces
  This empty package allows people to keep their Hyper-V updated drivers
