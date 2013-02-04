@@ -1,3 +1,9 @@
+linux-backports-modules-3.0.0 (3.0.0-31.24) oneiric-proposed; urgency=low
+
+  * Bump ABI - Oneiric ABI 31
+
+ -- Luis Henriques <luis.henriques@canonical.com>  Mon, 04 Feb 2013 11:17:40 +0000
+
 linux-backports-modules-3.0.0 (3.0.0-30.23) oneiric-proposed; urgency=low
 
   * Bump ABI - Oneiric ABI 30
