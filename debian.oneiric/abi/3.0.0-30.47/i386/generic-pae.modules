@@ -1136,7 +1136,6 @@ i2c-parport-light
 i2c-pca-isa
 i2c-pca-platform
 i2c-piix4
-i2c-pxa
 i2c-scmi
 i2c-simtec
 i2c-sis5595
@@ -1903,11 +1902,7 @@ ocfs2_nodemanager
 ocfs2_stackglue
 ocfs2_stack_o2cb
 ocfs2_stack_user
-of_serial
 old_belkin-sir
-olpc_battery
-olpc-dcon
-olpc-xo1
 olympic
 omfs
 omninet
@@ -2077,7 +2072,6 @@ phonedev
 phonet
 phram
 physmap
-physmap_of
 pktcdvd
 pktgen
 pl2303
@@ -2487,7 +2481,6 @@ scsi_tgt
 scsi_transport_fc
 scsi_transport_iscsi
 scsi_transport_sas
-scsi_transport_spi
 scsi_transport_srp
 scsi_wait_scan
 sctp
@@ -2500,7 +2493,6 @@ scx200_hrt
 scx200_i2c
 scx200_wdt
 sdhci
-sdhci-of
 sdhci-pci
 sdhci-platform
 sdio_uart
@@ -2925,7 +2917,6 @@ sworks-agp
 sx8
 sym53c416
 sym53c500_cs
-sym53c8xx
 symbolserial
 synaptics_i2c
 synaptics_i2c_rmi4
@@ -3083,7 +3074,6 @@ typhoon
 u132-hcd
 u14-34f
 uartlite
-uas
 ubi
 ubifs
 ucb1400_core
@@ -3182,13 +3172,8 @@ videobuf-dvb
 videobuf-vmalloc
 videocodec
 videodev
-virtio
 virtio_balloon
-virtio_blk
 virtio_console
-virtio_net
-virtio_pci
-virtio_ring
 virtio-rng
 virtual
 visor
@@ -3317,6 +3302,16 @@ x25_asy
 x38_edac
 xc5000
 xcbc
+xen-blkback
+xen-evtchn
+xen-fbfront
+xenfs
+xen-gntalloc
+xen-gntdev
+xen-kbdfront
+xen-netback
+xen-pcifront
+xen_wdt
 xfrm4_mode_beet
 xfrm4_mode_transport
 xfrm4_mode_tunnel
@@ -3335,7 +3330,6 @@ xilinx_uartps
 xirc2ps_cs
 xircom_cb
 xo15-ebook
-xo1-rfkill
 xor
 xpad
 xprtrdma
