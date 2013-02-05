@@ -1,9 +1,344 @@
-linux-lts-backport-oneiric (3.0.0-30.47~lucid1) lucid-proposed; urgency=low
+linux-lts-backport-oneiric (3.0.0-31.48~lucid1) lucid-proposed; urgency=low
 
   [Luis Henriques]
 
   * Release Tracking Bug
-    - LP: #1095807
+    - LP: #1115661
+
+  [ Upstream Kernel Changes ]
+
+  * Revert "ath9k_hw: Update AR9003 high_power tx gain table"
+    - LP: #1101192
+  * Revert "drm/i915: no lvds quirk for Zotac ZDBOX SD ID12/ID13"
+    - LP: #1101192
+  * Tools: hv: verify origin of netlink connector message
+    - LP: #1096318
+    - CVE-2012-2669
+  * tools: hv: Netlink source address validation allows DoS
+    - LP: #1084777
+    - CVE-2012-5532
+  * bonding: Bonding driver does not consider the gso_max_size/gso_max_segs
+    setting of slave devices.
+    - LP: #1099442
+  * bonding: fix race condition in bonding_store_slaves_active
+    - LP: #1099442
+  * sctp: fix memory leak in sctp_datamsg_from_user() when copy from user
+    space fails
+    - LP: #1099442
+  * sctp: fix -ENOMEM result with invalid user space pointer in sendto()
+    syscall
+    - LP: #1099442
+  * ne2000: add the right platform device
+    - LP: #1099442
+  * irda: sir_dev: Fix copy/paste typo
+    - LP: #1099442
+  * usb/ipheth: Add iPhone 5 support
+    - LP: #1099442
+  * pnpacpi: fix incorrect TEST_ALPHA() test
+    - LP: #1099442
+  * x86, 8042: Enable A20 using KBC to fix S3 resume on some MSI laptops
+    - LP: #1099442
+  * virtio: force vring descriptors to be allocated from lowmem
+    - LP: #1099442
+  * mm: Fix PageHead when !CONFIG_PAGEFLAGS_EXTENDED
+    - LP: #1099442
+  * tmpfs mempolicy: fix /proc/mounts corrupting memory
+    - LP: #1099442
+  * ALSA: usb-audio: Avoid autopm calls after disconnection
+    - LP: #1099442
+  * ALSA: usb-audio: Fix missing autopm for MIDI input
+    - LP: #1099442
+  * p54usb: add USB ID for T-Com Sinus 154 data II
+    - LP: #1099442
+  * p54usb: add USBIDs for two more p54usb devices
+    - LP: #1099442
+  * usb: gadget: phonet: free requests in pn_bind()'s error path
+    - LP: #1099442
+  * ACPI / scan: Do not use dummy HID for system bus ACPI nodes
+    - LP: #1099442
+  * NFS: avoid NULL dereference in nfs_destroy_server
+    - LP: #1099442
+  * NFS: Fix calls to drop_nlink()
+    - LP: #1099442
+  * nfsd4: fix oops on unusual readlike compound
+    - LP: #1099442
+  * nfs: fix null checking in nfs_get_option_str()
+    - LP: #1099442
+  * Input: walkera0701 - fix crash on startup
+    - LP: #1099442
+  * genirq: Always force thread affinity
+    - LP: #1099442
+  * xhci: Add Lynx Point LP to list of Intel switchable hosts
+    - LP: #1099442
+  * cgroup: remove incorrect dget/dput() pair in cgroup_create_dir()
+    - LP: #1099442
+  * x86, amd: Disable way access filter on Piledriver CPUs
+    - LP: #1099442
+  * ftrace: Do not function trace inlined functions
+    - LP: #1099442
+  * sparc: huge_ptep_set_* functions need to call set_huge_pte_at()
+    - LP: #1099442
+  * net: sched: integer overflow fix
+    - LP: #1099442
+  * tcp: implement RFC 5961 3.2
+    - LP: #1099442
+  * tcp: implement RFC 5961 4.2
+    - LP: #1099442
+  * tcp: refine SYN handling in tcp_validate_incoming
+    - LP: #1099442
+  * tcp: tcp_replace_ts_recent() should not be called from
+    tcp_validate_incoming()
+    - LP: #1099442
+  * tcp: RFC 5961 5.2 Blind Data Injection Attack Mitigation
+    - LP: #1099442
+  * ARM: mm: use pteval_t to represent page protection values
+    - LP: #1099442
+  * ARM: missing ->mmap_sem around find_vma() in swp_emulate.c
+    - LP: #1099442
+  * solos-pci: fix double-free of TX skb in DMA mode
+    - LP: #1099442
+  * PCI: Reduce Ricoh 0xe822 SD card reader base clock frequency to 50MHz
+    - LP: #1099442
+  * Bluetooth: cancel power_on work when unregistering the device
+    - LP: #1099442
+  * CRIS: fix I/O macros
+    - LP: #1099442
+  * drivers/rtc/rtc-vt8500.c: correct handling of CR_24H bitfield
+    - LP: #1099442
+  * drivers/rtc/rtc-vt8500.c: fix handling of data passed in struct
+    rtc_time
+    - LP: #1099442
+  * mm: limit mmu_gather batching to fix soft lockups on !CONFIG_PREEMPT
+    - LP: #1099442
+  * can: Do not call dev_put if restart timer is running upon close
+    - LP: #1099442
+  * Linux 3.0.58
+    - LP: #1099442
+  * ext4: quiet 'unused variables' compile warnings
+    - LP: #1071314
+    - CVE-2012-4508
+  * ext4: race-condition protection for
+    ext4_convert_unwritten_extents_endio
+    - LP: #1071314
+    - CVE-2012-4508
+  * powerpc: Fix CONFIG_RELOCATABLE=y CONFIG_CRASH_DUMP=n build
+    - LP: #1101192
+  * powerpc/vdso: Remove redundant locking in update_vsyscall_tz()
+    - LP: #1101192
+  * s390/cio: fix pgid reserved check
+    - LP: #1101192
+  * mm: compaction: fix echo 1 > compact_memory return error issue
+    - LP: #1101192
+  * mm: use aligned zone start for pfn_to_bitidx calculation
+    - LP: #1101192
+  * ath9k: ar9003: fix OTP register offsets for AR9340
+    - LP: #1101192
+  * firewire: net: Fix handling of fragmented multicast/broadcast packets.
+    - LP: #1101192
+  * SCSI: mvsas: fix undefined bit shift
+    - LP: #1101192
+  * SCSI: qla2xxx: Test and clear FCPORT_UPDATE_NEEDED atomically.
+    - LP: #1101192
+  * sata_promise: fix hardreset lockdep error
+    - LP: #1101192
+  * libata: set dma_mode to 0xff in reset
+    - LP: #1101192
+  * libata: fix Null pointer dereference on disk error
+    - LP: #1101192
+  * target/tcm_fc: fix the lockdep warning due to inconsistent lock state
+    - LP: #1101192
+  * mfd: Only unregister platform devices allocated by the mfd core
+    - LP: #1101192
+  * ext4: fix memory leak in ext4_xattr_set_acl()'s error path
+    - LP: #1101192
+  * SUNRPC: Ensure that we free the rpc_task after cleanups are done
+    - LP: #1101192
+  * jffs2: hold erase_completion_lock on exit
+    - LP: #1101192
+  * i2400m: add Intel 6150 device IDs
+    - LP: #1101192
+  * drm/i915: make the panel fitter work on pipes B and C on IVB
+    - LP: #1101192
+  * RDMA/nes: Fix for crash when registering zero length MR for CQ
+    - LP: #1101192
+  * RDMA/nes: Fix for terminate timer crash
+    - LP: #1101192
+  * ring-buffer: Fix race between integrity check and readers
+    - LP: #1101192
+  * dm ioctl: prevent unsafe change to dm_ioctl data_size
+    - LP: #1101192
+  * staging: vt6656: [BUG] out of bound array reference in RFbSetPower.
+    - LP: #1101192
+  * staging: vt6656: 64 bit fixes: use u32 for QWORD definition.
+    - LP: #1101192
+  * staging: vt6656: 64 bit fixes : correct all type sizes
+    - LP: #1101192
+  * staging: vt6656: 64 bit fixes: fix long warning messages.
+    - LP: #1101192
+  * staging: vt6656: 64bit fixes: key.c/h change unsigned long to u32
+    - LP: #1101192
+  * staging: vt6656: 64bit fixes: vCommandTimerWait change calculation of
+    timer.
+    - LP: #1101192
+  * video: mxsfb: fix crash when unblanking the display
+    - LP: #1101192
+  * ext4: fix extent tree corruption caused by hole punch
+    - LP: #1101192
+  * jbd2: fix assertion failure in jbd2_journal_flush()
+    - LP: #1101192
+  * ext4: do not try to write superblock on ro remount w/o journal
+    - LP: #1101192
+  * ext4: lock i_mutex when truncating orphan inodes
+    - LP: #1101192
+  * aoe: do not call bdi_init after blk_alloc_queue
+    - LP: #1101192
+  * udf: fix memory leak while allocating blocks during write
+    - LP: #1101192
+  * udf: don't increment lenExtents while writing to a hole
+    - LP: #1101192
+  * thp, memcg: split hugepage for memcg oom on cow
+    - LP: #1101192
+  * x86, amd: Disable way access filter on Piledriver CPUs
+    - LP: #1101192
+  * ACPI : do not use Lid and Sleep button for S5 wakeup
+    - LP: #1101192
+  * rtnetlink: Compute and store minimum ifinfo dump size
+    - LP: #1101192
+  * rtnetlink: Fix problem with buffer allocation
+    - LP: #1101192
+  * rtnetlink: fix rtnl_calcit() and rtnl_dump_ifinfo()
+    - LP: #1101192
+  * epoll: prevent missed events on EPOLL_CTL_MOD
+    - LP: #1101192
+  * ASoC: wm2000: Fix sense of speech clarity enable
+    - LP: #1101192
+  * ALSA: pxa27x: fix ac97 cold reset
+    - LP: #1101192
+  * staging: comedi: prevent auto-unconfig of manually configured devices
+    - LP: #1101192
+  * staging: comedi: comedi_test: fix race when cancelling command
+    - LP: #1101192
+  * staging: r8712u: Add new device ID
+    - LP: #1101192
+  * staging: speakup: avoid out-of-range access in synth_init()
+    - LP: #1101192
+  * staging: speakup: avoid out-of-range access in synth_add()
+    - LP: #1101192
+  * radeon/kms: force rn50 chip to always report connected on analog output
+    - LP: #1101192
+  * mac80211: use del_timer_sync for final sta cleanup timer deletion
+    - LP: #1101192
+  * USB: option: add Nexpring NP10T terminal id
+    - LP: #1101192
+  * USB: option: blacklist network interface on ZTE MF880
+    - LP: #1101192
+  * USB: option: Add new MEDIATEK PID support
+    - LP: #1101192
+  * USB: option: add Telekom Speedstick LTE II
+    - LP: #1101192
+  * usb: ftdi_sio: Crucible Technologies COMET Caller ID - pid added
+    - LP: #1101192
+  * USB: cdc-acm: Add support for "PSC Scanning, Magellan 800i"
+    - LP: #1101192
+  * usb: gadget: dummy: fix enumeration with g_multi
+    - LP: #1101192
+  * USB: Increase reset timeout.
+    - LP: #1101192
+  * USB: hub: handle claim of enabled remote wakeup after reset
+    - LP: #1101192
+  * xhci: Handle HS bulk/ctrl endpoints that don't NAK.
+    - LP: #1101192
+  * GFS2: Test bufdata with buffer locked and gfs2_log_lock held
+    - LP: #1101192
+  * intel-iommu: Free old page tables before creating superpage
+    - LP: #1101192
+  * KVM: PPC: 44x: fix DCR read/write
+    - LP: #1101192
+  * staging: comedi: don't hijack hardware device private data
+    - LP: #1101192
+  * staging: comedi: Kconfig: COMEDI_NI_AT_A2150 should select COMEDI_FC
+    - LP: #1101192
+  * Linux 3.0.59
+    - LP: #1101192
+  * sh: Fix FDPIC binary loader
+    - LP: #1102988
+  * tcm_fc: Do not indicate retry capability to initiators
+    - LP: #1102988
+  * tcm_fc: Do not report target role when target is not defined
+    - LP: #1102988
+  * s390/time: fix sched_clock() overflow
+    - LP: #1102988
+  * x86/Sandy Bridge: reserve pages when integrated graphics is present
+    - LP: #1102988
+  * ext4: init pagevec in ext4_da_block_invalidatepages
+    - LP: #1102988
+  * powerpc: fix wii_memory_fixups() compile error on 3.0.y tree
+    - LP: #1102988
+  * USB: fix endpoint-disabling for failed config changes
+    - LP: #1102988
+  * intel-iommu: Prevent devices with RMRRs from being placed into SI
+    Domain
+    - LP: #1102988
+  * drbd: add missing part_round_stats to _drbd_start_io_acct
+    - LP: #1102988
+  * xhci: fix null-pointer dereference when destroying half-built segment
+    rings
+    - LP: #1102988
+  * xen: Fix stack corruption in xen_failsafe_callback for 32bit PVOPS
+    guests.
+    - LP: #1102988
+  * USB: option: add TP-LINK HSUPA Modem MA180
+    - LP: #1102988
+  * USB: option: blacklist network interface on ONDA MT8205 4G LTE
+    - LP: #1102988
+  * serial:ifx6x60:Delete SPI timer when shut down port
+    - LP: #1102988
+  * staging: vt6656: Fix inconsistent structure packing
+    - LP: #1102988
+  * Linux 3.0.60
+    - LP: #1102988
+  * drm/i915: Invalidate the relocation presumed_offsets along the slow
+    path
+    - LP: #1108920
+  * ftrace: Be first to run code modification on modules
+    - LP: #1108920
+  * PCI: Allow pcie_aspm=force even when FADT indicates it is unsupported
+    - LP: #1108920
+  * USB: UHCI: fix IRQ race during initialization
+    - LP: #1108920
+  * SCSI: sd: Reshuffle init_sd to avoid crash
+    - LP: #1108920
+  * drivers/firmware/dmi_scan.c: check dmi version when get system uuid
+    - LP: #1108920
+  * drivers/firmware/dmi_scan.c: fetch dmi version from SMBIOS if it exists
+    - LP: #1108920
+  * serial: 8250, increase PASS_LIMIT
+    - LP: #1108920
+  * staging: usbip: changed function return type to void
+    - LP: #1108920
+  * drm/i915: Implement WaDisableHiZPlanesWhenMSAAEnabled
+    - LP: #1108920
+  * ahci: Add identifiers for ASM106x devices
+    - LP: #1108920
+  * x86: Use enum instead of literals for trap values [PARTIAL]
+    - LP: #1108920
+  * SGI-XP: handle non-fatal traps
+    - LP: #1108920
+  * ACPI / cpuidle: Fix NULL pointer issues when cpuidle is disabled
+    - LP: #1108920
+  * ioat: Fix DMA memory sync direction correct flag
+    - LP: #1108920
+  * Linux 3.0.61
+    - LP: #1108920
+
+ -- Luis Henriques <luis.henriques@canonical.com>  Tue, 05 Feb 2013 10:22:41 +0000
+
+linux (3.0.0-30.47) oneiric-proposed; urgency=low
+
+  [Brad Figg]
+
+  * Release Tracking Bug
+    - LP: #1095352
 
   [ Colin Ian King ]
 
@@ -181,7 +516,7 @@ linux-lts-backport-oneiric (3.0.0-30.47~lucid1) lucid-proposed; urgency=low
     - LP: #1068888
     - CVE-2012-4530
 
- -- Luis Henriques <luis.henriques@canonical.com>  Mon, 07 Jan 2013 11:21:12 +0000
+ -- Brad Figg <brad.figg@canonical.com>  Wed, 02 Jan 2013 12:25:09 -0800
 
 linux (3.0.0-29.46) oneiric-proposed; urgency=low
 
