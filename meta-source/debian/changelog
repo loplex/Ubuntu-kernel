@@ -1,11 +1,11 @@
-linux-meta (3.8.0.6.20) UNRELEASED; urgency=low
+linux-meta (3.8.0.6.20) raring; urgency=low
 
   [ Stefan Bader ]
 
   * control.common: update linux-crashdump dependencies switching us
     to Debian's kdump-tools.
 
- -- Andy Whitcroft <apw@canonical.com>  Fri, 15 Feb 2013 11:52:55 +0000
+ -- Andy Whitcroft <apw@canonical.com>  Fri, 15 Feb 2013 11:55:30 +0000
 
 linux-meta (3.8.0.6.19) raring; urgency=low
 
