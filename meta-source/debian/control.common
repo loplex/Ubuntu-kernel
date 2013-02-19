@@ -68,7 +68,7 @@ Package: linux-image-hwe-generic
 Architecture: i386 amd64 
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-generic [amd64], linux-image-generic-pae [i386]
+Depends: ${misc:Depends}, linux-image-generic-lts-quantal
 Description: Depends on the generic hardware enablement kernel image and headers.
  This package will always depend on the generic hardware enablement kernel
  and headers.
@@ -77,7 +77,7 @@ Package: linux-hwe-generic
 Architecture: i386 amd64 
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-hwe-generic, linux-headers-generic [amd64], linux-headers-generic-pae [i386]
+Depends: ${misc:Depends}, linux-image-hwe-generic, linux-headers-generic-lts-quantal
 Description: Depends on the generic hardware enablement kernel image and headers.
  This package will always depend on the generic hardware enablement kernel
  and headers.
