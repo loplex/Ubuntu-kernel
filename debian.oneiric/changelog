@@ -1,9 +1,31 @@
-linux-lts-backport-oneiric (3.0.0-31.48~lucid1) lucid-proposed; urgency=low
+linux-lts-backport-oneiric (3.0.0-31.49~lucid1) lucid-proposed; urgency=low
 
   [Luis Henriques]
 
   * Release Tracking Bug
-    - LP: #1115661
+    - LP: #1130474
+
+  [ Upstream Kernel Changes ]
+
+  * ptrace: introduce signal_wake_up_state() and ptrace_signal_wake_up()
+    - LP: #1129192
+    - CVE-2013-0871
+  * ptrace: ensure arch_ptrace/ptrace_request can never race with SIGKILL
+    - LP: #1129192
+    - CVE-2013-0871
+  * wake_up_process() should be never used to wakeup a TASK_STOPPED/TRACED
+    task
+    - LP: #1129192
+    - CVE-2013-0871
+
+ -- Luis Henriques <luis.henriques@canonical.com>  Wed, 20 Feb 2013 10:09:24 +0000
+
+linux (3.0.0-31.48) oneiric-proposed; urgency=low
+
+  [Luis Henriques]
+
+  * Release Tracking Bug
+    - LP: #1115137
 
   [ Upstream Kernel Changes ]
 
@@ -331,7 +353,7 @@ linux-lts-backport-oneiric (3.0.0-31.48~lucid1) lucid-proposed; urgency=low
   * Linux 3.0.61
     - LP: #1108920
 
- -- Luis Henriques <luis.henriques@canonical.com>  Tue, 05 Feb 2013 10:22:41 +0000
+ -- Luis Henriques <luis.henriques@canonical.com>  Mon, 04 Feb 2013 11:02:39 +0000
 
 linux (3.0.0-30.47) oneiric-proposed; urgency=low
 
