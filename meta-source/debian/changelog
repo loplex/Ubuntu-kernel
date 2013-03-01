@@ -1,3 +1,9 @@
+linux-meta-ti-omap4 (3.0.0.1222.21) oneiric-proposed; urgency=low
+
+  * linux-ti-omap4 3.0.0-1222.36
+
+ -- Brad Figg <brad.figg@canonical.com>  Fri, 01 Mar 2013 09:05:51 -0800
+
 linux-meta-ti-omap4 (3.0.0.1221.20) oneiric-proposed; urgency=low
 
   * linux-ti-omap4 3.0.0-1221.34
