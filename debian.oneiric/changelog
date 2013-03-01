@@ -1,9 +1,178 @@
-linux-lts-backport-oneiric (3.0.0-31.49~lucid1) lucid-proposed; urgency=low
+linux-lts-backport-oneiric (3.0.0-32.50~lucid1) lucid-proposed; urgency=low
+
+  [Brad Figg]
+
+  * Release Tracking Bug
+    - LP: #1137047
+
+  [ Ian Campbell ]
+
+  * SAUCE: xen/netback: shutdown the ring if it contains garbage.
+    - LP: #1117325
+    - CVE-2013-0216
+  * SAUCE: netback: correct netbk_tx_err to handle wrap around.
+    - LP: #1117325
+    - CVE-2013-0216
+  * SAUCE: xen/netback: don't leak pages on failure in
+    xen_netbk_tx_check_gop.
+    - LP: #1117331
+    - CVE-2013-0217
+  * SAUCE: xen/netback: free already allocated memory on failure in
+    xen_netbk_get_requests
+    - LP: #1117331
+    - CVE-2013-0217
+
+  [ Tim Gardner ]
+
+  * [debian] Remove dangling symlink from headers package
+    - LP: #1112442
+  * SAUCE: rt2x00: rt2x00pci_regbusy_read() - only print register access
+    failure once
+    - LP: #1128840
+
+  [ Upstream Kernel Changes ]
+
+  * can: c_can: fix invalid error codes
+    - LP: #1116259
+  * can: ti_hecc: fix invalid error codes
+    - LP: #1116259
+  * can: pch_can: fix invalid error codes
+    - LP: #1116259
+  * fs/cifs/cifs_dfs_ref.c: fix potential memory leakage
+    - LP: #1116259
+  * ARM: DMA: Fix struct page iterator in dma_cache_maint() to work with
+    sparsemem
+    - LP: #1116259
+  * Bluetooth: Fix sending HCI commands after reset
+    - LP: #1116259
+  * ath9k_htc: Fix memory leak
+    - LP: #1116259
+  * ath9k: fix double-free bug on beacon generate failure
+    - LP: #1116259
+  * ALSA: usb-audio: fix invalid length check for RME and other UAC 2
+    devices
+    - LP: #1116259
+  * EDAC: Test correct variable in ->store function
+    - LP: #1116259
+  * Bluetooth: Fix incorrect strncpy() in hidp_setup_hid()
+    - LP: #1116259
+  * smp: Fix SMP function call empty cpu mask race
+    - LP: #1116259
+  * x86/msr: Add capabilities check
+    - LP: #1116259
+  * efi, x86: Pass a proper identity mapping in efi_call_phys_prelog
+    - LP: #1116259
+  * x86/Sandy Bridge: Sandy Bridge workaround depends on CONFIG_PCI
+    - LP: #1116259
+  * Linux 3.0.62
+    - LP: #1116259
+  * drm/radeon/evergreen+: wait for the MC to settle after MC blackout
+    - LP: #1122313
+  * drm/radeon: add quirk for RV100 board
+    - LP: #1122313
+  * drm/radeon: Calling object_unrefer() when creating fb failure
+    - LP: #1122313
+  * x86-64: Replace left over sti/cli in ia32 audit exit code
+    - LP: #1122313
+  * nilfs2: fix fix very long mount time issue
+    - LP: #1122313
+  * drivers/rtc/rtc-isl1208.c: call rtc_update_irq() from the alarm irq
+    handler
+    - LP: #1122313
+  * USB: ftdi_sio: add Zolix FTDI PID
+    - LP: #1122313
+  * USB: ftdi_sio: add PID/VID entries for ELV WS 300 PC II
+    - LP: #1122313
+  * USB: option: add support for Telit LE920
+    - LP: #1122313
+  * USB: option: add Changhong CH690
+    - LP: #1122313
+  * USB: qcserial: add Telit Gobi QDL device
+    - LP: #1122313
+  * USB: EHCI: fix bug in scheduling periodic split transfers
+    - LP: #1122313
+  * USB: storage: Define a new macro for USB storage match rules
+    - LP: #1122313
+  * USB: storage: optimize to match the Huawei USB storage devices and
+    support new switch command
+    - LP: #1122313
+  * xhci: Fix isoc TD encoding.
+    - LP: #1122313
+  * USB: XHCI: fix memory leak of URB-private data
+    - LP: #1122313
+  * Linux 3.0.63
+    - LP: #1122313
+  * rtlwifi: Fix the usage of the wrong variable in usb.c
+    - LP: #1126189
+  * virtio_console: Don't access uninitialized data.
+    - LP: #1126189
+  * kernel/resource.c: fix stack overflow in __reserve_region_with_split()
+    - LP: #1126189
+  * mac80211: synchronize scan off/on-channel and PS states
+    - LP: #1126189
+  * net: prevent setting ttl=0 via IP_TTL
+    - LP: #1126189
+  * MAINTAINERS: Stephen Hemminger email change
+    - LP: #1126189
+  * isdn/gigaset: fix zero size border case in debug dump
+    - LP: #1126189
+  * r8169: remove the obsolete and incorrect AMD workaround
+    - LP: #1126189
+  * net: loopback: fix a dst refcounting issue
+    - LP: #1126189
+  * pktgen: correctly handle failures when adding a device
+    - LP: #1126189
+  * ipv6: do not create neighbor entries for local delivery
+    - LP: #1126189
+  * packet: fix leakage of tx_ring memory
+    - LP: #1126189
+  * atm/iphase: rename fregt_t -> ffreg_t
+    - LP: #1126189
+  * sctp: refactor sctp_outq_teardown to insure proper re-initalization
+    - LP: #1126189
+  * net: sctp: sctp_setsockopt_auth_key: use kzfree instead of kfree
+    - LP: #1126189
+  * net: sctp: sctp_endpoint_free: zero out secret key data
+    - LP: #1126189
+  * tcp: frto should not set snd_cwnd to 0
+    - LP: #1126189
+  * tcp: fix for zero packets_in_flight was too broad
+    - LP: #1126189
+  * tcp: fix MSG_SENDPAGE_NOTLAST logic
+    - LP: #1126189
+  * bridge: Pull ip header into skb->data before looking into ip header.
+    - LP: #1126189
+  * tg3: Avoid null pointer dereference in tg3_interrupt in netconsole mode
+    - LP: #1126189
+  * tg3: Fix crc errors on jumbo frame receive
+    - LP: #1126189
+  * Linux 3.0.64
+    - LP: #1126189
+  * x86/mm: Check if PUD is large when validating a kernel address
+    - LP: #1130182
+  * x86/xen: don't assume %ds is usable in xen_iret for 32-bit PVOPS.
+    - LP: #1130182
+  * PCI/PM: Clean up PME state when removing a device
+    - LP: #1130182
+  * igb: Remove artificial restriction on RQDPC stat reading
+    - LP: #1130182
+  * Linux 3.0.65
+    - LP: #1130182
+  * vhost: fix length for cross region descriptor
+    - LP: #1130951
+    - CVE-2013-0311
+  * NLS: improve UTF8 -> UTF16 string conversion routine
+    - LP: #1134523
+    - CVE-2013-1773
+
+ -- Brad Figg <brad.figg@canonical.com>  Thu, 28 Feb 2013 11:24:21 -0800
+
+linux (3.0.0-31.49) oneiric-proposed; urgency=low
 
   [Luis Henriques]
 
   * Release Tracking Bug
-    - LP: #1130474
+    - LP: #1130243
 
   [ Upstream Kernel Changes ]
 
@@ -18,7 +187,7 @@ linux-lts-backport-oneiric (3.0.0-31.49~lucid1) lucid-proposed; urgency=low
     - LP: #1129192
     - CVE-2013-0871
 
- -- Luis Henriques <luis.henriques@canonical.com>  Wed, 20 Feb 2013 10:09:24 +0000
+ -- Luis Henriques <luis.henriques@canonical.com>  Tue, 19 Feb 2013 16:50:12 +0000
 
 linux (3.0.0-31.48) oneiric-proposed; urgency=low
 
