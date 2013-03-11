@@ -9,6 +9,24 @@ from datetime                           import datetime
 from lpltk.LaunchpadService             import LaunchpadService
 
 from ktl.bugs                           import DeltaTime
+from ktl.ubuntu                         import Ubuntu
+
+# ErrorExit
+#
+class ErrorExit(Exception):
+    """
+    If an error message has already been displayed and we want to just exit the app, this
+    exception is raised.
+    """
+    def __init__(self, emsg):
+        self.__message = emsg
+
+    @property
+    def message(self):
+        '''
+        The shell command that was being executed when the timeout occured.
+        '''
+        return self.__message
 
 class PackageInfo():
     def __init__(s, txt):
@@ -23,15 +41,15 @@ class PackageInfo():
         #                                                     /      .- upload number (m.group(5))
         #                                                    .- abi (group(4))
 
-        #s.verbose('     Extract package info\n')
+        #info('     Extract package info\n')
         setattr(s, 'valid', False)
         m = ver_rc.search(txt)
         if m is not None:
             matched = True
-            #s.verbose('         package: %s\n' % m.group(1))
-            #s.verbose('         version: %s%s%s.%s%s\n' % (m.group(2), m.group(3), m.group(4), m.group(5), m.group(6)))
-            #s.verbose('          kernel: %s\n' % m.group(2))
-            #s.verbose('             abi: %s\n' % m.group(4))
+            #info('         package: %s\n' % m.group(1))
+            #info('         version: %s%s%s.%s%s\n' % (m.group(2), m.group(3), m.group(4), m.group(5), m.group(6)))
+            #info('          kernel: %s\n' % m.group(2))
+            #info('             abi: %s\n' % m.group(4))
 
             setattr(s, 'name', m.group(1))
             setattr(s, 'version', '%s%s%s.%s%s' % (m.group(2), m.group(3), m.group(4), m.group(5), m.group(6)))
@@ -114,35 +132,47 @@ class WorkflowBug():
                 info('        %-25s' % (task_name))
                 info('            Action: Skipping non-workflow task')
 
-            s.package_info(s.bug.title)
         return taskbyname
 
-    @property
-    def package_name(s):
-        if s.__package_name is None:
-            title = s.bug.title
-            s.__package_name = re.findall('linux[^:]*', title)
-        return s.__package_name
+# Package
+#
+class Package():
 
-    @property
-    def package_version(s):
-        if s.__package_version is None:
-
-    # Package:
-    #     name:
-    #     version:
-    #     abi:
-    #     kernel:
-
-    # package_check
+    # __init__
     #
-    def package_check(s, bug):
+    def __init__(s, lp):
+        s.ubuntu = Ubuntu()
+        s.lp = lp
+        s.__distro_series = None
+
+    def distro_series(s):
+        if s.__distro_series is None:
+            series = s.ubuntu.series_name(s.package.name, s.package.version)
+            if series:
+                sc = s.lp.launchpad.distributions["ubuntu"].series_collection
+                for ds in sc:
+                    if ds.name == series:
+                        s.__distro_series = ds
+                        break
+
+            if s.__distro_series is None:
+                emsg = "        ERROR: can't figure out the distro series for %s-%s\n" % (s.package.name, s.package.version)
+                error(emsg)
+                raise ErrorExit(emsg)
+
+        return s.__distro_series
+
+    # check
+    #
+    def check(s, shankbug):
         """
         Verify the required packages for this update, and determine its
         build status
         """
+        bug = shankbug.bug
         package = PackageInfo(bug.title)
-        if not package.is_valid:
+        s.package = PackageInfo(bug.title)
+        if not s.package.valid:
             warning('        Unable to check package builds for this bug: either the package name or\n        version are not properly available yet in the bug title.\n')
             return
 
@@ -151,9 +181,9 @@ class WorkflowBug():
         series = s.ubuntu.series_name(package.name, package.version)
         if series:
             sc = s.lp.launchpad.distributions["ubuntu"].series_collection
-            for s in sc:
-                if s.name == series:
-                    distro_series = s
+            for ds in sc:
+                if ds.name == series:
+                    distro_series = ds
                     break
         if not distro_series:
             print("        ")
@@ -206,7 +236,7 @@ class WorkflowBug():
             prepare_status = 0
             prepare_assignee = None
             prepare_uploader = None
-            if s.projectname == 'kernel-sru-workflow':
+            if shankbug.targeted_project == 'kernel-sru-workflow':
                 promoted_to_release = False
                 status_ckt,      pkg_ckt      = s.build_status(distro_series, pkgs[dep], pkg_rel, abi_num, ckt_archive)
                 status_proposed, pkg_proposed = s.build_status(distro_series, pkgs[dep], pkg_rel, abi_num, main_archive, 'Proposed')
@@ -240,6 +270,11 @@ class WorkflowBug():
                 elif pkg_release:
                     prepare_assignee = pkg_release.package_creator
                     prepare_uploader = pkg_release.package_signer
+
+            ###################################################################
+            #
+            return
+
             # When things are moved from one pocket to another, things
             # may be unavailable for some time, and we may think no
             # packages were built. Thus we add a tagged timestamp,
@@ -281,6 +316,10 @@ class WorkflowBug():
                 elif s.taskbyname['upload-to-ppa'].status != 'Confirmed':
                     s.set_task_to_state('upload-to-ppa', 'New')
 
+        ###################################################################
+        #
+        return
+
         # Set promotion bug tasks
         if promoted_to_security:
             if pkg_security:
@@ -303,6 +342,103 @@ class WorkflowBug():
             s.set_task_to_state('promote-to-release', 'Fix Released')
         #else:
             # TODO: verify promote-to-updates task state
+
+
+    def get_sources(s, archive, package, release=None, pocket=''):
+        if release is not None:
+            if pocket != '':
+                ps = archive.getPublishedSources(distro_series=s.distro_series, exact_match=True, source_name=package, status='Published', version=release, pocket=pocket)
+            else:
+                ps = archive.getPublishedSources(distro_series=s.ditro_series, exact_match=True, source_name=package, status='Published', version=release)
+        else:
+            if pocket != '':
+                ps = archive.getPublishedSources(distro_series=s.distro_series, exact_match=True, source_name=package, status='Published', pocket=pocket)
+            else:
+                ps = archive.getPublishedSources(distro_series=s.ditro_series, exact_match=True, source_name=package, status='Published')
+
+    def build_status(s, series, package, release, abi, archive, pocket = ''):
+        """
+        Return an status code, the possible assignee responsible and the
+        package creator related to the publishing of the package in the
+        given archive on the optionally specified pocket (if we want the
+        check to be restricted on a specific pocket). The following
+        values are returned as the status code:
+        0 - if the package-version wasn't found/published. In this case
+            the package creator and assignee returned is always None
+        1 - if the package-version is available (published), but still
+            didn't finish building
+        2 - package-version is available in the archive
+        The parameters are:
+        series - the distribution series (quantal, oneiric, etc.)
+        package - the package name
+        release - the version or version-abi number to match
+        abi_match - if provided, indicates that release is not an exact
+                    version number, and we must do an ABI check
+        archive - launchpad archive to look into
+        pocket - optional, if we want only results of the archive from
+                 the specified pocket
+        """
+
+        if pocket and not abi:
+            ps = archive.getPublishedSources(distro_series=series, exact_match=True, source_name=package, status='Published', version=release, pocket=pocket)
+            error('This doesn\'t happen (1).')
+            #ps = s.get_sources(archive, package, release, pocket)
+        elif not pocket and not abi:
+            ps = archive.getPublishedSources(distro_series=series, exact_match=True, source_name=package, status='Published', version=release)
+            error('This doesn\'t happen (2).')
+            #ps = s.get_sources(archive, package, release)
+        elif pocket and abi:
+            #ps = archive.getPublishedSources(distro_series=series, exact_match=True, source_name=package, status='Published', pocket=pocket)
+            ps = s.get_sources(archive, package, pocket=pocket)
+        else:
+            ps = archive.getPublishedSources(distro_series=series, exact_match=True, source_name=package, status='Published')
+            error('This doesn\'t happen (3).')
+            #ps = s.get_sources(archive, package)
+        matches = []
+        if abi:
+            dep_ver1 = '%s-%s' % (release, abi)
+            dep_ver2 = '%s.%s' % (release, abi)
+            rel_match = '<%s> or <%s>' % (dep_ver1, dep_ver2)
+            for p in ps:
+                src_ver = p.source_package_version
+                # special case for hardy lrm version...
+                if ((series.name == 'hardy') and
+                    (package == 'linux-restricted-modules-2.6.24')):
+                    if src_ver.startswith('2.6.24'):
+                        ver_split = src_ver.split('-', 1)
+                        if len(ver_split) > 1:
+                            src_ver = '2.6.24-%s' % (ver_split[1])
+                if ((src_ver.startswith(dep_ver1 + '.') or
+                     src_ver.startswith(dep_ver2 + '.'))):
+                    matches.append(p)
+            if not matches:
+                info('        Can\'t find <%s> (%s) build on %s (pocket:%s)' % (package, rel_match, archive.displayname, pocket))
+                return 0, None
+        else:
+            rel_match = '<%s>' % (release)
+            for p in ps:
+                matches.append(p)
+            if not matches:
+                info('        Can\'t find <%s> %s build on %s (pocket:%s)' % (package, rel_match, archive.displayname, pocket))
+                return 0, None
+        res = 0, None
+        lst_date = None
+        for pkg in matches:
+            src_id = str(pkg.self).rsplit('/', 1)[1]
+            build_summaries = archive.getBuildSummariesForSourceIds(source_ids=[src_id])[src_id]
+            if build_summaries['status'] == 'FULLYBUILT':
+                info('        <%s> %s built (pocket:%s)' % (package, rel_match, pocket))
+                bs = 2
+            else:
+                info('        <%s> %s not fully built yet, skipping (pocket:%s)' % (package, rel_match, pocket))
+                bs = 1
+            # prefer newer published items...
+            if lst_date:
+                if lst_date > pkg.date_published:
+                    continue
+            lst_date = pkg.date_published
+            res = bs, pkg
+        return res
 
 # Shankbot
 #
@@ -331,7 +467,9 @@ class Shankbot():
         info('Processing: %s' % s.printlink)
 
         bug = WorkflowBug(s.lp, s.projects, bugid)
-        bug.package_check()
+        if bug.is_valid:
+            p = Package(s.lp)
+            p.check(bug)
 
 # TheApp
 #
