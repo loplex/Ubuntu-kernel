@@ -1,0 +1,450 @@
+#!/usr/bin/env python
+#
+
+from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
+from logging                            import info, debug, error, warning, basicConfig, INFO, DEBUG, WARNING
+import re
+
+from datetime                           import datetime
+from lpltk.LaunchpadService             import LaunchpadService
+
+from ktl.bugs                           import DeltaTime
+
+class PackageInfo():
+    def __init__(s, txt):
+        matched = False
+        #                              .- package name (group(1))
+        #                             /           .- kernel version (group(2))
+        #                            /           /          .- version/abi separator (group(3))
+        #                           /           /          /
+        ver_rc     = re.compile("(\S+): (\d+\.\d+\.\d+)([-\.])(\d+)\.(\d+)([~a-z\d]*)")
+        #                                                       /      /       /
+        #                                                      /      /       .- backport extra (m.group(6))
+        #                                                     /      .- upload number (m.group(5))
+        #                                                    .- abi (group(4))
+
+        #s.verbose('     Extract package info\n')
+        setattr(s, 'valid', False)
+        m = ver_rc.search(txt)
+        if m is not None:
+            matched = True
+            #s.verbose('         package: %s\n' % m.group(1))
+            #s.verbose('         version: %s%s%s.%s%s\n' % (m.group(2), m.group(3), m.group(4), m.group(5), m.group(6)))
+            #s.verbose('          kernel: %s\n' % m.group(2))
+            #s.verbose('             abi: %s\n' % m.group(4))
+
+            setattr(s, 'name', m.group(1))
+            setattr(s, 'version', '%s%s%s.%s%s' % (m.group(2), m.group(3), m.group(4), m.group(5), m.group(6)))
+            setattr(s, 'kernel', m.group(2))
+            setattr(s, 'abi', m.group(4))
+            s.valid = True
+
+        if not matched:
+            print(' ** None of the regular expressions matched the title\n')
+
+# WorkflowBug
+#
+class WorkflowBug():
+    # __init__
+    #
+    def __init__(s, lp, projects, bugid):
+        s.lp = lp
+        s.bug = s.lp.get_bug(bugid)
+        s.projects = projects
+
+        s.__package_name = None
+
+        # If a bug isn't to be processed, detect this as early as possible.
+        #
+        s.is_valid = s.check_is_valid(s.bug)
+
+        if s.is_valid:
+            info('    Targeted Project:')
+            info('        %s' % s.targeted_project)
+            info('')
+            s.properties = s.bug.properties
+            if len(s.properties) > 0:
+                info('    Properties:')
+                for prop in s.properties:
+                    info('        %s: %s' % (prop, s.properties[prop]))
+
+            s.tasks_by_name = s.create_tasks_by_name()
+
+    # check_is_valid
+    #
+    def check_is_valid(s, bug):
+        '''
+        '''
+        retval = True
+        for t in s.bug.tasks:
+            task_name       = t.bug_target_name
+
+            if task_name in s.projects:
+                s.targeted_project = task_name
+                if t.status == 'In Progress':
+                    continue
+                else:
+                    info('        Not processing this bug because master task state is set to %s' % (t.status))
+                    info('        Quitting this bug')
+                    retval = False
+
+        return retval
+
+    # create_tasks_by_name
+    #
+    def create_tasks_by_name(s):
+        '''
+        We are only interested in the tasks that are specific to the workflow project. Others
+        are ignored.
+        '''
+        taskbyname = {}
+
+        info('')
+        info('    Scanning bug tasks:')
+
+        for t in s.bug.tasks:
+            task_name       = t.bug_target_name
+
+            if task_name.startswith(s.targeted_project):
+                if '/' in task_name:
+                    task_name = task_name[len(s.targeted_project)+1:].strip()
+                taskbyname[task_name] = t
+            else:
+                info('')
+                info('        %-25s' % (task_name))
+                info('            Action: Skipping non-workflow task')
+
+            s.package_info(s.bug.title)
+        return taskbyname
+
+    @property
+    def package_name(s):
+        if s.__package_name is None:
+            title = s.bug.title
+            s.__package_name = re.findall('linux[^:]*', title)
+        return s.__package_name
+
+    @property
+    def package_version(s):
+        if s.__package_version is None:
+
+    # Package:
+    #     name:
+    #     version:
+    #     abi:
+    #     kernel:
+
+    # package_check
+    #
+    def package_check(s, bug):
+        """
+        Verify the required packages for this update, and determine its
+        build status
+        """
+        package = PackageInfo(bug.title)
+        if not package.is_valid:
+            warning('        Unable to check package builds for this bug: either the package name or\n        version are not properly available yet in the bug title.\n')
+            return
+
+        #--
+        distro_series = None
+        series = s.ubuntu.series_name(package.name, package.version)
+        if series:
+            sc = s.lp.launchpad.distributions["ubuntu"].series_collection
+            for s in sc:
+                if s.name == series:
+                    distro_series = s
+                    break
+        if not distro_series:
+            print("        ")
+            print("ERROR: can't figure out the distro series for %s-%s\n" % (package.name, package.version))
+            return
+
+        #--
+        pkgs = {}
+        entry = s.ubuntu.lookup(series)
+        if entry:
+            if 'dependent-packages' in entry:
+                if package.name in entry['dependent-packages']:
+                    pkgs.update(entry['dependent-packages'][package.name])
+        pkgs['main'] = package.name
+
+        # Try to verify if there was an abi change in this release. We
+        # guess this by looking if there is already a package with same
+        # abi in the updates/release pocket.
+        new_abi = True
+        main_archive = s.lp.launchpad.distributions["ubuntu"].main_archive
+        if package.kernel and package.abi:
+            st_abi_rel, _ = s.build_status(distro_series, package.name, package.kernel, package.abi, main_archive, 'Release')
+            st_abi_upd, _ = s.build_status(distro_series, package.name, package.kernel, package.abi, main_archive, 'Updates')
+            if st_abi_rel == 2 or st_abi_upd == 2:
+                new_abi = False
+
+        # Check build status. This is really convoluted... due to number
+        # of tasks and we wanting the better behaviour as possible
+        promoted_to_updates = True
+        promoted_to_security = True
+        promoted_to_release = True
+        pkg_security = None
+        pkg_updates = None
+        pkg_release = None
+        task_status = [ 'New', 'In Progress', 'Fix Released' ]
+        ckt = s.lp.launchpad.people['canonical-kernel-team']
+        ckt_archive = ckt.getPPAByName(name='ppa')
+        for dep in iter(pkgs):
+            if pkgs[dep] == package.name:
+                bug_task = 'prepare-package'
+            else:
+                bug_task = 'prepare-package-%s' % (dep)
+            abi_num = None
+            pkg_rel = package.version
+            if dep in [ 'lbm', 'lrm', 'lum', 'meta', 'ports-meta' ] and package.abi:
+                abi_num = package.abi
+                pkg_rel = package.kernel
+            status_updates = 0
+            status_release = 0
+            prepare_status = 0
+            prepare_assignee = None
+            prepare_uploader = None
+            if s.projectname == 'kernel-sru-workflow':
+                promoted_to_release = False
+                status_ckt,      pkg_ckt      = s.build_status(distro_series, pkgs[dep], pkg_rel, abi_num, ckt_archive)
+                status_proposed, pkg_proposed = s.build_status(distro_series, pkgs[dep], pkg_rel, abi_num, main_archive, 'Proposed')
+                status_updates,  pkg_updates  = s.build_status(distro_series, pkgs[dep], pkg_rel, abi_num, main_archive, 'Updates')
+                status_security, pkg_security = s.build_status(distro_series, pkgs[dep], pkg_rel, abi_num, main_archive, 'Security')
+                if status_security != 2:
+                    promoted_to_security = False
+                if status_updates != 2:
+                    promoted_to_updates = False
+                for s in [ status_ckt, status_proposed, status_updates ]:
+                    if s > prepare_status:
+                        prepare_status = s
+                for c in [ pkg_ckt, pkg_proposed, pkg_updates, pkg_security ]:
+                    if c:
+                        prepare_assignee = c.package_creator
+                        prepare_uploader = c.package_signer
+                        break
+            else:
+                promoted_to_updates = False
+                promoted_to_security = False
+                status_proposed, pkg_proposed = s.build_status(distro_series, pkgs[dep], pkg_rel, abi_num, main_archive, 'Proposed')
+                status_release,  pkg_release  = s.build_status(distro_series, pkgs[dep], pkg_rel, abi_num, main_archive, 'Release')
+                if status_release != 2:
+                    promoted_to_release = False
+                prepare_status = status_proposed
+                if status_release > prepare_status:
+                    prepare_status = status_release
+                if pkg_proposed:
+                    prepare_assignee = pkg_proposed.package_creator
+                    prepare_uploader = pkg_proposed.package_signer
+                elif pkg_release:
+                    prepare_assignee = pkg_release.package_creator
+                    prepare_uploader = pkg_release.package_signer
+            # When things are moved from one pocket to another, things
+            # may be unavailable for some time, and we may think no
+            # packages were built. Thus we add a tagged timestamp,
+            # marking the time when we detect that the builds are
+            # missing. If after 1 hour the builds are still unavailable,
+            # then we allow to reset the tasks.
+            prop = 'kernel-%s-build-unavailable' % (dep)
+            if (s.taskbyname[bug_task].status == 'Fix Released' and
+                prepare_status != 2):
+                s.set_tagged_timestamp(s.taskbyname[bug_task], prop)
+                if not prop in s.bug.properties:
+                    continue
+                date_str = s.bug.properties[prop]
+                timestamp = datetime.strptime(date_str, '%A, %d. %B %Y %H:%M UTC')
+                delta = DeltaTime(timestamp, datetime.utcnow())
+                if delta.hours < 1:
+                    info('        Builds gone for %s, waiting 1 hour to reset tasks' % (bug_task))
+                    continue
+            if prop in s.bug.properties:
+                s.props.set({prop:None})
+            new_status = s.taskbyname[bug_task].status
+            if abi_num:
+                if new_abi:
+                    new_status = task_status[prepare_status]
+                else:
+                    if new_status != 'Invalid' and new_status != 'Fix Released':
+                        new_status = 'Invalid'
+            else:
+                new_status = task_status[prepare_status]
+            if prepare_assignee and new_status != 'Invalid':
+                s.set_task_assignee(bug_task, prepare_assignee)
+            s.set_task_to_state(bug_task, new_status)
+            # Take care of the upload-to-ppa task if needed
+            if dep == 'main' and 'upload-to-ppa' in s.taskbyname:
+                if prepare_uploader:
+                    s.set_task_assignee('upload-to-ppa', prepare_uploader)
+                if prepare_status >= 1:
+                    s.set_task_to_state('upload-to-ppa', 'Fix Released')
+                elif s.taskbyname['upload-to-ppa'].status != 'Confirmed':
+                    s.set_task_to_state('upload-to-ppa', 'New')
+
+        # Set promotion bug tasks
+        if promoted_to_security:
+            if pkg_security:
+                s.set_task_assignee('promote-to-security',
+                                       pkg_security.creator)
+            s.set_task_to_state('promote-to-security', 'Fix Released')
+        #else:
+            # TODO: verify promote-to-security task state
+        if promoted_to_updates:
+            if pkg_updates:
+                s.set_task_assignee('promote-to-updates',
+                                       pkg_updates.creator)
+            s.set_task_to_state('promote-to-updates', 'Fix Released')
+        #else:
+            # TODO: verify promote-to-updates task state
+        if promoted_to_release:
+            if pkg_release:
+                s.set_task_assignee('promote-to-release',
+                                       pkg_release.creator)
+            s.set_task_to_state('promote-to-release', 'Fix Released')
+        #else:
+            # TODO: verify promote-to-updates task state
+
+# Shankbot
+#
+class Shankbot():
+    '''
+    '''
+
+    # __init__
+    #
+    def __init__(s, lp, lpserver, projects):
+        s.lp = lp
+        s.lpserver = lpserver
+        s.projects = projects
+
+    # bug_url
+    #
+    def bug_url(s, bug_id):
+        retval = 'https://%s/bugs/%s' % (s.lpserver, bug_id)
+        return retval
+
+    # shank
+    #
+    def shank(s, bugid):
+        s.printlink =  '%s : (%s)' % (bugid, s.bug_url(bugid)),
+        info('')
+        info('Processing: %s' % s.printlink)
+
+        bug = WorkflowBug(s.lp, s.projects, bugid)
+        bug.package_check()
+
+# TheApp
+#
+class TheApp():
+    '''
+    '''
+
+    # __init__
+    #
+    def __init__(s, args):
+        s.args = args
+
+        lp_cfg = {}
+        lp_cfg['launchpad_client_name'] = 'kernel-team-sru-workflow-manager'
+        if s.args.staging:
+            lp_cfg['launchpad_services_root'] = 'qastaging'
+            s.lpserver = 'bugs.qastaging.launchpad.net'
+        else:
+            s.lpserver = 'bugs.launchpad.net'
+        s.lp = LaunchpadService(lp_cfg)
+
+    def get_buglist(s, project):
+        retval = []
+
+        search_tags            = [   # A list of the tags we care about
+                'kernel-release-tracking-bug'
+            ]
+        search_tags_combinator = "All"
+        search_status          = ["New","In Progress","Invalid", "Incomplete", "Fix Committed"] # A list of the bug statuses that we care about
+        search_since           = datetime(year=2013, month=1, day=1)
+        lp_project = s.lp.projects[project]
+        tasks = lp_project.search_tasks(status=search_status, tags=search_tags, tags_combinator=search_tags_combinator, modified_since=search_since)
+
+        for task in tasks:
+            bug = task.bug
+            info(bug.id)
+            retval.append(bug.id)
+
+        return retval
+
+    # main
+    #
+    def main(s):
+        retval = 1
+        try:
+            debug('Starting ...')
+
+            projects_tracked = [ 'kernel-development-workflow', 'kernel-sru-workflow' ]
+            bot = Shankbot(s.lp, s.lpserver, projects_tracked)
+            if s.args.bugs:
+                for bug in s.args.bugs:
+                    bot.shank(bug)
+
+            else:
+                for project in projects_tracked:
+                    info('Project: %s' % project)
+
+                    for bug in s.get_buglist(project):
+                        bot.shank(bug)
+
+            retval = 0
+
+        # Handle the user presses <ctrl-C>.
+        #
+        except KeyboardInterrupt:
+            error("Aborting ...")
+
+        if retval > 0:
+            error("")
+            error("Due to the above error(s), this script is unable to continue and is terminating.")
+            error("")
+
+        debug('That\'s All Folks!')
+        return retval
+
+if __name__ == '__main__':
+    # Command line argument setup and initial processing
+    #
+    app_description = '''
+I do increadible things to kernel workflow bugs.
+    '''
+    app_epilog = '''
+examples:
+    sb
+    sb --verbose
+    sb --verbose --dry-run
+    sb --verbose --staging
+    sb --bugs=1134424,1133589
+    '''
+    parser = ArgumentParser(description=app_description, epilog=app_epilog, formatter_class=RawDescriptionHelpFormatter)
+    parser.add_argument('--verbose', action='store_true', default=False, help='Print out a lot of messages about what is going on.')
+    parser.add_argument('--dry-run', action='store_true', default=False, help='Don\'t modify the bug(s). Should be used with --verbose.')
+    parser.add_argument('--staging', action='store_true', default=False, help='Use the staging LP service instead of the production one.')
+    parser.add_argument('--bugs',                         default=None,  help='A comma seperated list of bug ids. Only these bug ids will be processed.')
+    parser.add_argument('--log-file',                     default=None,  help='Where to log the output.')
+    args = parser.parse_args()
+
+    # If logging parameters were set on the command line, handle them
+    # here.
+    #
+    log_format = "%(levelname)s - %(message)s"
+    if args.verbose:
+        basicConfig(filename=args.log_file, level=DEBUG, format=log_format)
+    else:
+        basicConfig(filename=args.log_file, level=INFO, format=log_format)
+
+    args.bugs = args.bugs.replace(' ', '')
+    if ',' in args.bugs:
+        args.bugs = args.bugs.split(',')
+    else:
+        args.bugs = [args.bugs]
+
+    app = TheApp(args)
+    exit(app.main())
+
+# vi:set ts=4 sw=4 expandtab syntax=python:
