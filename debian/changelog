@@ -1,3 +1,11 @@
+linux-backports-modules-3.5.0 (3.5.0-27.14) quantal-proposed; urgency=low
+
+  [ Steve Conklin ]
+
+  * respin due to packaging error
+
+ -- Steve Conklin <sconklin@canonical.com>  Tue, 19 Mar 2013 09:54:50 -0500
+
 linux-backports-modules-3.5.0 (3.5.0-27.13) quantal-proposed; urgency=low
 
   [ Steve Conklin ]
