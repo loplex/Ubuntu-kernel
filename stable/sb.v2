@@ -144,7 +144,10 @@ class Package():
         s.ubuntu = Ubuntu()
         s.lp = lp
         s.__distro_series = None
+        s.__is_new_abi = None
 
+    # distro_series
+    #
     @property
     def distro_series(s):
         if s.__distro_series is None:
@@ -154,6 +157,7 @@ class Package():
                 for ds in sc:
                     if ds.name == series:
                         s.__distro_series = ds
+                        warning(s.__distro_series)
                         break
 
             if s.__distro_series is None:
@@ -165,19 +169,23 @@ class Package():
 
     # is_new_abi
     #
-    def  is_new_abi(s, package):
-        # Try to verify if there was an abi change in this release. We
-        # guess this by looking if there is already a package with same
-        # abi in the updates/release pocket.
-        retval = True
-        main_archive = s.lp.launchpad.distributions["ubuntu"].main_archive
-        if package.kernel and package.abi:
-            st_abi_rel, _ = s.build_status(s.distro_series, package.name, package.abi, main_archive, package.kernel, 'Release')
-            st_abi_upd, _ = s.build_status(s.distro_series, package.name, package.abi, main_archive, package.kernel, 'Updates')
-            if st_abi_rel == 2 or st_abi_upd == 2:
-                retval = False
+    @property
+    def is_new_abi(s):
+        if s.__is_new_abi is None:
+            '''
+            Try to determine if there was an abi change in this release. We
+            guess this by looking if there is already a package with same
+            abi in the updates/release pocket.
+            '''
+            retval = True
+            main_archive = s.lp.launchpad.distributions["ubuntu"].main_archive
+            if s.package.kernel and s.package.abi:
+                st_abi_rel, _ = s.build_status(s.distro_series, s.package.name, s.package.abi, main_archive, s.package.kernel, 'Release')
+                st_abi_upd, _ = s.build_status(s.distro_series, s.package.name, s.package.abi, main_archive, s.package.kernel, 'Updates')
+                if st_abi_rel == 2 or st_abi_upd == 2:
+                    s.__is_new_abi = False
 
-        return retval
+        return s.__is_new_abi
 
     # check
     #
@@ -199,49 +207,14 @@ class Package():
             return
 
         #--
-        distro_series = None
-        series = s.ubuntu.series_name(package.name, package.version)
-        if series:
-            sc = s.lp.launchpad.distributions["ubuntu"].series_collection
-            for ds in sc:
-                if ds.name == series:
-                    distro_series = ds
-                    break
-        if not distro_series:
-            print("        ")
-            print("ERROR: can't figure out the distro series for %s-%s\n" % (package.name, package.version))
-            return
-
-        if distro_series != s.distro_series:
-            error('The refactored code did not come up with the same answer for the distro series.')
-            error('      distro_series: %s' % distro_series)
-            error('    s.distro_series: %s' % s.distro_series)
-            return
-
-        #--
         pkgs = {}
+        series = s.ubuntu.series_name(package.name, package.version)
         entry = s.ubuntu.lookup(series)
         if entry:
             if 'dependent-packages' in entry:
                 if package.name in entry['dependent-packages']:
                     pkgs.update(entry['dependent-packages'][package.name])
         pkgs['main'] = package.name
-
-        # Try to verify if there was an abi change in this release. We
-        # guess this by looking if there is already a package with same
-        # abi in the updates/release pocket.
-        new_abi = True
-        main_archive = s.lp.launchpad.distributions["ubuntu"].main_archive
-        if package.kernel and package.abi:
-            st_abi_rel, _ = s.build_status(s.distro_series, package.name, package.abi, main_archive, package.kernel, 'Release')
-            st_abi_upd, _ = s.build_status(s.distro_series, package.name, package.abi, main_archive, package.kernel, 'Updates')
-            if st_abi_rel == 2 or st_abi_upd == 2:
-                new_abi = False
-
-        neo_abi = s.is_new_abi(package)
-        if new_abi != neo_abi:
-            error('The refactored code did not come up with the same answer for if the ABI changed.')
-        return  # FIXME bjf - debugging
 
         # Check build status. This is really convoluted... due to number
         # of tasks and we wanting the better behaviour as possible
@@ -331,7 +304,7 @@ class Package():
                 s.props.set({prop:None})
             new_status = s.taskbyname[bug_task].status
             if abi_num:
-                if new_abi:
+                if s.is_new_abi:
                     new_status = task_status[prepare_status]
                 else:
                     if new_status != 'Invalid' and new_status != 'Fix Released':
