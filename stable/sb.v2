@@ -58,7 +58,7 @@ class PackageInfo():
             s.valid = True
 
         if not matched:
-            print(' ** None of the regular expressions matched the title\n')
+            warning(' ** None of the regular expressions matched the title (%s)\n' % txt)
 
 # WorkflowBug
 #
@@ -145,6 +145,7 @@ class Package():
         s.lp = lp
         s.__distro_series = None
 
+    @property
     def distro_series(s):
         if s.__distro_series is None:
             series = s.ubuntu.series_name(s.package.name, s.package.version)
@@ -162,6 +163,22 @@ class Package():
 
         return s.__distro_series
 
+    # is_new_abi
+    #
+    def  is_new_abi(s, package):
+        # Try to verify if there was an abi change in this release. We
+        # guess this by looking if there is already a package with same
+        # abi in the updates/release pocket.
+        retval = True
+        main_archive = s.lp.launchpad.distributions["ubuntu"].main_archive
+        if package.kernel and package.abi:
+            st_abi_rel, _ = s.build_status(s.distro_series, package.name, package.abi, main_archive, package.kernel, 'Release')
+            st_abi_upd, _ = s.build_status(s.distro_series, package.name, package.abi, main_archive, package.kernel, 'Updates')
+            if st_abi_rel == 2 or st_abi_upd == 2:
+                retval = False
+
+        return retval
+
     # check
     #
     def check(s, shankbug):
@@ -170,10 +187,15 @@ class Package():
         build status
         """
         bug = shankbug.bug
+
+        # Determine some properties of the package we are looking at based on the
+        # bug title. This information is used further on.
+        #
         package = PackageInfo(bug.title)
         s.package = PackageInfo(bug.title)
         if not s.package.valid:
-            warning('        Unable to check package builds for this bug: either the package name or\n        version are not properly available yet in the bug title.\n')
+            warning('        Unable to check package builds for this bug: either the package name or')
+            warning('        the version are not properly indicated in the bug title.\n')
             return
 
         #--
@@ -188,6 +210,12 @@ class Package():
         if not distro_series:
             print("        ")
             print("ERROR: can't figure out the distro series for %s-%s\n" % (package.name, package.version))
+            return
+
+        if distro_series != s.distro_series:
+            error('The refactored code did not come up with the same answer for the distro series.')
+            error('      distro_series: %s' % distro_series)
+            error('    s.distro_series: %s' % s.distro_series)
             return
 
         #--
@@ -205,10 +233,15 @@ class Package():
         new_abi = True
         main_archive = s.lp.launchpad.distributions["ubuntu"].main_archive
         if package.kernel and package.abi:
-            st_abi_rel, _ = s.build_status(distro_series, package.name, package.kernel, package.abi, main_archive, 'Release')
-            st_abi_upd, _ = s.build_status(distro_series, package.name, package.kernel, package.abi, main_archive, 'Updates')
+            st_abi_rel, _ = s.build_status(s.distro_series, package.name, package.abi, main_archive, package.kernel, 'Release')
+            st_abi_upd, _ = s.build_status(s.distro_series, package.name, package.abi, main_archive, package.kernel, 'Updates')
             if st_abi_rel == 2 or st_abi_upd == 2:
                 new_abi = False
+
+        neo_abi = s.is_new_abi(package)
+        if new_abi != neo_abi:
+            error('The refactored code did not come up with the same answer for if the ABI changed.')
+        return  # FIXME bjf - debugging
 
         # Check build status. This is really convoluted... due to number
         # of tasks and we wanting the better behaviour as possible
@@ -238,10 +271,11 @@ class Package():
             prepare_uploader = None
             if shankbug.targeted_project == 'kernel-sru-workflow':
                 promoted_to_release = False
-                status_ckt,      pkg_ckt      = s.build_status(distro_series, pkgs[dep], pkg_rel, abi_num, ckt_archive)
-                status_proposed, pkg_proposed = s.build_status(distro_series, pkgs[dep], pkg_rel, abi_num, main_archive, 'Proposed')
-                status_updates,  pkg_updates  = s.build_status(distro_series, pkgs[dep], pkg_rel, abi_num, main_archive, 'Updates')
-                status_security, pkg_security = s.build_status(distro_series, pkgs[dep], pkg_rel, abi_num, main_archive, 'Security')
+                main_archive = s.lp.launchpad.distributions["ubuntu"].main_archive
+                status_ckt,      pkg_ckt      = s.build_status(s.distro_series, pkgs[dep], abi_num, ckt_archive,  pkg_rel)
+                status_proposed, pkg_proposed = s.build_status(s.distro_series, pkgs[dep], abi_num, main_archive, pkg_rel, 'Proposed')
+                status_updates,  pkg_updates  = s.build_status(s.distro_series, pkgs[dep], abi_num, main_archive, pkg_rel, 'Updates')
+                status_security, pkg_security = s.build_status(s.distro_series, pkgs[dep], abi_num, main_archive, pkg_rel, 'Security')
                 if status_security != 2:
                     promoted_to_security = False
                 if status_updates != 2:
@@ -257,8 +291,8 @@ class Package():
             else:
                 promoted_to_updates = False
                 promoted_to_security = False
-                status_proposed, pkg_proposed = s.build_status(distro_series, pkgs[dep], pkg_rel, abi_num, main_archive, 'Proposed')
-                status_release,  pkg_release  = s.build_status(distro_series, pkgs[dep], pkg_rel, abi_num, main_archive, 'Release')
+                status_proposed, pkg_proposed = s.build_status(s.distro_series, pkgs[dep], abi_num, main_archive, pkg_rel, 'Proposed')
+                status_release,  pkg_release  = s.build_status(s.distro_series, pkgs[dep], abi_num, main_archive, pkg_rel, 'Release')
                 if status_release != 2:
                     promoted_to_release = False
                 prepare_status = status_proposed
@@ -348,15 +382,20 @@ class Package():
         if release is not None:
             if pocket != '':
                 ps = archive.getPublishedSources(distro_series=s.distro_series, exact_match=True, source_name=package, status='Published', version=release, pocket=pocket)
+                error('get_sources #1')
             else:
-                ps = archive.getPublishedSources(distro_series=s.ditro_series, exact_match=True, source_name=package, status='Published', version=release)
+                ps = archive.getPublishedSources(distro_series=s.distro_series, exact_match=True, source_name=package, status='Published', version=release)
+                error('get_sources #2')
         else:
             if pocket != '':
                 ps = archive.getPublishedSources(distro_series=s.distro_series, exact_match=True, source_name=package, status='Published', pocket=pocket)
+                error('get_sources #3')
             else:
-                ps = archive.getPublishedSources(distro_series=s.ditro_series, exact_match=True, source_name=package, status='Published')
+                ps = archive.getPublishedSources(distro_series=s.distro_series, exact_match=True, source_name=package, status='Published')
+                error('get_sources #4')
+        return ps
 
-    def build_status(s, series, package, release, abi, archive, pocket = ''):
+    def build_status(s, series, package, abi, archive, release=None, pocket=''):
         """
         Return an status code, the possible assignee responsible and the
         package creator related to the publishing of the package in the
@@ -368,32 +407,34 @@ class Package():
         1 - if the package-version is available (published), but still
             didn't finish building
         2 - package-version is available in the archive
+
         The parameters are:
-        series - the distribution series (quantal, oneiric, etc.)
-        package - the package name
-        release - the version or version-abi number to match
-        abi_match - if provided, indicates that release is not an exact
-                    version number, and we must do an ABI check
-        archive - launchpad archive to look into
-        pocket - optional, if we want only results of the archive from
-                 the specified pocket
+          series    - the distribution series (quantal, oneiric, etc.)
+          package   - the package name
+          release   - the version or version-abi number to match
+          abi_match - if provided, indicates that release is not an exact
+                      version number, and we must do an ABI check
+          archive   - launchpad archive to look into
+          pocket    - optional, if we want only results of the archive from
+                      the specified pocket
         """
 
+        error('build_status - archive: %s; package: %s; release: %s; pocket: %s' % (archive, package, release, pocket))
+        #ps = s.get_sources(archive, package, release, pocket)
+        #if not abi:
+        #    ps = s.get_sources(archive, package, release, pocket)
         if pocket and not abi:
-            ps = archive.getPublishedSources(distro_series=series, exact_match=True, source_name=package, status='Published', version=release, pocket=pocket)
-            error('This doesn\'t happen (1).')
-            #ps = s.get_sources(archive, package, release, pocket)
+            error('build_status #1')
+            ps = s.get_sources(archive, package, release, pocket)
         elif not pocket and not abi:
-            ps = archive.getPublishedSources(distro_series=series, exact_match=True, source_name=package, status='Published', version=release)
-            error('This doesn\'t happen (2).')
-            #ps = s.get_sources(archive, package, release)
+            error('build_status #2')
+            ps = s.get_sources(archive, package, release)
         elif pocket and abi:
-            #ps = archive.getPublishedSources(distro_series=series, exact_match=True, source_name=package, status='Published', pocket=pocket)
+            error('build_status #3')
             ps = s.get_sources(archive, package, pocket=pocket)
         else:
-            ps = archive.getPublishedSources(distro_series=series, exact_match=True, source_name=package, status='Published')
-            error('This doesn\'t happen (3).')
-            #ps = s.get_sources(archive, package)
+            error('build_status #4')
+            ps = s.get_sources(archive, package)
         matches = []
         if abi:
             dep_ver1 = '%s-%s' % (release, abi)
@@ -408,8 +449,7 @@ class Package():
                         ver_split = src_ver.split('-', 1)
                         if len(ver_split) > 1:
                             src_ver = '2.6.24-%s' % (ver_split[1])
-                if ((src_ver.startswith(dep_ver1 + '.') or
-                     src_ver.startswith(dep_ver2 + '.'))):
+                if ((src_ver.startswith(dep_ver1 + '.') or src_ver.startswith(dep_ver2 + '.'))):
                     matches.append(p)
             if not matches:
                 info('        Can\'t find <%s> (%s) build on %s (pocket:%s)' % (package, rel_match, archive.displayname, pocket))
@@ -498,14 +538,14 @@ class TheApp():
                 'kernel-release-tracking-bug'
             ]
         search_tags_combinator = "All"
-        search_status          = ["New","In Progress","Invalid", "Incomplete", "Fix Committed"] # A list of the bug statuses that we care about
+        search_status          = ["New", "In Progress", "Incomplete", "Fix Committed"] # A list of the bug statuses that we care about
         search_since           = datetime(year=2013, month=1, day=1)
         lp_project = s.lp.projects[project]
         tasks = lp_project.search_tasks(status=search_status, tags=search_tags, tags_combinator=search_tags_combinator, modified_since=search_since)
 
         for task in tasks:
             bug = task.bug
-            info(bug.id)
+            info('found: %s' % bug.id)
             retval.append(bug.id)
 
         return retval
@@ -576,11 +616,12 @@ examples:
     else:
         basicConfig(filename=args.log_file, level=INFO, format=log_format)
 
-    args.bugs = args.bugs.replace(' ', '')
-    if ',' in args.bugs:
-        args.bugs = args.bugs.split(',')
-    else:
-        args.bugs = [args.bugs]
+    if args.bugs:
+        args.bugs = args.bugs.replace(' ', '')
+        if ',' in args.bugs:
+            args.bugs = args.bugs.split(',')
+        else:
+            args.bugs = [args.bugs]
 
     app = TheApp(args)
     exit(app.main())
