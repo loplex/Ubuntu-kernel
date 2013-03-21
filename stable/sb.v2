@@ -17,15 +17,15 @@ class GeneralError(Exception):
     '''
     Generic base class for my exceptions.
     '''
-    def __init__(self, emsg):
-        self.__message = emsg
+    def __init__(s, emsg):
+        s.__message = emsg
 
     @property
-    def message(self):
+    def message(s):
         '''
         The shell command that was being executed when the timeout occured.
         '''
-        return self.__message
+        return s.__message
 
 # ErrorExit
 #
@@ -34,7 +34,7 @@ class ErrorExit(GeneralError):
     If an error message has already been displayed and we want to just exit the app, this
     exception is raised.
     '''
-    def __init__(self, emsg):
+    def __init__(s, emsg):
         GeneralError(emsg)
 
 # ErrorExit
@@ -44,7 +44,7 @@ class PackageError(GeneralError):
     Thrown when some basic information about the package that is associated with the
     shankbug could not be determined.
     '''
-    def __init__(self, emsg):
+    def __init__(s, emsg):
         GeneralError(emsg)
 
 class PackageInfo():
@@ -79,6 +79,22 @@ class PackageInfo():
         if not matched:
             warning(' ** None of the regular expressions matched the title (%s)' % txt)
 
+# WorkflowBugTask
+#
+class WorkflowBugTask(object):
+    # __init__
+    #
+    def __init__(s, lp_task, task_name):
+        setattr(s, 'name', task_name)
+        setattr(s, 'status', lp_task.status)
+        setattr(s, 'importance', lp_task.importance)
+
+        assignee    = lp_task.assignee
+        if assignee is None:
+            setattr(s, 'assignee', '*Unassigned')
+        else:
+            setattr(s, 'assignee', assignee.display_name)
+
 # WorkflowBug
 #
 class WorkflowBug():
@@ -86,20 +102,20 @@ class WorkflowBug():
     #
     def __init__(s, lp, projects, bugid):
         s.lp = lp
-        s.bug = s.lp.get_bug(bugid)
+        s.lpbug = s.lp.get_bug(bugid)
         s.projects = projects
 
         s.__package_name = None
 
         # If a bug isn't to be processed, detect this as early as possible.
         #
-        s.is_valid = s.check_is_valid(s.bug)
+        s.is_valid = s.check_is_valid(s.lpbug)
 
         if s.is_valid:
             info('    Targeted Project:')
             info('        %s' % s.targeted_project)
             info('')
-            s.properties = s.bug.properties
+            s.properties = s.lpbug.properties
             if len(s.properties) > 0:
                 info('    Properties:')
                 for prop in s.properties:
@@ -113,7 +129,7 @@ class WorkflowBug():
         '''
         '''
         retval = True
-        for t in s.bug.tasks:
+        for t in s.lpbug.tasks:
             task_name       = t.bug_target_name
 
             if task_name in s.projects:
@@ -139,19 +155,42 @@ class WorkflowBug():
         info('')
         info('    Scanning bug tasks:')
 
-        for t in s.bug.tasks:
+        for t in s.lpbug.tasks:
             task_name       = t.bug_target_name
 
             if task_name.startswith(s.targeted_project):
                 if '/' in task_name:
                     task_name = task_name[len(s.targeted_project)+1:].strip()
-                taskbyname[task_name] = t
+                taskbyname[task_name] = WorkflowBugTask(t, task_name)
             else:
                 info('')
                 info('        %-25s' % (task_name))
                 info('            Action: Skipping non-workflow task')
 
         return taskbyname
+
+# BS
+#
+class BS(object):
+    '''
+    Build Status
+    '''
+    # __init__
+    #
+    def __init__(s, status, package):
+        '''
+        0 - if the package-version wasn't found/published. In this case
+            the package creator and assignee returned is always None
+        1 - if the package-version is available (published), but still
+            didn't finish building
+        2 - package-version is available in the archive
+        '''
+        s.status = status
+        s.package = package
+
+    @property
+    def is_built_and_published(s):
+        return s.status == 2
 
 # Package
 #
@@ -170,12 +209,12 @@ class Package():
 
         s.main_archive = s.lp.launchpad.distributions["ubuntu"].main_archive
 
-        s.bug = shankbug.bug
+        s.bug = shankbug
 
         # Determine some properties of the package we are looking at based on the
         # bug title. This information is used further on.
         #
-        s.package = PackageInfo(s.bug.title)
+        s.package = PackageInfo(s.bug.lpbug.title)
         if not s.package.valid:
             warning('        Unable to check package builds for this bug: either the package name or')
             warning('        the version are not properly indicated in the bug title.')
@@ -183,6 +222,11 @@ class Package():
                                 'the version are not properly indicated in the bug title.'])
 
         s.pkgs = s.dependent_packages
+
+        if shankbug.targeted_project == 'kernel-sru-workflow':
+            s.is_stable_package = True
+        else:
+            s.is_stable_package = False
 
     # distro_series
     #
@@ -218,10 +262,10 @@ class Package():
         abi in the updates/release pocket.
         '''
         if s.__is_new_abi is None:
-            retval = True
+            s.__is_new_abi = True
             if s.package.kernel and s.package.abi:
-                st_abi_rel, _ = s.build_status(s.distro_series, s.package.name, s.package.abi, s.main_archive, s.package.kernel, 'Release')
-                st_abi_upd, _ = s.build_status(s.distro_series, s.package.name, s.package.abi, s.main_archive, s.package.kernel, 'Updates')
+                st_abi_rel, _ = s.build_status(s.package.name, s.package.abi, s.main_archive, s.package.kernel, 'Release')
+                st_abi_upd, _ = s.build_status(s.package.name, s.package.abi, s.main_archive, s.package.kernel, 'Updates')
                 if st_abi_rel == 2 or st_abi_upd == 2:
                     s.__is_new_abi = False
 
@@ -248,9 +292,9 @@ class Package():
 
         return pkgs
 
-    # check
+    # determine_build_status
     #
-    def check(s, shankbug):
+    def determine_build_status(s):
         """
         Verify the required packages for this update, and determine its
         build status
@@ -263,35 +307,41 @@ class Package():
         pkg_security = None
         pkg_updates = None
         pkg_release = None
-        task_status = [ 'New', 'In Progress', 'Fix Released' ]
+
+        info('    Processing depenent packages:')
         for dep in iter(s.pkgs):
-            if s.pkgs[dep] == s.package.name:
-                bug_task = 'prepare-package'
-            else:
-                bug_task = 'prepare-package-%s' % (dep)
+            info('')
+            info('        %s:' % dep)
+
             abi_num = None
             pkg_rel = s.package.version
             if dep in [ 'lbm', 'lrm', 'lum', 'meta', 'ports-meta' ] and s.package.abi:
                 abi_num = s.package.abi
                 pkg_rel = s.package.kernel
+
             status_updates = 0
             status_release = 0
             prepare_status = 0
             prepare_assignee = None
             prepare_uploader = None
-            if shankbug.targeted_project == 'kernel-sru-workflow':
+
+            if s.is_stable_package:
                 promoted_to_release = False
-                status_ckt,      pkg_ckt      = s.build_status(s.distro_series, s.pkgs[dep], abi_num, s.ckt_ppa,    pkg_rel)
-                status_proposed, pkg_proposed = s.build_status(s.distro_series, s.pkgs[dep], abi_num, s.main_archive, pkg_rel, 'Proposed')
-                status_updates,  pkg_updates  = s.build_status(s.distro_series, s.pkgs[dep], abi_num, s.main_archive, pkg_rel, 'Updates')
-                status_security, pkg_security = s.build_status(s.distro_series, s.pkgs[dep], abi_num, s.main_archive, pkg_rel, 'Security')
+                status_ckt,      pkg_ckt      = s.build_status(s.pkgs[dep], abi_num, s.ckt_ppa,    pkg_rel)
+                status_proposed, pkg_proposed = s.build_status(s.pkgs[dep], abi_num, s.main_archive, pkg_rel, 'Proposed')
+
+                status_security, pkg_security = s.build_status(s.pkgs[dep], abi_num, s.main_archive, pkg_rel, 'Security')
                 if status_security != 2:
-                    promoted_to_security = False
+                    promoted_to_security = False # Not in the Security pocket
+
+                status_updates,  pkg_updates  = s.build_status(s.pkgs[dep], abi_num, s.main_archive, pkg_rel, 'Updates')
                 if status_updates != 2:
-                    promoted_to_updates = False
-                for s in [ status_ckt, status_proposed, status_updates ]:
-                    if s > prepare_status:
-                        prepare_status = s
+                    promoted_to_updates = False  # Not in the Updates pocket
+
+                for st in [ status_ckt, status_proposed, status_updates ]:
+                    if st > prepare_status:
+                        prepare_status = st
+
                 for c in [ pkg_ckt, pkg_proposed, pkg_updates, pkg_security ]:
                     if c:
                         prepare_assignee = c.package_creator
@@ -300,23 +350,29 @@ class Package():
             else:
                 promoted_to_updates = False
                 promoted_to_security = False
-                status_proposed, pkg_proposed = s.build_status(s.distro_series, s.pkgs[dep], abi_num, s.main_archive, pkg_rel, 'Proposed')
-                status_release,  pkg_release  = s.build_status(s.distro_series, s.pkgs[dep], abi_num, s.main_archive, pkg_rel, 'Release')
+
+                status_release,  pkg_release  = s.build_status(s.pkgs[dep], abi_num, s.main_archive, pkg_rel, 'Release')
                 if status_release != 2:
                     promoted_to_release = False
+                if pkg_release:
+                    prepare_assignee = pkg_release.package_creator
+                    prepare_uploader = pkg_release.package_signer
+
+                status_proposed, pkg_proposed = s.build_status(s.pkgs[dep], abi_num, s.main_archive, pkg_rel, 'Proposed')
                 prepare_status = status_proposed
                 if status_release > prepare_status:
                     prepare_status = status_release
                 if pkg_proposed:
                     prepare_assignee = pkg_proposed.package_creator
                     prepare_uploader = pkg_proposed.package_signer
-                elif pkg_release:
-                    prepare_assignee = pkg_release.package_creator
-                    prepare_uploader = pkg_release.package_signer
 
-            ###################################################################
-            #
-            return # FIXME bjf -debug
+            task_status = [ 'New', 'In Progress', 'Fix Released' ]  # FIXME bjf - should probably just be a class variable
+
+            if s.pkgs[dep] == s.package.name:  # if 'linux' == 'linux'
+                prep_task_name = 'prepare-package'
+            else:
+                prep_task_name = 'prepare-package-%s' % (dep)
+            prep_task_status = s.bug.tasks_by_name[prep_task_name].status
 
             # When things are moved from one pocket to another, things
             # may be unavailable for some time, and we may think no
@@ -325,67 +381,117 @@ class Package():
             # missing. If after 1 hour the builds are still unavailable,
             # then we allow to reset the tasks.
             prop = 'kernel-%s-build-unavailable' % (dep)
-            if (s.taskbyname[bug_task].status == 'Fix Released' and
-                prepare_status != 2):
-                s.set_tagged_timestamp(s.taskbyname[bug_task], prop)
-                if not prop in s.bug.properties:
-                    continue
-                date_str = s.bug.properties[prop]
+            if (s.bug.tasks_by_name[prep_task_name].status == 'Fix Released' and prepare_status != 2):
+                s.set_tagged_timestamp(s.bug.tasks_by_name[prep_task_name], prop)
+                if not prop in s.bug.lpbug.properties:
+                    warning('Fix Released bug not fully built?!?')
+                    continue # Nothing further to do, process the next dependent package.
+
+                date_str = s.bug.lpbug.properties[prop]
                 timestamp = datetime.strptime(date_str, '%A, %d. %B %Y %H:%M UTC')
                 delta = DeltaTime(timestamp, datetime.utcnow())
                 if delta.hours < 1:
-                    info('        Builds gone for %s, waiting 1 hour to reset tasks' % (bug_task))
-                    continue
-            if prop in s.bug.properties:
+                    info('        Builds gone for %s, waiting 1 hour to reset tasks' % (prep_task_name))
+                    warning('Fix Released bug not fully built?!? (waiting)')
+                    continue # Nothing further to do, process the next dependent package.
+
+            # Clear the timestamp property if it was set. We just clean it up so it doesn't
+            # confuse anyone looking at the bug.
+            #
+            if prop in s.bug.lpbug.properties:
                 s.props.set({prop:None})
-            new_status = s.taskbyname[bug_task].status
+
+            new_status = s.bug.tasks_by_name[prep_task_name].status
             if abi_num:
                 if s.is_new_abi:
                     new_status = task_status[prepare_status]
                 else:
-                    if new_status != 'Invalid' and new_status != 'Fix Released':
+                    if new_status not in ['Invalid', 'Fix Released']:
                         new_status = 'Invalid'
             else:
                 new_status = task_status[prepare_status]
-            if prepare_assignee and new_status != 'Invalid':
-                s.set_task_assignee(bug_task, prepare_assignee)
-            s.set_task_to_state(bug_task, new_status)
-            # Take care of the upload-to-ppa task if needed
-            if dep == 'main' and 'upload-to-ppa' in s.taskbyname:
-                if prepare_uploader:
-                    s.set_task_assignee('upload-to-ppa', prepare_uploader)
-                if prepare_status >= 1:
-                    s.set_task_to_state('upload-to-ppa', 'Fix Released')
-                elif s.taskbyname['upload-to-ppa'].status != 'Confirmed':
-                    s.set_task_to_state('upload-to-ppa', 'New')
 
+            # FIXME bjf - if prepare_assignee and new_status != 'Invalid':
+            # FIXME bjf -     s.set_task_assignee(prep_task_name, prepare_assignee)
+
+            # FIXME bjf - s.set_task_to_state(prep_task_name, new_status)
+            info('            %s - current: %s; new: %s' % (prep_task_name, prep_task_status, new_status))
+
+            # Take care of the upload-to-ppa task if needed
+            # FIXME bjf - if dep == 'main' and 'upload-to-ppa' in s.bug.tasks_by_name:
+            # FIXME bjf -     if prepare_uploader:
+            # FIXME bjf -         s.set_task_assignee('upload-to-ppa', prepare_uploader)
+            # FIXME bjf -     if prepare_status >= 1:
+            # FIXME bjf -         s.set_task_to_state('upload-to-ppa', 'Fix Released')
+            # FIXME bjf -     elif s.bug.tasks_by_name['upload-to-ppa'].status != 'Confirmed':
+            # FIXME bjf -         s.set_task_to_state('upload-to-ppa', 'New')
+
+        info('')
+        info('    promoted_to_security: %s' % promoted_to_security)
+        info('     promoted_to_updates: %s' % promoted_to_updates)
+        info('     promoted_to_release: %s' % promoted_to_release)
         ###################################################################
         #
-        return
+        return # FIXME bjf -debug
 
         # Set promotion bug tasks
         if promoted_to_security:
             if pkg_security:
-                s.set_task_assignee('promote-to-security',
-                                       pkg_security.creator)
+                s.set_task_assignee('promote-to-security', pkg_security.creator)
             s.set_task_to_state('promote-to-security', 'Fix Released')
-        #else:
-            # TODO: verify promote-to-security task state
+
         if promoted_to_updates:
             if pkg_updates:
-                s.set_task_assignee('promote-to-updates',
-                                       pkg_updates.creator)
+                s.set_task_assignee('promote-to-updates', pkg_updates.creator)
             s.set_task_to_state('promote-to-updates', 'Fix Released')
-        #else:
-            # TODO: verify promote-to-updates task state
+
         if promoted_to_release:
             if pkg_release:
-                s.set_task_assignee('promote-to-release',
-                                       pkg_release.creator)
+                s.set_task_assignee('promote-to-release', pkg_release.creator)
             s.set_task_to_state('promote-to-release', 'Fix Released')
-        #else:
-            # TODO: verify promote-to-updates task state
 
+    # is_released
+    #
+    @property
+    def is_released(s):
+        '''
+        Determine if the 'promote' tasks have all been set to 'Fix Released'.
+        '''
+        retval = False
+
+        if s.is_stable_package:
+            if ((s.bug.tasks_by_name['promote-to-security'].status == 'Fix Released') and
+                (s.bug.tasks_by_name['promote-to-updates'].status == 'Fix Released')):
+                retval = True
+        else:
+            if s.bug.tasks_by_name['promote-to-release'].status == 'Fix Released':
+                retval = True
+        return retval
+
+    # is_prepd
+    #
+    @property
+    def is_prepd(s):
+        '''
+        Determine if the main package and all it's dependents have been prepared.
+        '''
+        retval = True
+        info('    Prep\'d Check:')
+        for dep in iter(s.pkgs):
+            if s.pkgs[dep] == s.package.name:  # if 'linux' == 'linux'
+                prep_task_name = 'prepare-package'
+            else:
+                prep_task_name = 'prepare-package-%s' % (dep)
+
+            prep_task_status = s.bug.tasks_by_name[prep_task_name].status
+            if prep_task_status != 'Fix Released':
+                info('        %s: not fully prep\'d' % dep)
+                retval = False
+                break
+            else:
+                info('        %s: fully prep\'d' % dep)
+
+        return retval
 
     def get_sources(s, archive, package, release=None, pocket=''):
         if release is not None:
@@ -404,7 +510,7 @@ class Package():
                 #error('get_sources #4')
         return ps
 
-    def build_status(s, series, package, abi, archive, release=None, pocket=''):
+    def build_status(s, package, abi, archive, release=None, pocket=''):
         """
         Return an status code, the possible assignee responsible and the
         package creator related to the publishing of the package in the
@@ -418,7 +524,6 @@ class Package():
         2 - package-version is available in the archive
 
         The parameters are:
-          series    - the distribution series (quantal, oneiric, etc.)
           package   - the package name
           release   - the version or version-abi number to match
           abi_match - if provided, indicates that release is not an exact
@@ -428,7 +533,16 @@ class Package():
                       the specified pocket
         """
 
-        #error('build_status - archive: %s; package: %s; release: %s; pocket: %s' % (archive, package, release, pocket))
+        info('            ---------------------------------------------------------------------------')
+        info('            Build Status')
+        info('')
+        info('                package: %s' % package)
+        info('                    abi: %s' % abi)
+        info('                archive: %s' % archive)
+        info('                release: %s' % release)
+        info('                 pocket: %s' % pocket)
+        info('')
+
         #ps = s.get_sources(archive, package, release, pocket)
         #if not abi:
         #    ps = s.get_sources(archive, package, release, pocket)
@@ -444,6 +558,7 @@ class Package():
         else:
             #error('build_status #4')
             ps = s.get_sources(archive, package)
+
         matches = []
         if abi:
             dep_ver1 = '%s-%s' % (release, abi)
@@ -451,43 +566,51 @@ class Package():
             rel_match = '<%s> or <%s>' % (dep_ver1, dep_ver2)
             for p in ps:
                 src_ver = p.source_package_version
-                # special case for hardy lrm version...
-                if ((series.name == 'hardy') and
-                    (package == 'linux-restricted-modules-2.6.24')):
-                    if src_ver.startswith('2.6.24'):
-                        ver_split = src_ver.split('-', 1)
-                        if len(ver_split) > 1:
-                            src_ver = '2.6.24-%s' % (ver_split[1])
+                info('                src_ver: %s' % src_ver)
                 if ((src_ver.startswith(dep_ver1 + '.') or src_ver.startswith(dep_ver2 + '.'))):
                     matches.append(p)
-            if not matches:
-                info('        Can\'t find <%s> (%s) build on %s (pocket:%s)' % (package, rel_match, archive.displayname, pocket))
-                return 0, None
         else:
             rel_match = '<%s>' % (release)
             for p in ps:
                 matches.append(p)
-            if not matches:
-                info('        Can\'t find <%s> %s build on %s (pocket:%s)' % (package, rel_match, archive.displayname, pocket))
-                return 0, None
-        res = 0, None
-        lst_date = None
-        for pkg in matches:
-            src_id = str(pkg.self).rsplit('/', 1)[1]
-            build_summaries = archive.getBuildSummariesForSourceIds(source_ids=[src_id])[src_id]
-            if build_summaries['status'] == 'FULLYBUILT':
-                info('        <%s> %s built (pocket:%s)' % (package, rel_match, pocket))
-                bs = 2
-            else:
-                info('        <%s> %s not fully built yet, skipping (pocket:%s)' % (package, rel_match, pocket))
-                bs = 1
-            # prefer newer published items...
-            if lst_date:
-                if lst_date > pkg.date_published:
-                    continue
-            lst_date = pkg.date_published
-            res = bs, pkg
-        return res
+
+        retval = 0, None
+        if not matches:
+            info('                Can\'t find <%s> (%s) build on %s (pocket:%s)' % (package, rel_match, archive.displayname, pocket))
+        else:
+            lst_date = None
+            for pkg in matches:
+                src_id = str(pkg.self).rsplit('/', 1)[1]
+                build_summaries = archive.getBuildSummariesForSourceIds(source_ids=[src_id])[src_id]
+                if build_summaries['status'] == 'FULLYBUILT':
+                    info('                <%s> %s built (pocket:%s)' % (package, rel_match, pocket))
+                    bs = 2
+                else:
+                    info('                <%s> %s not fully built yet, skipping (pocket:%s)' % (package, rel_match, pocket))
+                    bs = 1
+                # prefer newer published items...
+                if lst_date:
+                    if lst_date > pkg.date_published:
+                        continue
+                lst_date = pkg.date_published
+                retval = bs, pkg
+
+        info('                result: %d, %s' % retval)
+        return retval
+
+class TaskActions(dict):
+    # __init__
+    #
+    def __init__(s, d, *args):
+        dict.__init__(s, *args)
+        s.actions = {}
+        for t in ['New', 'Incomplete', 'Opinion', 'Invalid', 'Won\'t Fix', 'Expired', 'Confirmed', 'Triaged', 'In Progress', 'Fix Committed', 'Fix Released', 'Unknown']:
+            s[t] = {}
+            s[t]['action'] = None
+
+        for k in d:
+            s[k] = {}
+            s[k]['action'] = d[k]
 
 # Shankbot
 #
@@ -502,11 +625,90 @@ class Shankbot():
         s.lpserver = lpserver
         s.projects = projects
 
+        s.state_map = {
+            'upload-to-ppa'             : TaskActions({}),
+            'prepare-package'           : TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'prepare-package-lbm'       : TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'prepare-package-lrm'       : TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'prepare-package-lum'       : TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'prepare-package-meta'      : TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'prepare-package-ports-meta': TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'prepare-package-signed'    : TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'promote-to-proposed'       : TaskActions({'Fix Released' : s.promote_to_proposed_fix_released}),
+            'verification-testing'      : TaskActions({'Fix Released' : s.verification_testing_fix_released}),
+            'certification-testing'     : TaskActions({'Fix Released' : s.certification_testing_fix_released}),
+            'regression-testing'        : TaskActions({'Fix Released' : s.regression_testing_fix_released}),
+            'package-testing'           : TaskActions({'Fix Released' : s.package_testing_fix_released}),
+            'promote-to-updates'        : TaskActions({'Fix Released' : s.check_for_final_close}),
+            'promote-to-security'       : TaskActions({'Fix Released' : s.check_for_final_close}),
+            'promote-to-release'        : TaskActions({'Fix Released' : s.promote_to_release_fix_released}),
+            'security-signoff'          : TaskActions({'Invalid'      : s.security_signoff_finished,
+                                                       'Fix Released' : s.security_signoff_finished}),
+        }
+
+    def security_signoff_finished(s):
+        pass
+
+    def promote_to_release_fix_released(s):
+        pass
+
+    def check_for_final_close(s):
+        pass
+
+    def package_testing_fix_released(s):
+        pass
+
+    def regression_testing_invalid(s):
+        pass
+
+    def certification_testing_fix_released(s):
+        pass
+
+    def certification_testing_invalid(s):
+        pass
+
+    def verification_testing_fix_released(s):
+        pass
+
+    def promote_to_proposed_fix_released(s):
+        pass
+
+    def prep_package_fix_released(s):
+        pass
+
+    def regression_testing_fix_released(s):
+        pass
+
     # bug_url
     #
     def bug_url(s, bug_id):
         retval = 'https://%s/bugs/%s' % (s.lpserver, bug_id)
         return retval
+
+    # process_bug_tasks
+    #
+    def process_bug_tasks(s, shankbug):
+        info('')
+        info('    Processing Workflow Tasks:')
+
+        for workflow_task_name in sorted(shankbug.tasks_by_name):
+            task = shankbug.tasks_by_name[workflow_task_name]
+            info("        %-25s  %15s  %10s  %s" % (task.name, task.status, task.importance, task.assignee))
+
+            if task.name not in s.state_map:
+                info(s.printlink)
+                info("            Warning: I don't know how to handle the task <%s>, skipping" % (task.name))
+                continue
+
+            if 'action' not in s.state_map[task.name][task.status]:
+                info(s.printlink)
+                info("            Error: No action found for state <%s> and task <%s>" % (task.status, task.name))
+                raise ValueError
+
+            action = s.state_map[task.name][task.status]['action']
+
+            if  action is None:
+                info('            Action: No action for task %s in state %s\n' % (task.name, task.status))
 
     # shank
     #
@@ -519,7 +721,19 @@ class Shankbot():
         if bug.is_valid:
             try:
                 p = Package(s.lp, bug)
-                p.check(bug)
+                info('')
+                if p.is_released:
+                    info('        The package has been promoted to the approriate release directories. Nothing more to be done.')
+
+                elif p.is_prepd:
+                    info('        The package and all of it\'s dependents have been fully prepared.')
+
+                else:
+                    info('        Needs work')
+                    p.determine_build_status(bug)
+
+                s.process_bug_tasks(bug)
+
             except PackageError:
                 pass
 
