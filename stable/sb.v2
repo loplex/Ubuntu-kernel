@@ -8,6 +8,16 @@ from datetime                           import datetime
 from lpltk.LaunchpadService             import LaunchpadService
 
 from sb.package                         import Package, PackageError
+from sb.th.prep_package                 import PrepPackage
+from sb.th.promote_to_proposed          import PromoteToProposed
+from sb.th.verification_testing         import VerificationTesting
+from sb.th.certification_testing        import CertificationTesting
+from sb.th.regression_testing           import RegressionTesting
+from sb.th.package_testing              import PackageTesting
+from sb.th.closer                       import Closer
+from sb.th.promote_to_release           import PromoteToRelease
+from sb.th.security_signoff             import SecuritySignoff
+
 
 # WorkflowBugTask
 #
@@ -130,13 +140,9 @@ class TaskActions(dict):
         dict.__init__(s, *args)
         s.actions = {}
         for t in ['New', 'Incomplete', 'Opinion', 'Invalid', 'Won\'t Fix', 'Expired', 'Confirmed', 'Triaged', 'In Progress', 'Fix Committed', 'Fix Released', 'Unknown']:
-            #s[t] = {}
-            #s[t]['action'] = None
             s[t] = None
 
         for k in d:
-            #s[k] = {}
-            #s[k]['action'] = d[k]
             s[k] = d[k]
 
 # Shankbot
@@ -152,59 +158,25 @@ class Shankbot():
         s.lpserver = lpserver
         s.projects = projects
 
-        s.state_map = {
+        s.sm = {
             'upload-to-ppa'             : TaskActions({}),
-            'prepare-package'           : TaskActions({'Fix Released' : s.prep_package_fix_released}),
-            'prepare-package-lbm'       : TaskActions({'Fix Released' : s.prep_package_fix_released}),
-            'prepare-package-lrm'       : TaskActions({'Fix Released' : s.prep_package_fix_released}),
-            'prepare-package-lum'       : TaskActions({'Fix Released' : s.prep_package_fix_released}),
-            'prepare-package-meta'      : TaskActions({'Fix Released' : s.prep_package_fix_released}),
-            'prepare-package-ports-meta': TaskActions({'Fix Released' : s.prep_package_fix_released}),
-            'prepare-package-signed'    : TaskActions({'Fix Released' : s.prep_package_fix_released}),
-            'promote-to-proposed'       : TaskActions({'Fix Released' : s.promote_to_proposed_fix_released}),
-            'verification-testing'      : TaskActions({'Fix Released' : s.verification_testing_fix_released}),
-            'certification-testing'     : TaskActions({'Fix Released' : s.certification_testing_fix_released}),
-            'regression-testing'        : TaskActions({'Fix Released' : s.regression_testing_fix_released}),
-            'package-testing'           : TaskActions({'Fix Released' : s.package_testing_fix_released}),
-            'promote-to-updates'        : TaskActions({'Fix Released' : s.check_for_final_close}),
-            'promote-to-security'       : TaskActions({'Fix Released' : s.check_for_final_close}),
-            'promote-to-release'        : TaskActions({'Fix Released' : s.promote_to_release_fix_released}),
-            'security-signoff'          : TaskActions({'Invalid'      : s.security_signoff_finished,
-                                                       'Fix Released' : s.security_signoff_finished}),
+            'prepare-package'           : TaskActions({'Fix Released' : PrepPackage}),
+            'prepare-package-lbm'       : TaskActions({'Fix Released' : PrepPackage}),
+            'prepare-package-lrm'       : TaskActions({'Fix Released' : PrepPackage}),
+            'prepare-package-lum'       : TaskActions({'Fix Released' : PrepPackage}),
+            'prepare-package-meta'      : TaskActions({'Fix Released' : PrepPackage}),
+            'prepare-package-ports-meta': TaskActions({'Fix Released' : PrepPackage}),
+            'prepare-package-signed'    : TaskActions({'Fix Released' : PrepPackage}),
+            'promote-to-proposed'       : TaskActions({'Fix Released' : PromoteToProposed}),
+            'verification-testing'      : TaskActions({'Fix Released' : VerificationTesting}),
+            'certification-testing'     : TaskActions({'Fix Released' : CertificationTesting}),
+            'regression-testing'        : TaskActions({'Fix Released' : RegressionTesting}),
+            'package-testing'           : TaskActions({'Fix Released' : PackageTesting}),
+            'promote-to-updates'        : TaskActions({'Fix Released' : Closer}),
+            'promote-to-security'       : TaskActions({'Fix Released' : Closer}),
+            'promote-to-release'        : TaskActions({'Fix Released' : PromoteToRelease}),
+            'security-signoff'          : TaskActions({'Invalid'      : SecuritySignoff, 'Fix Released' : SecuritySignoff}),
         }
-
-    def security_signoff_finished(s, task):
-        pass
-
-    def promote_to_release_fix_released(s, task):
-        pass
-
-    def check_for_final_close(s, task):
-        pass
-
-    def package_testing_fix_released(s, task):
-        pass
-
-    def regression_testing_invalid(s, task):
-        pass
-
-    def certification_testing_fix_released(s, task):
-        pass
-
-    def certification_testing_invalid(s, task):
-        pass
-
-    def verification_testing_fix_released(s, task):
-        pass
-
-    def promote_to_proposed_fix_released(s, task):
-        pass
-
-    def prep_package_fix_released(s, task):
-        pass
-
-    def regression_testing_fix_released(s, task):
-        pass
 
     # bug_url
     #
@@ -219,23 +191,29 @@ class Shankbot():
         info('    Processing Workflow Tasks:')
 
         for workflow_task_name in sorted(shankbug.tasks_by_name):
+            if workflow_task_name in ['kernel-sru-workflow', 'kernel-development-workflow']:
+                continue
+
             task = shankbug.tasks_by_name[workflow_task_name]
             info("        %-25s  %15s  %10s  %s" % (task.name, task.status, task.importance, task.assignee))
 
-            if task.name not in s.state_map:
-                info(s.printlink)
-                info("            Warning: I don't know how to handle the task <%s>, skipping" % (task.name))
+            if workflow_task_name not in s.sm:
+                info('            ' + s.printlink)
+                info('            Warning: I don\'t know how to handle the task <%s>, skipping' % (workflow_task_name))
                 continue
 
-            action = s.state_map[task.name][task.status]
+            handler = s.sm[workflow_task_name][task.status]
 
-            if action is None:
-                info('            Action: No action for task %s in state %s\n' % (task.name, task.status))
+            if handler is None:
+                info('            Action: No action for task %s in state %s' % (workflow_task_name, task.status))
 
             else:
-                res_action = action(task)
+                handler(task).action()
+
                 #if s.projectname == 'kernel-sru-workflow' and res_action:
                 #    performReleaseTest = True
+
+            info('')
 
 
     # shank
