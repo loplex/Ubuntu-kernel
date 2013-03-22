@@ -1,26 +1,26 @@
 Package: linux-headers-omap
-Architecture: armel armhf
+Architecture: armhf
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-headers-${kernel-abi-version}-omap 
-Description: Linux kernel headers for the OMAP3 architecture.
- This package will always depend on the latest kernel headers available
- for ARM TI OMAP3 systems.
+Depends: ${misc:Depends}, linux-headers-generic 
+Description: Linux kernel headers for the armhf architecture.
+ This is a transitional package for upgrade paths. You should
+ be using linux-headers-generic.
 
 Package: linux-image-omap
-Architecture: armel armhf
+Architecture: armhf
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-omap, linux-firmware
-Description: Linux kernel image for the OMAP3 architecture.
- This package will always depend on the latest kernel image available
- for ARM TI OMAP3 systems.
+Depends: ${misc:Depends}, linux-image-generic, linux-firmware
+Description: Linux kernel image for the armhf architecture.
+ This is a transitional package for upgrade paths. You should
+ be using linux-image-generic.
 
 Package: linux-omap
-Architecture: armel armhf
+Architecture: armhf
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-omap (= ${binary:Version}), linux-headers-omap (= ${binary:Version})
-Description: Complete Linux kernel for the OMAP3 architecture.
- This package will always depend on the latest complete Linux kernel and headers
- for ARM TI OMAP3 systems.
+Depends: ${misc:Depends}, linux-image-generic (= ${binary:Version}), linux-headers-generic (= ${binary:Version})
+Description: Complete Linux kernel and headers for the armhf architecture.
+ This is a transitional package for upgrade paths. You should
+ be using linux-generic.

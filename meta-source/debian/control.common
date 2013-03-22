@@ -7,7 +7,7 @@ Build-Depends: dpkg (>= 1.13.19), debhelper (>= 5), gawk
 Vcs-Git: http://kernel.ubuntu.com/git-repos/ubuntu/ubuntu-raring-meta.git
 
 Package: linux
-Architecture: i386 amd64 
+Architecture: i386 amd64 armhf
 Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-${generic-depends}
@@ -25,7 +25,7 @@ Description: Linux kernel source with Ubuntu patches
  available. The Ubuntu patches have been applied.
 
 Package: linux-image
-Architecture: i386 amd64 
+Architecture: i386 amd64 armhf
 Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-${generic-depends}
@@ -48,7 +48,7 @@ Description: Linux kernel crashdump setup for the latest generic kernel
  vmcore on crashes.
 
 Package: linux-tools
-Architecture: i386 amd64 armel armhf
+Architecture: i386 amd64 armhf
 Section: kernel
 Depends: ${misc:Depends}, linux-tools-${kernel-abi-version} [i386 amd64]
 Description: Linux kernel versioned Tools

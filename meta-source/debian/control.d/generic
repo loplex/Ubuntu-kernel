@@ -1,5 +1,5 @@
 Package: linux-headers-generic
-Architecture: i386 amd64
+Architecture: i386 amd64 armhf
 Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-headers-${kernel-abi-version}-generic
@@ -8,16 +8,16 @@ Description: Generic Linux kernel headers
  available.
 
 Package: linux-image-generic
-Architecture: i386 amd64
+Architecture: i386 amd64 armhf
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-generic, linux-image-extra-${kernel-abi-version}-generic, linux-firmware
+Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-generic, linux-image-extra-${kernel-abi-version}-generic [i386 amd64], linux-firmware
 Description: Generic Linux kernel image
  This package will always depend on the latest generic kernel image
  available.
 
 Package: linux-generic
-Architecture: i386 amd64
+Architecture: i386 amd64 armhf
 Section: kernel
 Priority: optional
 Depends: ${misc:Depends}, linux-image-generic (= ${binary:Version}), linux-headers-generic (= ${binary:Version})
