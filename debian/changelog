@@ -1,3 +1,9 @@
+linux-signed (3.8.0-14.24) raring; urgency=low
+
+  * Version 3.8.0-14.24
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Fri, 22 Mar 2013 13:07:31 -0600
+
 linux-signed (3.8.0-13.23) raring; urgency=low
 
   * Version 3.8.0-13.23
