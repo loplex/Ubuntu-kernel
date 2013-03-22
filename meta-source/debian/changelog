@@ -1,3 +1,9 @@
+linux-meta-lts-raring (3.8.0.14.13) precise; urgency=low
+
+  * Ubuntu-lts-3.8.0-14.24 
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Fri, 22 Mar 2013 13:43:16 -0600
+
 linux-meta-lts-raring (3.8.0.13.12) precise; urgency=low
 
   * Ubuntu-lts-3.8.0-13.22
