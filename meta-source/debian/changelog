@@ -1,3 +1,9 @@
+linux-meta (3.8.0.14.29) raring; urgency=low
+
+  * Fix linux and linux-image generic dependencies on armhf.
+
+ -- Adam Conrad <adconrad@ubuntu.com>  Sat, 23 Mar 2013 17:01:38 -0600
+
 linux-meta (3.8.0.14.28) raring; urgency=low
 
   * linux ABI 3.8.0-14
