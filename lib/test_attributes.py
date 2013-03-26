@@ -28,6 +28,10 @@ class TestAttributes():
 
     def kernel_version(self):
         m = re.match('^(\d+\.\d+\.\d+-[\drc]+)-.*$', platform.release())
+        if m is None:
+            # The phablet kernel version string is a little different right now.
+            #
+            m = re.match('^(\d+\.\d+\.\d+-\S+)$', platform.release())
         version = m.group(1)
 
         m = re.match('^#(\d+.*?)(-Ubuntu)* .*$', platform.version())
