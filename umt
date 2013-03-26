@@ -1,0 +1,140 @@
+#!/usr/bin/env python
+#
+
+from os                                 import getenv, path
+from sys                                import stdout
+from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
+from logging                            import error, info, debug, basicConfig, INFO, DEBUG, getLogger
+from lib.shell                          import ShellError, ShellTimeoutError, sh, ssh
+
+import json
+
+# ErrorExit
+#
+class ErrorExit(Exception):
+    """
+    Print out the message and exit.
+    """
+    def __init__(self, emsg):
+        self.__message = emsg
+
+    @property
+    def message(self):
+        return self.__message
+
+# UbuntuMobileTester
+#
+class UbuntuMobileTester():
+    '''
+    '''
+
+    # __init__
+    #
+    def __init__(s, args):
+        s.args = args
+
+    def load_json(s, fp):
+        if path.exists(fp):
+            with open(fp, 'r') as f:
+                retval = json.loads(f.read())
+        else:
+            raise ErrorExit(fp)
+
+        return retval
+
+# TheApp
+#
+class TheApp():
+    '''
+    '''
+
+    # __init__
+    #
+    def __init__(s):
+        if getenv('DEBUG'):
+            LOGLEVEL = DEBUG
+        else:
+            LOGLEVEL = INFO
+        LOGLEVEL = DEBUG
+        basicConfig(level=LOGLEVEL, format="%(levelname)s - %(message)s")
+
+    # provision
+    #
+    def provision(s, args, umt):
+        info('provision')
+
+    # test
+    #
+    def test(s, args, umt):
+        info('test')
+
+        target = args.target[0]
+        info('Target: %s' % target)
+
+        autotest_master = '/home/work'
+
+        if not args.no_at:
+            info('    Cleaning up any previous autotest tree')
+            ssh(target, 'sudo rm -rf autotest')
+
+            info('    Copying autotest core to SUT')
+            sh('scp -r %s/autotest %s:autotest' % (autotest_master, target))
+            info('    Copying autotest-client-tests to SUT')
+            sh('scp -r %s/autotest-client-tests/* %s:autotest/client/tests/' % (autotest_master, target))
+
+        if not args.no_kt:
+            info('    Cleaning up any previous kernel-testing tree')
+            ssh(target, 'sudo rm -rf kernel-testing')
+
+            info('    Copying kernel testing core to SUT')
+            sh('scp -r %s/kernel-testing-mobile %s:kernel-testing' % (autotest_master, target))
+
+        info('    Kicking off the tests')
+        if not args.no_test:
+            ssh(target, 'python kernel-testing/runner %s' % args.tests)
+
+    # main
+    #
+    def main(s):
+        retval = 1
+        try:
+            retval = 0
+
+            app_description = '''
+            '''
+            app_epilog = '''
+            '''
+            parent_parser = ArgumentParser(prog='kb')
+
+            subparsers = parent_parser.add_subparsers(title="actions", help="sub-commands help")
+
+            p = subparsers.add_parser("provision", help="Install a new instance of the image onto the SUT and prepare it for testing.")
+            p.set_defaults(func=s.provision)
+
+            p  = subparsers.add_parser("test", help="Push the tests onto the SUT and then run them..")
+            p.set_defaults(func=s.test)
+            p.add_argument('-t', '--tests', required=False,   type=str,            default='default', help='A list of the tests to be performed.')
+            p.add_argument('--no-at',       required=False,   action='store_true', default=False,     help='Do not update the autotest tree on the SUT.')
+            p.add_argument('--no-kt',       required=False,   action='store_true', default=False,     help='Do not update the kernel testing tree on the SUT.')
+            p.add_argument('--no-test',     required=False,   action='store_true', default=False,     help='Do not update the kernel testing tree on the SUT.')
+            p.add_argument('target',        metavar='target', type=str, nargs=1,                      help='The name or IP address of the SUT.')
+
+            args = parent_parser.parse_args()
+
+            umt = UbuntuMobileTester(args)
+            retval = args.func(args, umt)
+
+        # Handle the user presses <ctrl-C>.
+        #
+        except KeyboardInterrupt:
+            print("Aborting ...")
+
+        except ErrorExit as e:
+            error(e.message)
+
+        return retval
+
+if __name__ == '__main__':
+    exit(TheApp().main())
+
+# vi:set ts=4 sw=4 expandtab syntax=python:
