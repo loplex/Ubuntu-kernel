@@ -2,9 +2,9 @@
 #
 
 from os                                 import getenv, path
-from sys                                import stdout
+from sys                                import stdout, argv
 from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
-from logging                            import error, info, debug, basicConfig, INFO, DEBUG, getLogger
+from logging                            import warning, error, info, debug, basicConfig, INFO, DEBUG, getLogger
 from lib.shell                          import ShellError, ShellTimeoutError, sh, ssh
 
 import json
@@ -15,12 +15,109 @@ class ErrorExit(Exception):
     """
     Print out the message and exit.
     """
-    def __init__(self, emsg):
-        self.__message = emsg
+    def __init__(s, emsg):
+        s.__message = emsg
 
     @property
-    def message(self):
-        return self.__message
+    def message(s):
+        return s.__message
+
+# Error
+#
+class Error(ErrorExit):
+    """
+    """
+    def __init__(s, emsg):
+        ErrorExit.__init__(s, emsg)
+
+# NoSuchFile
+#
+class NoSuchFile(ErrorExit):
+    """
+    """
+    def __init__(s, emsg):
+        ErrorExit.__init__(s, emsg)
+
+# BadJson
+#
+class BadJson(ErrorExit):
+    """
+    """
+    def __init__(s, emsg):
+        ErrorExit.__init__(s, emsg)
+
+# UMTConfiguration
+#
+class UMTConfiguration():
+    '''
+    Configuration file search path:
+        1. User's home directory
+        2. Current directory
+    If it is specified on the command line, that is the only one to use.
+    '''
+
+    # __init__
+    #
+    def __init__(s, args):
+        debug('UMTConfiguration')
+
+        s.args = args
+        s.config_file_name = 'umt.cfg'
+
+        # If the user specified a configuration file on the command line then
+        # that file must exist and will be used.
+        #
+        if args.config:
+            try:
+                d = s.__load_json(args.config)
+            except NoSuchFile as e:
+                raise ErrorExit('The specified configuration file (%s) does not exist.' % args.config)
+            except BadJson as e:
+                raise ErrorExit(['The specified configuration file (%s) is not correctly formatted JSON.' % (args.config), e.message])
+
+        # Otherwise, we will search for a configuration file.
+        #
+        else:
+            search_path = []
+            search_path.append(s.config_file_name)                                            # Current directory
+            search_path.append(path.join(path.expanduser('~'), s.config_file_name))           # User's home directory
+            search_path.append(path.join(argv[0][:argv[0].rfind('/')], s.config_file_name))   # Where the application is located
+            for p in search_path:
+                if path.exists(p):
+                    try:
+                        d = s.__load_json(p)
+                        for k in d:
+                            setattr(s, k, d[k])
+                    except BadJson as e:
+                        raise ErrorExit(['The specified configuration (%s) is not correctly formatted JSON.' % (p), e.message])
+                    break # First one wins
+
+        # Command line parameters overwride those specified in
+        # the configuration file.
+        #
+        for a in args.__dict__:
+            setattr(s, a, args.__dict__[a])
+
+    # __load_json
+    #
+    def __load_json(s, fp):
+        '''
+        Load the specified json formatted file and returns the associated object.
+        '''
+        retval = None
+        if path.exists(fp):
+            try:
+                with open(fp, 'r') as f:
+                    try:
+                        retval = json.loads(f.read())
+                    except ValueError as e:
+                        raise BadJson(e.message)
+            except:
+                raise
+        else:
+            raise NoSuchFile(fp)
+
+        return retval
 
 # UbuntuMobileTester
 #
@@ -58,16 +155,120 @@ class TheApp():
         LOGLEVEL = DEBUG
         basicConfig(level=LOGLEVEL, format="%(levelname)s - %(message)s")
 
+    # device_attached
+    #
+    def device_attached(s):
+        (results, output) = sh('adb devices', quiet=True)
+        found = 0
+        devices = False
+        for line in output:
+            if devices:
+                if 'device' in line:
+                    found += 1
+
+            elif 'List of devices attached' in line:
+                devices = True
+
+        if found > 1:
+            raise ErrorExit('adb found more than one device attached. Only one device is permitted.')
+
+        return found > 0
+
+    # device_reflash
+    #
+    def device_reflash(s):
+        debug('re-flashing device')
+        sh('phablet-flash -l')
+
+    # device_configure_for_ssh
+    #
+    def device_configure_for_ssh(s):
+        debug('device_configure_for_ssh')
+
+        # Restart the adb daemon with root permissions
+        #
+        sh('adb root', quiet=True)
+
+    # fetch_public_key
+    #
+    def fetch_public_key(s):
+        key = None
+        try:
+            p = path.join(path.expanduser('~'), '.ssh', 'id_rsa.pub')
+            with open(p, 'r') as f:
+                key = f.read()
+        except IOError as e:
+            warning('Unable to find a public ssh key (%s) to use for the authorized_keys file on the SUT' % p)
+        return key
+
+    # configure
+    #
+    def configure(s, args, umt):
+        info('configure')
+
+        if not s.device_attached():
+            raise ErrorExit('No devices were found attached to this system.')
+
+        sh('adb root', quiet=True)
+
+        import pexpect
+
+        debug('adb shell')
+        ch = pexpect.spawn('adb shell')
+        ch.expect('root@android:/ # ')
+
+        debug('ubuntu_chroot shell')
+        ch.sendline('ubuntu_chroot shell')
+        ch.expect('root@localhost:/# ')
+
+        ch.sendline('echo phablet ALL=\(ALL:ALL\) NOPASSWD: ALL >> /etc/sudoers')
+        ch.expect('root@localhost:/# ')
+
+        ch.sendline('cat /etc/sudoers')
+        ch.expect('root@localhost:/# ')
+
+        ch.sendline('apt-get update')
+        ch.expect('root@localhost:/# ')
+
+        ch.sendline('apt-get install -y openssh-server')
+        ch.expect('root@localhost:/# ')
+
+        key = s.fetch_public_key()
+        if key is not None:
+            key = key.strip()
+            debug('mkdir ~phablet/.ssh')
+            ch.sendline('mkdir ~phablet/.ssh')
+            ch.expect('root@localhost:/# ')
+
+            ch.sendline('chown phablet.phablet ~phablet/.ssh')
+            ch.expect('root@localhost:/# ')
+
+            ch.sendline('chmod 0700 ~phablet/.ssh')
+            ch.expect('root@localhost:/# ')
+
+            debug('echo %s > ~phablet/.ssh/authorized_keys' % key)
+            ch.sendline('echo %s > ~phablet/.ssh/authorized_keys' % key)
+            ch.expect('root@localhost:/# ')
+
+            ch.sendline('chown phablet.phablet ~phablet/.ssh/authorized_keys')
+            ch.expect('root@localhost:/# ')
+
+        ch = None
+
     # provision
     #
     def provision(s, args, umt):
         info('provision')
 
+        if not s.device_attached():
+            raise ErrorExit('No devices were found attached to this system.')
+
+        info('found one')
+        s.device_reflash()
+
     # test
     #
     def test(s, args, umt):
-        info('test')
-
         target = args.target[0]
         info('Target: %s' % target)
 
@@ -110,19 +311,26 @@ class TheApp():
 
             p = subparsers.add_parser("provision", help="Install a new instance of the image onto the SUT and prepare it for testing.")
             p.set_defaults(func=s.provision)
+            p.add_argument('-c', '--config', required=False,   type=str,                               help='The configuration file that is to be used.')
+
+            p = subparsers.add_parser("configure", help="Install a new instance of the image onto the SUT and prepare it for testing.")
+            p.set_defaults(func=s.configure)
+            p.add_argument('-c', '--config', required=False,   type=str,                               help='The configuration file that is to be used.')
 
             p  = subparsers.add_parser("test", help="Push the tests onto the SUT and then run them..")
             p.set_defaults(func=s.test)
-            p.add_argument('-t', '--tests', required=False,   type=str,            default='default', help='A list of the tests to be performed.')
-            p.add_argument('--no-at',       required=False,   action='store_true', default=False,     help='Do not update the autotest tree on the SUT.')
-            p.add_argument('--no-kt',       required=False,   action='store_true', default=False,     help='Do not update the kernel testing tree on the SUT.')
-            p.add_argument('--no-test',     required=False,   action='store_true', default=False,     help='Do not update the kernel testing tree on the SUT.')
-            p.add_argument('target',        metavar='target', type=str, nargs=1,                      help='The name or IP address of the SUT.')
+            p.add_argument('-t', '--tests',  required=False,   type=str,            default='default', help='A list of the tests to be performed.')
+            p.add_argument('--no-at',        required=False,   action='store_true', default=False,     help='Do not update the autotest tree on the SUT.')
+            p.add_argument('--no-kt',        required=False,   action='store_true', default=False,     help='Do not update the kernel testing tree on the SUT.')
+            p.add_argument('--no-test',      required=False,   action='store_true', default=False,     help='Do not update the kernel testing tree on the SUT.')
+            p.add_argument('-c', '--config', required=False,   type=str,                               help='The configuration file that is to be used.')
+            p.add_argument('target',         metavar='target', type=str, nargs=1,                      help='The name or IP address of the SUT.')
 
             args = parent_parser.parse_args()
 
-            umt = UbuntuMobileTester(args)
-            retval = args.func(args, umt)
+            config = UMTConfiguration(args)
+            umt = UbuntuMobileTester(config)
+            #retval = args.func(args, umt)
 
         # Handle the user presses <ctrl-C>.
         #
@@ -130,7 +338,12 @@ class TheApp():
             print("Aborting ...")
 
         except ErrorExit as e:
-            error(e.message)
+            msg = e.message
+            if type(msg) is list:
+                for m in msg:
+                    error(m)
+            else:
+                error(msg)
 
         return retval
 
