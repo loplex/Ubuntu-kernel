@@ -59,8 +59,6 @@ class UMTConfiguration():
     # __init__
     #
     def __init__(s, args):
-        debug('UMTConfiguration')
-
         s.args = args
         s.config_file_name = 'umt.cfg'
 
@@ -127,17 +125,8 @@ class UbuntuMobileTester():
 
     # __init__
     #
-    def __init__(s, args):
-        s.args = args
-
-    def load_json(s, fp):
-        if path.exists(fp):
-            with open(fp, 'r') as f:
-                retval = json.loads(f.read())
-        else:
-            raise ErrorExit(fp)
-
-        return retval
+    def __init__(s, config):
+        s.config = config
 
 # TheApp
 #
@@ -154,6 +143,21 @@ class TheApp():
             LOGLEVEL = INFO
         LOGLEVEL = DEBUG
         basicConfig(level=LOGLEVEL, format="%(levelname)s - %(message)s")
+
+    # __load_file
+    #
+    def __load_file(s, fp):
+        '''
+        Open a specific file and return it's contents.
+        '''
+        retval = None
+        if path.exists(fp):
+            with open(fp, 'r') as f:
+                retval = f.read()
+        else:
+            raise NoSuchFile(fp)
+
+        return retval
 
     # device_attached
     #
@@ -203,7 +207,7 @@ class TheApp():
 
     # configure
     #
-    def configure(s, args, umt):
+    def configure(s, umt):
         info('configure')
 
         if not s.device_attached():
@@ -214,7 +218,7 @@ class TheApp():
         import pexpect
 
         debug('adb shell')
-        ch = pexpect.spawn('adb shell')
+        ch = pexpect.spawn('adb shell', timeout=300)
         ch.expect('root@android:/ # ')
 
         debug('ubuntu_chroot shell')
@@ -233,9 +237,7 @@ class TheApp():
         ch.sendline('apt-get install -y openssh-server')
         ch.expect('root@localhost:/# ')
 
-        key = s.fetch_public_key()
-        if key is not None:
-            key = key.strip()
+        if s.config.ssh_key:
             debug('mkdir ~phablet/.ssh')
             ch.sendline('mkdir ~phablet/.ssh')
             ch.expect('root@localhost:/# ')
@@ -246,18 +248,29 @@ class TheApp():
             ch.sendline('chmod 0700 ~phablet/.ssh')
             ch.expect('root@localhost:/# ')
 
-            debug('echo %s > ~phablet/.ssh/authorized_keys' % key)
-            ch.sendline('echo %s > ~phablet/.ssh/authorized_keys' % key)
+            debug('echo %s > ~phablet/.ssh/authorized_keys' % s.config.ssh_key)
+            ch.sendline('echo %s > ~phablet/.ssh/authorized_keys' % s.config.ssh_key)
             ch.expect('root@localhost:/# ')
 
             ch.sendline('chown phablet.phablet ~phablet/.ssh/authorized_keys')
             ch.expect('root@localhost:/# ')
 
+        # Not sure this is the right place to do this but ...
+        #
+        if s.config.wpa:
+            try:
+                contents = s.__load_file(s.config.wpa)
+
+                ch.sendline('echo \'%s\' > /etc/wpa_supplicant.cfg' % contents)
+                ch.expect('root@localhost:/# ')
+            except:
+                warning('Failed to configure the wireless on the device.')
+
         ch = None
 
     # provision
     #
-    def provision(s, args, umt):
+    def provision(s, umt):
         info('provision')
 
         if not s.device_attached():
@@ -268,31 +281,32 @@ class TheApp():
 
     # test
     #
-    def test(s, args, umt):
-        target = args.target[0]
+    def test(s, umt):
+        target = s.config.target[0]
         info('Target: %s' % target)
 
         autotest_master = '/home/work'
 
-        if not args.no_at:
+        if not s.config.no_at:
             info('    Cleaning up any previous autotest tree')
-            ssh(target, 'sudo rm -rf autotest')
+            ssh(target, 'sudo rm -rf autotest', quiet=True)
 
             info('    Copying autotest core to SUT')
-            sh('scp -r %s/autotest %s:autotest' % (autotest_master, target))
+            sh('scp -r %s/autotest %s:autotest' % (autotest_master, target), quiet=True)
             info('    Copying autotest-client-tests to SUT')
-            sh('scp -r %s/autotest-client-tests/* %s:autotest/client/tests/' % (autotest_master, target))
+            sh('scp -r %s/autotest-client-tests/* %s:autotest/client/tests/' % (autotest_master, target), quiet=True)
 
-        if not args.no_kt:
+        if not s.config.no_kt:
             info('    Cleaning up any previous kernel-testing tree')
-            ssh(target, 'sudo rm -rf kernel-testing')
+            ssh(target, 'sudo rm -rf kernel-testing', quiet=True)
 
             info('    Copying kernel testing core to SUT')
-            sh('scp -r %s/kernel-testing-mobile %s:kernel-testing' % (autotest_master, target))
+            sh('scp -r %s/kernel-testing-mobile %s:kernel-testing' % (autotest_master, target), quiet=True)
 
         info('    Kicking off the tests')
-        if not args.no_test:
-            ssh(target, 'python kernel-testing/runner %s' % args.tests)
+        if not s.config.no_test:
+            ssh(target, 'python kernel-testing/runner %s' % s.config.tests, quiet=True)
+            info('    Tests completed')
 
     # main
     #
@@ -328,9 +342,9 @@ class TheApp():
 
             args = parent_parser.parse_args()
 
-            config = UMTConfiguration(args)
-            umt = UbuntuMobileTester(config)
-            #retval = args.func(args, umt)
+            s.config = UMTConfiguration(args)
+            umt = UbuntuMobileTester(s.config)
+            retval = args.func(umt)
 
         # Handle the user presses <ctrl-C>.
         #
