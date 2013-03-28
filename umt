@@ -6,8 +6,87 @@ from sys                                import stdout, argv
 from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
 from logging                            import warning, error, info, debug, basicConfig, INFO, DEBUG, getLogger
 from lib.shell                          import ShellError, ShellTimeoutError, sh, ssh
+import re
 
 import json
+
+# test_runner_progress
+#
+def test_runner_progress(out, queue, quiet=False):
+    pkg_installation_started = False
+    tests_started = False
+    test_start_rc = re.compile('\d+:\d+:\d+ INFO \|\s+START\s+(\S+)\s+\S+\s+timestamp=.*$')
+    previous_test = ''
+
+    for line in iter(out.readline, b''):
+        queue.put(line)
+
+        l = line.rstrip()
+        if 'DEBUG - Installing:' in l:
+            if not pkg_installation_started:
+                stdout.write('Installing pkgs:\n    ')
+                pkg_installation_started = True
+            stdout.write(l.replace('DEBUG - Installing:', '').replace('\'', '') + ' ')
+            stdout.flush()
+
+        if tests_started:
+            if 'INFO | \tSTART' in l:
+                m = test_start_rc.search(l)
+                if m:
+                    test, _ = m.group(1).split('.', 1)
+                    if test != previous_test:
+                        stdout.write(test + ' ')
+                        previous_test = test
+
+        elif 'INFO | START' in l:
+            tests_started = True
+            stdout.write('\nExecuting tests:\n    ')
+            stdout.flush()
+
+    out.close()
+
+# phablet_flash_progress
+#
+def phablet_flash_progress(out, queue, quiet=False):
+    fid = ''
+    previous_fid = ''
+    downloading_md5sum = False
+    for line in iter(out.readline, b''):
+        queue.put(line)
+
+        line = line.rstrip()
+        if '%s: OK' % previous_fid == line:
+            stdout.write('\rDownloading: ' + previous_fid + ' .. completed and verified.              \n')
+            stdout.flush()
+            downloading_md5sum = False
+
+        if not downloading_md5sum:
+            if '..........' in line:
+                d = line.split()
+                stdout.write('\rDownloading: ' + previous_fid + ' .. %s completed, %s until finished.     ' % (d[6], d[8]))
+
+        if line.startswith('Downloading '):
+            fid = line.replace('Downloading ', '')
+            fid = fid[fid.rfind('/')+1:]
+            if fid != previous_fid + '.md5sum':
+                previous_fid = fid
+                stdout.write('Downloading: ' + previous_fid + ' .. ')
+                stdout.flush()
+
+            if 'md5sum' in fid:
+                downloading_md5sum = True
+
+        if line.startswith('Pushing '):
+            stdout.write(line + '\n')
+            stdout.flush()
+
+        if 'Once completed the device should reboot into Ubuntu' in line:
+            stdout.write('\n')
+            stdout.write('The device should be reflashing. Once completed the device\n')
+            stdout.write('should reboot into Ubuntu.\n')
+            stdout.flush()
+
+    out.close()
 
 # ErrorExit
 #
@@ -181,14 +260,11 @@ class TheApp():
     # device_reflash
     #
     def device_reflash(s):
-        debug('re-flashing device')
-        sh('phablet-flash -l', quiet=True)
+        sh('phablet-flash -l', output_enqueue_fn=phablet_flash_progress, quiet=True)
 
     # device_configure_for_ssh
     #
     def device_configure_for_ssh(s):
-        debug('device_configure_for_ssh')
-
         # Restart the adb daemon with root permissions
         #
         sh('adb root', quiet=True)
@@ -309,7 +385,7 @@ class TheApp():
 
         info('    Kicking off the tests')
         if not s.config.no_test:
-            ssh(target, 'python kernel-testing/runner %s' % s.config.tests, quiet=True)
+            ssh(target, 'python kernel-testing/runner %s' % s.config.tests, quiet=True, output_enqueue_fn=test_runner_progress)
             info('    Tests completed')
 
     # main
