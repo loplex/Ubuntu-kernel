@@ -219,10 +219,12 @@ class Runner():
             if 'packages' in TestProfiles[t]:
                 if 'common' in TestProfiles[t]['packages']:
                     for pkg in TestProfiles[t]['packages']['common']:
-                        deps.append(pkg)
+                        if pkg not in deps:
+                            deps.append(pkg)
                 if self.release_name in TestProfiles[t]['packages']:
                     for pkg in TestProfiles[t]['packages'][self.release_name]:
-                        deps.append(pkg)
+                        if pkg not in deps:
+                            deps.append(pkg)
             else:
                 debug('No package dependencies for \'%s\'' % t)
 
