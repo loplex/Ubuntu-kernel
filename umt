@@ -24,7 +24,7 @@ def test_runner_progress(out, queue, quiet=False):
         l = line.rstrip()
         if 'DEBUG - Installing:' in l:
             if not pkg_installation_started:
-                stdout.write('Installing pkgs:\n    ')
+                stdout.write('    Installing pkgs:\n        ')
                 pkg_installation_started = True
             stdout.write(l.replace('DEBUG - Installing:', '').replace('\'', '') + ' ')
             stdout.flush()
@@ -40,9 +40,11 @@ def test_runner_progress(out, queue, quiet=False):
 
         elif 'INFO | START' in l:
             tests_started = True
-            stdout.write('\nExecuting tests:\n    ')
+            stdout.write('\n    Executing tests:\n        ')
             stdout.flush()
 
+    stdout.write('\n')
+    stdout.flush()
     out.close()
 
 # phablet_flash_progress
@@ -86,6 +88,8 @@ def phablet_flash_progress(out, queue, quiet=False):
             stdout.write('should reboot into Ubuntu.\n')
             stdout.flush()
 
+    stdout.write('\n')
+    stdout.flush()
     out.close()
 
 # ErrorExit
@@ -284,8 +288,6 @@ class TheApp():
     # configure
     #
     def configure(s, umt):
-        info('configure')
-
         if not s.device_attached():
             raise ErrorExit('No devices were found attached to this system.')
 
@@ -293,7 +295,6 @@ class TheApp():
 
         import pexpect
 
-        debug('adb shell')
         try:
             ch = pexpect.spawn('adb shell', timeout=300)
             ch.expect('root@android:/ # ')
@@ -303,7 +304,6 @@ class TheApp():
             ch = pexpect.spawn('adb shell', timeout=300)
             ch.expect('root@android:/ # ')
 
-        debug('ubuntu_chroot shell')
         ch.sendline('ubuntu_chroot shell')
         ch.expect('root@localhost:/# ')
 
@@ -312,6 +312,8 @@ class TheApp():
 
         ch.sendline('cat /etc/sudoers')
         ch.expect('root@localhost:/# ')
+
+        info('Installing: openssh-server')
 
         ch.sendline('apt-get update')
         ch.expect('root@localhost:/# ')
@@ -348,6 +350,8 @@ class TheApp():
             except:
                 warning('Failed to configure the wireless on the device.')
 
+        info('The SUT should now be fully prepared for testing.')
+
         ch = None
 
     # provision
@@ -365,28 +369,25 @@ class TheApp():
     #
     def test(s, umt):
         target = s.config.target[0]
-        info('Target: %s' % target)
+        print('Target: %s' % target)
 
         if not s.config.no_at:
-            info('    Cleaning up any previous autotest tree')
             ssh(target, 'sudo rm -rf autotest', quiet=True)
 
-            info('    Copying autotest core to SUT')
+            print('    Copying autotest core to SUT')
             sh('scp -r %s/autotest %s:autotest' % (s.config.testing_root, target), quiet=True)
-            info('    Copying autotest-client-tests to SUT')
+            print('    Copying autotest-client-tests to SUT')
             sh('scp -r %s/autotest-client-tests/* %s:autotest/client/tests/' % (s.config.testing_root, target), quiet=True)
 
         if not s.config.no_kt:
-            info('    Cleaning up any previous kernel-testing tree')
             ssh(target, 'sudo rm -rf kernel-testing', quiet=True)
 
-            info('    Copying kernel testing core to SUT')
+            print('    Copying kernel testing core to SUT')
             sh('scp -r %s/kernel-testing %s:kernel-testing' % (s.config.testing_root, target), quiet=True)
 
-        info('    Kicking off the tests')
         if not s.config.no_test:
             ssh(target, 'python kernel-testing/runner %s' % s.config.tests, quiet=True, output_enqueue_fn=test_runner_progress)
-            info('    Tests completed')
+            print('    Tests completed')
 
     # main
     #
