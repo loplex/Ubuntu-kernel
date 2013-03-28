@@ -75,11 +75,11 @@ def enqueue_output(out, queue, quiet=False):
 
 # sh
 #
-def sh(cmd, timeout=None, ignore_result=False, quiet=False):
+def sh(cmd, timeout=None, ignore_result=False, quiet=False, output_enqueue_fn=enqueue_output):
     out = []
     p = Popen(cmd, stdout=PIPE, stderr=STDOUT, bufsize=1, shell=True)
-    q = Queue()
-    t = Thread(target=enqueue_output, args=(p.stdout, q, quiet))
+    output_queue = Queue()
+    t = Thread(target=output_enqueue_fn, args=(p.stdout, output_queue, quiet))
     t.daemon = True # thread dies with the program
     t.start()
 
@@ -89,19 +89,14 @@ def sh(cmd, timeout=None, ignore_result=False, quiet=False):
             p.terminate()
             raise ShellTimeoutError(cmd, timeout)
 
+    # Wait for the cmd to complete.
+    #
     while p.poll() is None:
-        # read line without blocking
-        try:
-            line = q.get_nowait()
-        except Empty:
-            pass
-        else: # got line
-            out.append(line)
         sleep(1)
 
     while True:
         try:
-            line = q.get_nowait()
+            line = output_queue.get_nowait()
         except Empty:
             break
         else: # got line
@@ -115,8 +110,8 @@ def sh(cmd, timeout=None, ignore_result=False, quiet=False):
 
 # ssh
 #
-def ssh(target, cmd, quiet=False, ignore_result=False):
-    result, output = Shell.ssh(target, cmd, quiet=quiet, ignore_result=ignore_result)
+def ssh(target, cmd, quiet=False, ignore_result=False, output_enqueue_fn=enqueue_output):
+    result, output = Shell.ssh(target, cmd, quiet=quiet, ignore_result=ignore_result, output_enqueue_fn=output_enqueue_fn)
     return result, output
 
 class Shell():
@@ -128,7 +123,7 @@ class Shell():
     # ssh
     #
     @classmethod
-    def ssh(cls, target, cmd, quiet=False, ignore_result=False):
+    def ssh(cls, target, cmd, quiet=False, ignore_result=False, output_enqueue_fn=enqueue_output):
         ssh_cmd = 'ssh %s %s' % (target, cmd)
         result = 0
         output = ''
@@ -140,7 +135,7 @@ class Shell():
                 info(ssh_cmd)
 
             try:
-                result, output = sh(ssh_cmd, quiet=quiet, ignore_result=ignore_result)
+                result, output = sh(ssh_cmd, quiet=quiet, ignore_result=ignore_result, output_enqueue_fn=output_enqueue_fn)
 
             except ShellError as e:
                 if result != 0 and not ignore_result:
@@ -149,7 +144,7 @@ class Shell():
                     #print(" **")
                     #print(" ** retrying the last command")
                     #print(" **")
-                    result, output = sh(ssh_cmd, quiet=quiet, ignore_result=ignore_result)
+                    result, output = sh(ssh_cmd, quiet=quiet, ignore_result=ignore_result, output_enqueue_fn=output_enqueue_fn)
                     if result != 0 and not ignore_result:
                         sleep(15)
                         raise ShellError(ssh_cmd, result, output)
