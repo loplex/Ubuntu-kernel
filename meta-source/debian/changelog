@@ -1,3 +1,9 @@
+linux-meta-ti-omap4 (3.2.0.1429.28) precise-proposed; urgency=low
+
+  * linux-ti-omap4 ABI 3.2.0-1429
+
+ -- Steve Conklin <sconklin@canonical.com>  Thu, 28 Mar 2013 15:13:49 -0500
+
 linux-meta-ti-omap4 (3.2.0.1426.27) precise-proposed; urgency=low
 
   * linux-ti-omap4 ABI 3.2.0-1426
