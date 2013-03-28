@@ -218,8 +218,14 @@ class TheApp():
         import pexpect
 
         debug('adb shell')
-        ch = pexpect.spawn('adb shell', timeout=300)
-        ch.expect('root@android:/ # ')
+        try:
+            ch = pexpect.spawn('adb shell', timeout=300)
+            ch.expect('root@android:/ # ')
+        except pexpect.EOF:
+            # If at first you don't succeed, try, try again
+            #
+            ch = pexpect.spawn('adb shell', timeout=300)
+            ch.expect('root@android:/ # ')
 
         debug('ubuntu_chroot shell')
         ch.sendline('ubuntu_chroot shell')
@@ -285,23 +291,21 @@ class TheApp():
         target = s.config.target[0]
         info('Target: %s' % target)
 
-        autotest_master = '/home/work'
-
         if not s.config.no_at:
             info('    Cleaning up any previous autotest tree')
             ssh(target, 'sudo rm -rf autotest', quiet=True)
 
             info('    Copying autotest core to SUT')
-            sh('scp -r %s/autotest %s:autotest' % (autotest_master, target), quiet=True)
+            sh('scp -r %s/autotest %s:autotest' % (s.config.testing_root, target), quiet=True)
             info('    Copying autotest-client-tests to SUT')
-            sh('scp -r %s/autotest-client-tests/* %s:autotest/client/tests/' % (autotest_master, target), quiet=True)
+            sh('scp -r %s/autotest-client-tests/* %s:autotest/client/tests/' % (s.config.testing_root, target), quiet=True)
 
         if not s.config.no_kt:
             info('    Cleaning up any previous kernel-testing tree')
             ssh(target, 'sudo rm -rf kernel-testing', quiet=True)
 
             info('    Copying kernel testing core to SUT')
-            sh('scp -r %s/kernel-testing-mobile %s:kernel-testing' % (autotest_master, target), quiet=True)
+            sh('scp -r %s/kernel-testing-mobile %s:kernel-testing' % (s.config.testing_root, target), quiet=True)
 
         info('    Kicking off the tests')
         if not s.config.no_test:
