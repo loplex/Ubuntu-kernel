@@ -305,7 +305,7 @@ class TheApp():
             ssh(target, 'sudo rm -rf kernel-testing', quiet=True)
 
             info('    Copying kernel testing core to SUT')
-            sh('scp -r %s/kernel-testing-mobile %s:kernel-testing' % (s.config.testing_root, target), quiet=True)
+            sh('scp -r %s/kernel-testing %s:kernel-testing' % (s.config.testing_root, target), quiet=True)
 
         info('    Kicking off the tests')
         if not s.config.no_test:
