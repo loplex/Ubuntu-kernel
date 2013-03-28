@@ -48,7 +48,7 @@ TestProfiles = {
     'ubuntu_qrt_kernel_security' : {
         'packages' : {
             'common' : [
-                'build-essential', 'libcap2-bin', 'gcc-multilib', 'gdb', 'gawk', 'execstack', 'exim4', 'libcap-dev', 'gdb',
+                'build-essential', 'libcap2-bin', 'gcc-multilib', 'gdb', 'gawk', 'execstack', 'exim4', 'libcap-dev', 'gdb', 'python-apt'
                 ],
             },
         },

@@ -182,7 +182,7 @@ class TheApp():
     #
     def device_reflash(s):
         debug('re-flashing device')
-        sh('phablet-flash -l')
+        sh('phablet-flash -l', quiet=True)
 
     # device_configure_for_ssh
     #
