@@ -12,35 +12,53 @@ import json
 
 # test_runner_progress
 #
-def test_runner_progress(out, queue, quiet=False):
+def test_runner_progress(out, queue, quiet=True, silent=False):
     pkg_installation_started = False
     tests_started = False
     test_start_rc = re.compile('\d+:\d+:\d+ INFO \|\s+START\s+(\S+)\s+\S+\s+timestamp=.*$')
     previous_test = ''
+    errors = 0
 
     for line in iter(out.readline, b''):
         queue.put(line)
 
-        l = line.rstrip()
-        if 'DEBUG - Installing:' in l:
-            if not pkg_installation_started:
-                stdout.write('    Installing pkgs:\n        ')
-                pkg_installation_started = True
-            stdout.write(l.replace('DEBUG - Installing:', '').replace('\'', '') + ' ')
-            stdout.flush()
+        if silent:
+            continue
 
-        if tests_started:
-            if 'INFO | \tSTART' in l:
-                m = test_start_rc.search(l)
-                if m:
-                    test, _ = m.group(1).split('.', 1)
-                    if test != previous_test:
-                        stdout.write(test + ' ')
-                        previous_test = test
+        if quiet:
+            l = line.rstrip()
+            if 'DEBUG - Installing:' in l:
+                if not pkg_installation_started:
+                    stdout.write('    Installing pkgs:\n       ')
+                    pkg_installation_started = True
+                stdout.write(l.replace('DEBUG - Installing:', '').replace('\'', '') + ' ')
+                stdout.flush()
 
-        elif 'INFO | START' in l:
-            tests_started = True
-            stdout.write('\n    Executing tests:\n        ')
+            if tests_started:
+                if 'INFO | \tSTART' in l:
+                    m = test_start_rc.search(l)
+                    if m:
+                        test, _ = m.group(1).split('.', 1)
+                        if test != previous_test:
+                            stdout.write('        ' + test)
+                            previous_test = test
+                            errors = 0
+
+                elif 'END ERROR' in l:
+                    errors += 1
+
+                elif 'INFO | END GOOD' in l:
+                    if errors > 0:
+                        stdout.write(' ... failed\n')
+                    else:
+                        stdout.write(' ... passed\n')
+
+            elif 'INFO | START' in l:
+                tests_started = True
+                stdout.write('\n    Executing tests:\n')
+                stdout.flush()
+        else:
+            stdout.write(line)
             stdout.flush()
 
     stdout.write('\n')
@@ -379,7 +397,7 @@ class TheApp():
         print('Target: %s' % target)
 
         if not s.config.no_at:
-            ssh(target, 'sudo rm -rf autotest', quiet=True)
+            ssh(target, 'sudo rm -rf autotest', user='phablet', quiet=True)
 
             print('    Copying autotest core to SUT')
             sh('rsync -arv --exclude=.git %s/autotest/ %s:autotest/' % (s.config.testing_root, target), quiet=True)
@@ -387,13 +405,13 @@ class TheApp():
             sh('rsync -arv --exclude=.git %s/autotest-client-tests/* %s:autotest/client/tests/' % (s.config.testing_root, target), quiet=True)
 
         if not s.config.no_kt:
-            ssh(target, 'sudo rm -rf kernel-testing', quiet=True)
+            ssh(target, 'sudo rm -rf kernel-testing', user='phablet', quiet=True)
 
             print('    Copying kernel testing core to SUT')
             sh('rsync -arv --exclude=.git %s/kernel-testing/ %s:kernel-testing/' % (s.config.testing_root, target), quiet=True)
 
         if not s.config.no_test:
-            ssh(target, 'python kernel-testing/runner %s' % s.config.tests, quiet=True, output_enqueue_fn=test_runner_progress)
+            ssh(target, 'python kernel-testing/runner %s' % s.config.tests, user='phablet', quiet=not s.config.loud, output_enqueue_fn=test_runner_progress)
             print('    Tests completed')
 
     # main
@@ -424,7 +442,8 @@ class TheApp():
             p.add_argument('-t', '--tests',  required=False,   type=str,            default='default', help='A list of the tests to be performed.')
             p.add_argument('--no-at',        required=False,   action='store_true', default=False,     help='Do not update the autotest tree on the SUT.')
             p.add_argument('--no-kt',        required=False,   action='store_true', default=False,     help='Do not update the kernel testing tree on the SUT.')
-            p.add_argument('--no-test',      required=False,   action='store_true', default=False,     help='Do not update the kernel testing tree on the SUT.')
+            p.add_argument('--no-test',      required=False,   action='store_true', default=False,     help='Do not run any of the tests.')
+            p.add_argument('--loud',         required=False,   action='store_true', default=False,     help='Print out all the output from running the tests.')
             p.add_argument('-c', '--config', required=False,   type=str,                               help='The configuration file that is to be used.')
             p.add_argument('target',         metavar='target', type=str, nargs=1,                      help='The name or IP address of the SUT.')
 
