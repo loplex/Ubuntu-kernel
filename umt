@@ -65,7 +65,8 @@ def phablet_flash_progress(out, queue, quiet=False):
         if not downloading_md5sum:
             if '..........' in line:
                 d = line.split()
-                stdout.write('\rDownloading: ' + previous_fid + ' .. %s completed, %s until finished.     ' % (d[6], d[8]))
+                if len(d) >= 8:
+                    stdout.write('\rDownloading: ' + previous_fid + ' .. %s completed, %s until finished.     ' % (d[6], d[8]))
 
         if line.startswith('Downloading '):
             fid = line.replace('Downloading ', '')
@@ -313,16 +314,15 @@ class TheApp():
         ch.sendline('cat /etc/sudoers')
         ch.expect('root@localhost:/# ')
 
-        info('Installing: openssh-server')
+        print('Installing: openssh-server')
 
         ch.sendline('apt-get update')
         ch.expect('root@localhost:/# ')
 
-        ch.sendline('apt-get install -y openssh-server')
+        ch.sendline('apt-get install -y openssh-server rsync')
         ch.expect('root@localhost:/# ')
 
         if s.config.ssh_key:
-            debug('mkdir ~phablet/.ssh')
             ch.sendline('mkdir ~phablet/.ssh')
             ch.expect('root@localhost:/# ')
 
@@ -332,7 +332,6 @@ class TheApp():
             ch.sendline('chmod 0700 ~phablet/.ssh')
             ch.expect('root@localhost:/# ')
 
-            debug('echo %s > ~phablet/.ssh/authorized_keys' % s.config.ssh_key)
             ch.sendline('echo %s > ~phablet/.ssh/authorized_keys' % s.config.ssh_key)
             ch.expect('root@localhost:/# ')
 
@@ -352,18 +351,26 @@ class TheApp():
 
         info('The SUT should now be fully prepared for testing.')
 
+        ch.sendline('ip addr show wlan0')
+        ch.expect('root@localhost:/# ')
+        output = ch.before
+        for l in output.split('\n'):
+            if 'inet ' in l:
+                x = l.split()
+                print('The devices ip address is: %s' % x[1][:x[1].rfind('/')])
+
         ch = None
 
     # provision
     #
     def provision(s, umt):
-        info('provision')
-
         if not s.device_attached():
             raise ErrorExit('No devices were found attached to this system.')
 
-        info('found one')
         s.device_reflash()
+        print('')
+        print('** Note: Please manually configure your wireless networking.')
+        print('')
 
     # test
     #
@@ -375,15 +382,15 @@ class TheApp():
             ssh(target, 'sudo rm -rf autotest', quiet=True)
 
             print('    Copying autotest core to SUT')
-            sh('scp -r %s/autotest %s:autotest' % (s.config.testing_root, target), quiet=True)
+            sh('rsync -arv --exclude=.git %s/autotest/ %s:autotest/' % (s.config.testing_root, target), quiet=True)
             print('    Copying autotest-client-tests to SUT')
-            sh('scp -r %s/autotest-client-tests/* %s:autotest/client/tests/' % (s.config.testing_root, target), quiet=True)
+            sh('rsync -arv --exclude=.git %s/autotest-client-tests/* %s:autotest/client/tests/' % (s.config.testing_root, target), quiet=True)
 
         if not s.config.no_kt:
             ssh(target, 'sudo rm -rf kernel-testing', quiet=True)
 
             print('    Copying kernel testing core to SUT')
-            sh('scp -r %s/kernel-testing %s:kernel-testing' % (s.config.testing_root, target), quiet=True)
+            sh('rsync -arv --exclude=.git %s/kernel-testing/ %s:kernel-testing/' % (s.config.testing_root, target), quiet=True)
 
         if not s.config.no_test:
             ssh(target, 'python kernel-testing/runner %s' % s.config.tests, quiet=True, output_enqueue_fn=test_runner_progress)
