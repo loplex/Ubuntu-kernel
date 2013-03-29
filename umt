@@ -379,6 +379,17 @@ class TheApp():
 
         ch = None
 
+    # results
+    #
+    def results(s, umt):
+        target = s.config.target[0]
+        results = s.config.results_root
+        if not results:
+            results = path.join(s.config.testing_root, 'test_results')
+
+        sh('mkdir -p %s' % results, quiet=True)
+        sh('rsync -arv %s:kernel-test-results/ %s/' % (target, results))
+
     # provision
     #
     def provision(s, umt):
@@ -436,6 +447,11 @@ class TheApp():
             p = subparsers.add_parser("configure", help="Install a new instance of the image onto the SUT and prepare it for testing.")
             p.set_defaults(func=s.configure)
             p.add_argument('-c', '--config', required=False,   type=str,                               help='The configuration file that is to be used.')
+
+            p = subparsers.add_parser("results", help="Fetch the results from the SUT.")
+            p.set_defaults(func=s.results)
+            p.add_argument('-c', '--config', required=False,   type=str,                               help='The configuration file that is to be used.')
+            p.add_argument('target',         metavar='target', type=str, nargs=1,                      help='The name or IP address of the SUT.')
 
             p  = subparsers.add_parser("test", help="Push the tests onto the SUT and then run them..")
             p.set_defaults(func=s.test)
