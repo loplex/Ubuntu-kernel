@@ -4,7 +4,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <!-- <meta http-equiv="refresh" content="60" /> -->
         <title>Ubuntu - Kernel Team Server</title>
-        <link rel="stylesheet" href="http://kernel.ubuntu.com/beta/media/kernel-style.css" type="text/css" media="screen" />
+        <link rel="stylesheet" href="http://kernel.ubuntu.com/media/kernel-style.css" type="text/css" media="screen" />
         <style>
             div.index-bottom-section {
                  border-radius: 0px;
@@ -44,14 +44,13 @@
 
                     <div id="dash-header">
                         <div id="dash-timestamp">
-                            <a href="http://ubuntu.com" title="Home" rel="home"><img src="http://kernel.ubuntu.com/beta/media/ubuntu-logo.png" alt="Home" /></a>
+                            <a href="http://ubuntu.com" title="Home" rel="home"><img src="http://kernel.ubuntu.com/media/ubuntu-logo.png" alt="Home" /></a>
                         </div>
-                        <h1>Kernel Testing &amp; Benchmarks</h1>
+                        <h1>Kernel Testing</h1>
                     </div> <!-- header -->
 
                     <br />
 
-                    <h1>Testing</h1>
                     <div class="dash-section">
                         <table width="100%"> <!-- The section is one big table -->
                             <tr>
@@ -84,6 +83,7 @@
                                                         </tr>
                                                             % for record in data[ubuntu_series][kernel_version]:
                                                             <%
+                                                                from datetime import datetime
                                                                 notes = ''
                                                                 total = 0
                                                                 passed = 0
@@ -93,7 +93,9 @@
                                                                     passed += suite['tests run'] - suite['tests failed']
                                                                     failed += suite['tests failed']
 
-                                                                link = "http://kernel.ubuntu.com/beta/testing/test-results/%s.%s/results-index.html" % (record['attributes']['environ']['NODE_NAME'], record['attributes']['environ']['BUILD_ID'])
+                                                                dt = datetime.strptime(record['attributes']['timestamp'], '%Y-%m-%d %H:%M')
+                                                                ts = dt.strftime('%Y-%m-%d_%H-%M-%S')
+                                                                link = "http://kernel.ubuntu.com/testing/test-results/%s__%s__%s/results-index.html" % (record['attributes']['platform']['hostname'], record['attributes']['kernel'], ts)
 
                                                                 hardware = 'real'
                                                                 if 'hardware' in record['attributes']['platform']:
@@ -106,7 +108,7 @@
                                                             %>
                                                             <tr>
                                                                 <td>&nbsp;</td>
-                                                                <td><a href="test-results/${ record['attributes']['environ']['NODE_NAME'] }.html">${ record['attributes']['environ']['NODE_NAME'] }</a></td>
+                                                                <td><a href="test-results/${ record['attributes']['platform']['hostname'] }.html">${ record['attributes']['platform']['hostname'] }</a></td>
                                                                 <td align="center">${ arch } </td>
                                                                 <td align="center">${hardware}</td>
                                                                 <td align="center">${ record['attributes']['timestamp'] }</td>
@@ -218,7 +220,7 @@
                                   <span style="font-size: 10px; color: #aea79f !important">(c) 2012 Canonical Ltd. Ubuntu and Canonical are registered trademarks of Canonical Ltd.</span>
                                 </td>
                                 <td align="right" valign="top">
-                                    <a href="http://ubuntu.com"><img src="http://kernel.ubuntu.com/beta/media/ubuntu-footer-logo.png"></a>
+                                    <a href="http://ubuntu.com"><img src="http://kernel.ubuntu.com/media/ubuntu-footer-logo.png"></a>
                                 </td>
                             </tr>
                         </table>

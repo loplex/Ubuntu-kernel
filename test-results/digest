@@ -138,6 +138,7 @@ class Digest():
             #
             retval = results['attributes']['series']
         except KeyError:
+            kv = ''
             try:
                 kv = results['attributes']['kernel']
                 m = Debian.version_rc.match(kv)
@@ -151,7 +152,12 @@ class Digest():
                             break
 
                     if retval == 'unknown':
-                        retval = self.ubuntu.lookup(m.group(1))['name']
+                        # What a hack ...
+                        if '2.6' == m.group(1):
+                            version = '2.6.32'
+                        else:
+                            version = '%s.0' % (m.group(1)) # Only want major and minor for determining the series
+                        retval = self.ubuntu.lookup(version)['name']
                 else:
                     print(" ** WARNING: The kernel version string found in the results data did not match the regex.")
             except KeyError:
@@ -172,7 +178,12 @@ class Digest():
             #
             data = {}
             for tr in self.trr.test_runs:
-                results = self.trr.results(tr)
+                try:
+                    results = self.trr.results(tr)
+                except TestResultsRepositoryError as e:
+                    error(e.msg)
+                    continue
+
                 #dump(results['attributes'])
                 Dbg.verbose("%s\n" % (tr))
                 Dbg.verbose("    kernel: %s\n" % (results['attributes']['kernel']))
@@ -191,9 +202,19 @@ class Digest():
                 if series not in data:
                     data[series] = {}
 
+                # If the kernel used was a "custom" kernel, one that someone on the kernel
+                # team built themselves or a mainline build kernel, we want that information
+                #
+                job = results['attributes']['environ']['JOB_NAME']
+                who = None
+                if '_for_' in job:
+                    (junk, who) = job.split('_for_')
+
                 # The secondary key for 'data' is the kernel version.
                 #
                 k = results['attributes']['kernel']
+                if who is not None:
+                    k = k + '&nbsp;&nbsp;(%s)' % who
                 if k not in data[series]:
                     data[series][k] = []
                 data[series][k].append(results)

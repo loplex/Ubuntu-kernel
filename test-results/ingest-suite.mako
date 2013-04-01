@@ -13,7 +13,7 @@ title = "%s - %s - %s" % (target_suite.replace('autotest.', ''), test_attributes
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <!-- <meta http-equiv="refresh" content="60" /> -->
         <title>${ title }</title>
-        <link rel="stylesheet" href="http://kernel.ubuntu.com/beta/media/kernel-style.css" type="text/css" media="screen" />
+        <link rel="stylesheet" href="http://kernel.ubuntu.com/media/kernel-style.css" type="text/css" media="screen" />
         <style>
             div.index-bottom-section {
                  border-radius: 0px;
@@ -53,15 +53,15 @@ title = "%s - %s - %s" % (target_suite.replace('autotest.', ''), test_attributes
 
                     <div id="dash-header">
                         <div id="dash-timestamp">
-                            <a href="http://ubuntu.com" title="Home" rel="home"><img src="http://kernel.ubuntu.com/beta/media/ubuntu-logo.png" alt="Home" /></a>
+                            <a href="http://ubuntu.com" title="Home" rel="home"><img src="http://kernel.ubuntu.com/media/ubuntu-logo.png" alt="Home" /></a>
                         </div>
-                        <h1>Kernel Testing &amp; Benchmarks</h1>
+                        <h1>Kernel Testing</h1>
                     </div> <!-- header -->
 
                     <br />
 
                     <%
-                        link = "%s/default/" % target_suite.replace('autotest.', '')
+                        link = "%s/results/" % target_suite.replace('autotest.', '')
                     %>
                     <div class="dash-section">
                         <table width="100%" border="0" style="font-size: 0.9em">
@@ -110,7 +110,7 @@ title = "%s - %s - %s" % (target_suite.replace('autotest.', ''), test_attributes
 
                                                 name = suite['name'].replace('autotest.','')
                                                 error_link = "%s" % name
-                                                error_link += "/default/%s.%s/debug/%s.%s.DEBUG.html" % (name, case['name'], name, case['name'])
+                                                error_link += "/results/%s.%s/debug/%s.%s.DEBUG.html" % (name, case['name'], name, case['name'])
                                             %>
                                             <tr>
                                                 <td>&nbsp;</td><td><a href="${ error_link }">${ case['name'] }</a></td> <td align="center">${ duration }</td><td style="color: ${ status_color }">${ status }</td>
@@ -129,7 +129,7 @@ title = "%s - %s - %s" % (target_suite.replace('autotest.', ''), test_attributes
                                   <span style="font-size: 10px; color: #aea79f !important">(c) 2012 Canonical Ltd. Ubuntu and Canonical are registered trademarks of Canonical Ltd.</span>
                                 </td>
                                 <td align="right" valign="top">
-                                    <a href="http://ubuntu.com"><img src="http://kernel.ubuntu.com/beta/media/ubuntu-footer-logo.png"></a>
+                                    <a href="http://ubuntu.com"><img src="http://kernel.ubuntu.com/media/ubuntu-footer-logo.png"></a>
                                 </td>
                             </tr>
                         </table>
