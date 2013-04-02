@@ -1,0 +1,364 @@
+#!/usr/bin/env python
+#
+
+from os                                 import getenv, path, makedirs, listdir, walk
+from sys                                import stdout
+from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
+from logging                            import error, info, debug, basicConfig, INFO, DEBUG, getLogger
+from mako.template                      import Template
+from mako.exceptions                    import RichTraceback
+from datetime                           import datetime
+from shutil                             import rmtree, copytree, copyfile
+
+import json
+
+# ErrorExit
+#
+class ErrorExit(Exception):
+    """
+    Print out the message and exit.
+    """
+    def __init__(s, emsg):
+        s.__message = emsg
+
+    @property
+    def message(s):
+        return s.__message
+
+# BadJson
+#
+class BadJson(ErrorExit):
+    """
+    """
+    def __init__(s, fid, emsg):
+        ErrorExit.__init__(s, emsg)
+        s.__filename = fid
+
+    @property
+    def filename(s):
+        return s.__filename
+
+# NoSuchFile
+#
+class NoSuchFile(ErrorExit):
+    """
+    """
+    def __init__(s, emsg):
+        ErrorExit.__init__(s, emsg)
+
+from xml.dom.minidom                    import Node, parseString
+
+# x2dict
+#
+class x2dict(dict):
+
+    # __init__
+    #
+    def __init__(s, xmlstring, *args):
+        dict.__init__(s, args)
+
+        doc = parseString(xmlstring)
+
+        x = s.e2d(doc)
+        for k in x:
+            s[k] = x[k]
+
+    # e2d
+    #
+    def e2d(s, node):
+        retval = None
+
+        child = node.firstChild
+        if not child:
+            return None
+
+        retval = {}
+        text = ''
+        while child is not None:
+            if child.nodeType == Node.TEXT_NODE:
+                text = child.data.strip()
+                if text != '':
+                    retval = { 'text' : text.split('\n') }
+            elif child.nodeType == Node.ELEMENT_NODE:
+                if child.tagName not in retval:
+                    retval[child.tagName] = []
+
+                neo = s.e2d(child)
+                if child.hasAttributes:
+                    if neo is None:
+                        neo = {}
+
+                    for a in child.attributes.keys():
+                        neo[a] = child.attributes[a].value
+
+                retval[child.tagName].append(neo)
+
+            child = child.nextSibling
+
+        return retval
+
+    # dump
+    def dump(s):
+        print(json.dumps(s, sort_keys=True, indent=4))
+
+# Ingest
+#
+class Ingest():
+    '''
+    Our autotest process produces a results file which combines all the individual
+    test results. The purpose of this app is to take that and format it up into
+    an easily readable set of html files. Those html files (and support files) are
+    placed into the destination directory.
+    '''
+
+    # __init__
+    #
+    def __init__(s, args):
+        s.args = args
+        s.args.source = s.args.source[0]
+        s.args.destination = s.args.destination[0]
+
+    # __load_file
+    #
+    def __load_file(s, fp):
+        '''
+        Open a specific file and return it's contents.
+        '''
+        retval = None
+        if path.exists(fp):
+            with open(fp, 'r') as f:
+                retval = f.read()
+        else:
+            raise NoSuchFile(fp)
+
+        return retval
+
+    # initialize
+    #
+    def initialize(s):
+        try:
+            s.index_template = Template(filename='ingest-index.mako')
+        except IOError as e:
+            raise ErrorExit('%s: %s' % ('ingest-index.mako', e.strerror))
+
+        try:
+            s.suite_template = Template(filename='ingest-suite.mako')
+        except IOError as e:
+            raise ErrorExit('%s: %s' % ('ingest-suite.mako', e.strerror))
+
+        try:
+            s.text_template = Template(filename='text-file.mako')
+        except IOError as e:
+            raise ErrorExit('%s: %s' % ('text-file.mako', e.strerror))
+
+    # get_test_results
+    #
+    def get_test_results(s, fp):
+        retval = None
+
+        content = s.__load_file(fp)
+        results = x2dict(content)
+
+        retval = {}
+        for suites in results['testsuites']:
+            for suite in suites['testsuite']:
+                duration = 0.0
+                p = None
+                c = None
+                failed = 0
+                for case in suite['testcase']:
+                    (p, c) = case['classname'].split('.')
+                    if not p in retval:
+                        retval[p] = {}
+
+                    if not c in retval[p]:
+                        retval[p][c] = {}
+
+                    if not 'cases' in retval[p][c]:
+                        retval[p][c]['cases'] = {}
+
+                    retval[p][c]['cases'][case['name']] = {}
+                    retval[p][c]['cases'][case['name']]['duration'] = case['time']
+                    if 'failure' in case:
+                        retval[p][c]['cases'][case['name']]['status'] = 'failed'
+                        failed += 1
+                    else:
+                        retval[p][c]['cases'][case['name']]['status'] = 'passed'
+
+                    duration += float(case['time'])
+                retval[p][c]['duration'] = duration
+                retval[p][c]['failed'] = failed
+                retval[p][c]['skipped'] = 0
+                retval[p][c]['total'] = len(suite['testcase'])
+
+        return retval
+
+    # get_test_attributes
+    #
+    def get_test_attributes(s, fp):
+        """
+        Load the indicated json format file, returning the created object.
+        """
+        retval = None
+        with open(fp, 'r') as f:
+            try:
+                retval = json.load(f)
+            except ValueError as e:
+                raise BadJson(fp, e.message)
+        return retval
+
+    # ingest
+    #
+    def ingest(s, data, dest):
+        # Name of the directory where we will be storing the results
+        #
+        #ts = data['attributes']['timestamp'].strftime('%Y-%m-%d_%H-%M-%S')
+        #ts = datetime.strptime(ts, '%A, %d. %B %Y %H:%M UTC')
+        for n in listdir(s.args.source):
+            if path.isdir(path.join(s.args.source, n)):
+                copytree(path.join(s.args.source, n), path.join(dest, n))
+
+        # Process "text" files to make them easier to read.
+        #
+        try:
+            for root, dirs, files in walk(dest):
+                for fid in files:
+                    if fid.endswith('.DEBUG'):
+                        with open(path.join(root, fid), 'r') as f:
+                            content = f.read().split('\n')
+
+                        d = path.join(root, '%s.html' % fid)
+                        template = s.text_template.render(title = fid, content = content)
+                        with open(d, 'w') as f:
+                            f.write(template)
+
+        except:
+            traceback = RichTraceback()
+            for (filename, lineno, function, line) in traceback.traceback:
+                print("File %s, line %s, in %s" % (filename, lineno, function))
+                print(line, "\n")
+            print("%s: %s" % (str(traceback.error.__class__.__name__), traceback.error))
+
+        if path.exists(path.join(s.args.source, 'log')):
+            # There should always be a 'log' file which is the console log
+            # of the job.
+            #
+            copyfile(path.join(s.args.source, 'log'), path.join(dest, 'console_output.txt'))
+
+            fid = path.join(dest, 'console_output.txt')
+            with open(fid, 'r') as f:
+                content = f.read().split('\n')
+
+            d = '%s.html' % fid
+            template = s.text_template.render(title = fid, content = content)
+            with open(d, 'w') as f:
+                f.write(template)
+
+        destdir = path.join(dest, 'results.json')
+        with open(destdir, 'w') as f:
+            f.write(json.dumps(data, sort_keys=True, indent=4))
+
+
+    # main
+    #
+    def main(s):
+        retval = 1
+        try:
+            retval = 0
+
+            debug('     source: %s' % s.args.source)
+            debug('destination: %s' % s.args.destination)
+
+            s.initialize()
+
+            results_file_path = path.join(s.args.source, 'kernel_results.xml')
+            if not path.exists(results_file_path):
+                raise ErrorExit('%s: File does not exist.' % results_file_path)
+
+            if not path.exists(s.args.destination):
+                raise ErrorExit('%s: Directory does not exist.' % s.args.destination)
+
+            # Generate the web pages for the test results.
+            #
+            data = {}
+            data['results'] = s.get_test_results(results_file_path)
+            data['attributes'] = s.get_test_attributes(path.join(s.args.source, 'test-attributes.json'))
+
+            ts = datetime.strptime(data['attributes']['timestamp'], '%A, %d. %B %Y %H:%M UTC').strftime('%Y-%m-%d_%H-%M-%S')
+            if 'HOSTNAME' in data['attributes']['environ']:
+                dest = "%s__%s__%s" % (data['attributes']['environ']['HOSTNAME'], data['attributes']['kernel'], ts)
+            else:
+                dest = "%s__%s__%s" % (data['attributes']['platform']['hostname'], data['attributes']['kernel'], ts)
+            new_results_root = path.join(s.args.destination, dest)
+
+            s.ingest(data, new_results_root)
+
+            # Compatability hacks
+            #
+            data['attributes']['environ']['JOB_NAME'] = 'Mobile'
+
+            try:
+                if not path.exists(new_results_root):
+                    makedirs(new_results_root)
+
+                template = s.index_template.render(data = data, timestamp = datetime.utcnow())
+                dest = path.join(new_results_root, 'results-index.html')
+                with open(dest, 'w') as f:
+                    f.write(template)
+
+                for suite in data['results']['autotest']:
+                    name = suite
+                    file_name = "%s-test-suite.html" % name
+
+                    dest = path.join(new_results_root, file_name)
+                    template = s.suite_template.render(data = data, target_suite = suite, timestamp = datetime.utcnow())
+                    with open(dest, 'w') as f:
+                        f.write(template)
+
+            except:
+                traceback = RichTraceback()
+                for (filename, lineno, function, line) in traceback.traceback:
+                    print("File %s, line %s, in %s" % (filename, lineno, function))
+                    print(line, "\n")
+                print("%s: %s" % (str(traceback.error.__class__.__name__), traceback.error))
+
+
+        # Handle the user presses <ctrl-C>.
+        #
+        except KeyboardInterrupt:
+            print("Aborting ...")
+
+        except ErrorExit as e:
+            msg = e.message
+            if type(msg) is list:
+                for m in msg:
+                    error(m)
+            else:
+                error(msg)
+
+        except BadJson as e:
+            raise ErrorExit(['%s: Is not correctly formatted JSON.' % (e.filename), e.message])
+
+        return retval
+
+if __name__ == '__main__':
+    if getenv('DEBUG'):
+        LOGLEVEL = DEBUG
+    else:
+        LOGLEVEL = INFO
+    LOGLEVEL = DEBUG
+    basicConfig(level=LOGLEVEL, format="%(levelname)s - %(message)s")
+
+    app_description = '''
+    '''
+    app_epilog = '''
+    '''
+    parser = ArgumentParser(description=app_description, epilog=app_epilog, formatter_class=RawDescriptionHelpFormatter)
+    parser.add_argument('source',      metavar='source',      type=str, nargs=1, help='The test results source directory. This is the directory of results that is to be pulled in and processed.')
+    parser.add_argument('destination', metavar='destination', type=str, nargs=1, help='The combined results directory where all processed results are kept.')
+    args = parser.parse_args()
+
+    app = Ingest(args)
+    exit(app.main())
+
+# vi:set ts=4 sw=4 expandtab syntax=python:
