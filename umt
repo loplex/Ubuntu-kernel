@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 #
 
-from os                                 import getenv, path
+from os                                 import getenv, path, makedirs
 from sys                                import stdout, argv
 from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
 from logging                            import warning, error, info, debug, basicConfig, INFO, DEBUG, getLogger
 from lib.shell                          import ShellError, ShellTimeoutError, sh, ssh
+from tempfile                           import mkdtemp
 import re
+import lib.JUnit_api as api
+from datetime                           import date
 
 import json
 
@@ -375,7 +378,8 @@ class TheApp():
         for l in output.split('\n'):
             if 'inet ' in l:
                 x = l.split()
-                print('The devices ip address is: %s' % x[1][:x[1].rfind('/')])
+                ip = x[1][:x[1].rfind('/')]
+                print('Run the tests with: %s test phablet@%s' % (argv[0], ip))
 
         ch = None
 
@@ -383,12 +387,34 @@ class TheApp():
     #
     def results(s, umt):
         target = s.config.target[0]
-        results = s.config.results_root
-        if not results:
-            results = path.join(s.config.testing_root, 'test_results')
+        raw_results = s.config.raw_results_root
+        if not raw_results:
+            raw_results = path.join(s.config.testing_root, 'raw-results')
 
+        # Pull all the results off of the SUT and onto the local system.
+        #
+        if not path.exists(raw_results):
+            makedirs(raw_results)
+        raw_results = mkdtemp(dir=raw_results)
+        sh('mkdir -p %s' % raw_results, quiet=True)
+        sh('rsync -ar %s:kernel-test-results/ %s/' % (target, raw_results))
+
+        # Each test set produces it's own set of results. We want to put them
+        # together into one set of results.
+        #
+        krp = path.join(raw_results, 'kernel_results.xml')
+        sh('%s/autotest/client/tools/glue_testsuites %s/autotest-results.*.xml > %s' % (s.config.testing_root, raw_results, krp), quiet=False)
+
+        # Produce all the web pages for this new set of results.
+        #
+        results = s.config.raw_results_root
+        if not results:
+            results = path.join(s.config.testing_root, 'results')
         sh('mkdir -p %s' % results, quiet=True)
-        sh('rsync -arv %s:kernel-test-results/ %s/' % (target, results))
+        sh('%s/kernel-testing/tr/ingest %s %s' % (s.config.testing_root, raw_results, s.config.results_root), quiet=False)
+
+        sh('%s/kernel-testing/tr/digest %s' % (s.config.testing_root, s.config.results_root), quiet=False)
+
 
     # provision
     #
@@ -422,7 +448,7 @@ class TheApp():
             sh('rsync -arv --exclude=.git %s/kernel-testing/ %s:kernel-testing/' % (s.config.testing_root, target), quiet=True)
 
         if not s.config.no_test:
-            ssh(target, 'python kernel-testing/runner %s' % s.config.tests, user='phablet', quiet=not s.config.loud, output_enqueue_fn=test_runner_progress)
+            ssh(target, 'python kernel-testing/runner %s 2>&1 | tee kerne-test-results/log' % s.config.tests, user='phablet', quiet=not s.config.loud, output_enqueue_fn=test_runner_progress)
             print('    Tests completed')
 
     # main

@@ -2,13 +2,14 @@
 #
 
 from os                                 import getenv, path, makedirs, listdir, walk
-from sys                                import stdout
+from sys                                import stdout, argv
 from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
 from logging                            import error, info, debug, basicConfig, INFO, DEBUG, getLogger
 from mako.template                      import Template
 from mako.exceptions                    import RichTraceback
 from datetime                           import datetime
 from shutil                             import rmtree, copytree, copyfile
+from lib.shell                          import ShellError, ShellTimeoutError, sh, ssh
 
 import json
 
@@ -118,6 +119,23 @@ class Ingest():
         s.args.source = s.args.source[0]
         s.args.destination = s.args.destination[0]
 
+    # __locate
+    #
+    def __locate(s, file_name):
+        retval = None
+
+        # Find it ...
+        #
+        fid = file_name
+        if path.exists(fid): # Current directory
+            retval = fid
+        else:
+            fid = path.join(path.dirname(argv[0]), file_name)
+            if path.exists(fid):
+                retval = fid
+
+        return retval
+
     # __load_file
     #
     def __load_file(s, fp):
@@ -137,17 +155,17 @@ class Ingest():
     #
     def initialize(s):
         try:
-            s.index_template = Template(filename='ingest-index.mako')
+            s.index_template = Template(filename=s.__locate('ingest-index.mako'))
         except IOError as e:
             raise ErrorExit('%s: %s' % ('ingest-index.mako', e.strerror))
 
         try:
-            s.suite_template = Template(filename='ingest-suite.mako')
+            s.suite_template = Template(filename=s.__locate('ingest-suite.mako'))
         except IOError as e:
             raise ErrorExit('%s: %s' % ('ingest-suite.mako', e.strerror))
 
         try:
-            s.text_template = Template(filename='text-file.mako')
+            s.text_template = Template(filename=s.__locate('text-file.mako'))
         except IOError as e:
             raise ErrorExit('%s: %s' % ('text-file.mako', e.strerror))
 
@@ -290,6 +308,9 @@ class Ingest():
             else:
                 dest = "%s__%s__%s" % (data['attributes']['platform']['hostname'], data['attributes']['kernel'], ts)
             new_results_root = path.join(s.args.destination, dest)
+            if path.exists(new_results_root):
+                rmtree(new_results_root)
+            makedirs(new_results_root)
 
             s.ingest(data, new_results_root)
 
@@ -314,6 +335,10 @@ class Ingest():
                     template = s.suite_template.render(data = data, target_suite = suite, timestamp = datetime.utcnow())
                     with open(dest, 'w') as f:
                         f.write(template)
+
+                # Make a best effort to launch a browser to display the results.
+                #
+                print('Access the results with: gnome-open %s' % (path.join(new_results_root, 'results-index.html')))
 
             except:
                 traceback = RichTraceback()
@@ -346,7 +371,6 @@ if __name__ == '__main__':
         LOGLEVEL = DEBUG
     else:
         LOGLEVEL = INFO
-    LOGLEVEL = DEBUG
     basicConfig(level=LOGLEVEL, format="%(levelname)s - %(message)s")
 
     app_description = '''

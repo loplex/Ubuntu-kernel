@@ -2,7 +2,7 @@
 #
 
 from os                                 import getenv, path, makedirs, listdir, walk
-from sys                                import stdout
+from sys                                import stdout, argv
 from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
 from logging                            import error, info, debug, basicConfig, INFO, DEBUG, getLogger
 from mako.template                      import Template
@@ -59,6 +59,23 @@ class Digest():
         s.args = args
         s.args.source = s.args.source[0]
 
+    # __locate
+    #
+    def __locate(s, file_name):
+        retval = None
+
+        # Find it ...
+        #
+        fid = file_name
+        if path.exists(fid): # Current directory
+            retval = fid
+        else:
+            fid = path.join(path.dirname(argv[0]), file_name)
+            if path.exists(fid):
+                retval = fid
+
+        return retval
+
     # get_test_results
     #
     def get_test_results(s, fp):
@@ -77,7 +94,7 @@ class Digest():
     #
     def initialize(s):
         try:
-            s.index_template = Template(filename='digest-index.mako')
+            s.index_template = Template(filename=s.__locate('digest-index.mako'))
         except IOError as e:
             raise ErrorExit('%s: %s' % ('digest-index.mako', e.strerror))
 
@@ -109,12 +126,12 @@ class Digest():
                     error(e.msg)
                     continue
 
-                info("%s" % (tr))
-                info("    kernel: %s" % (results['attributes']['kernel']))
+                debug("%s" % (tr))
+                debug("    kernel: %s" % (results['attributes']['kernel']))
 
                 series = results['attributes']['distro-release-name']
                 results['attributes']['series'] = series
-                info("    series: %s" % (results['attributes']['series']))
+                debug("    series: %s" % (results['attributes']['series']))
 
                 # "Fixup" the timestamp to be what we want it to look like on the web page
                 #
@@ -181,7 +198,6 @@ if __name__ == '__main__':
         LOGLEVEL = DEBUG
     else:
         LOGLEVEL = INFO
-    LOGLEVEL = DEBUG
     basicConfig(level=LOGLEVEL, format="%(levelname)s - %(message)s")
 
     app_description = '''
