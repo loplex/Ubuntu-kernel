@@ -14,6 +14,13 @@
 #
 TestProfiles = {
 
+    'chrome_security_SymlinkRestrictions' : {
+        'packages' : {
+            'common' : [
+                ],
+            },
+        },
+
     'chrome_security_HardlinkRestrictions' : {
         'packages' : {
             'common' : [
@@ -162,6 +169,7 @@ TestCollections = {
         'ubuntu_qrt_kernel_panic',
         'ubuntu_qrt_kernel_security',
         'chrome_security_HardlinkRestrictions',
+        'chrome_security_SymlinkRestrictions',
         ],
 
     ## The set of tests that Ubuntu Engineering QA run.

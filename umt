@@ -41,7 +41,10 @@ def test_runner_progress(out, queue, quiet=True, silent=False):
                 if 'INFO | \tSTART' in l:
                     m = test_start_rc.search(l)
                     if m:
-                        test, _ = m.group(1).split('.', 1)
+                        try:
+                            test, _ = m.group(1).split('.', 1)
+                        except ValueError as e:
+                            test = m.group(1)
                         if test != previous_test:
                             stdout.write('        ' + test)
                             previous_test = test
