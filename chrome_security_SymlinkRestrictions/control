@@ -17,4 +17,4 @@ DOC = """
     symlinks.
 """
 
-job.run_test('chrome_security_SymlinkRestrictions')
+job.run_test_detail('chrome_security_SymlinkRestrictions', tag='chrome_security_SymlinkRestrictions')

@@ -17,4 +17,4 @@ DOC = """
     hardlinks.
 """
 
-job.run_test('chrome_security_HardlinkRestrictions')
+job.run_test_detail('chrome_security_HardlinkRestrictions', tag='chrome_security_HardlinkRestrictions')
