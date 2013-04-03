@@ -200,6 +200,9 @@ class Ingest():
                     if 'failure' in case:
                         retval[p][c]['cases'][case['name']]['status'] = 'failed'
                         failed += 1
+                    elif 'error' in case:
+                        retval[p][c]['cases'][case['name']]['status'] = 'failed'
+                        failed += 1
                     else:
                         retval[p][c]['cases'][case['name']]['status'] = 'passed'
 
