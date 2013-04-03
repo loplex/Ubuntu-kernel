@@ -1,44 +1,60 @@
-This project contains the files used to run the autotest tests that the Ubuntu
-kernel team wants run against all kernels as part of the regression testing that
-Ubuntu QA performs.
+The purpose of this bit of testing infrastructure is to make the testing of
+the mobile devices easy and repeatable.
 
+The following steps are intended to walk you through setting 
 
-Files:
-    pre-testing-setup               - Makes sure all the required packages are
-                                      installed.
+ 1. mkdir mobile
+ 2. cd mobile
 
-    kernel-tests-runner             - The control loop which runs all the tests.
+ 3. git clone zinc.canonical.com:/srv/kernel.ubuntu.com/git/ubuntu/autotest
 
-    job-autotest                    - Run a single autotest test. This does the
-                                      aggregation of results.
+ 4. git clone zinc.canonical.com:/srv/kernel.ubuntu.com/git/ubuntu/autotest-client-tests
+ 5. cd autotest-client-tests
+ 6. git branch --track mobile origin/mobile
+ 7. git checkout mobile
 
-Example jenkins job command:
+ 8. git clone zinc.canonical.com:/srv/kernel.ubuntu.com/git/ubuntu/kernel-testing
+ 9. cd kernel-testing
+10. git branch --track mobile origin/mobile
+11. git checkout mobile
 
-    # We utilize the jenkins slave, therefor this code is run on the test
-    # system and we need to pull any data from the jenkins server that is
-    # necessary for our testing.
-    #
-    set +e
+12. cp umt.cfg.example umt.cfg
+13. edit umt.cfg making the changes that are correct for your environment
 
-    # Clean up anything left over from previous runs.
-    #
-    sudo rm -rf *
+At this point you should be all setup. Normal testing would go
+something like this:
 
-    # Fetch the relevant test scripts from the jenkins server
-    #
-    rsync -ar --exclude '.git' -e "ssh -o StrictHostKeyChecking=no" kernel-jenkins:autotest/ ./autotest/
-    rsync -ar --exclude '.git' -e "ssh -o StrictHostKeyChecking=no" kernel-jenkins:kernel-testing/ ./kernel-testing/
+ 0. Install the phablet tools based on the instructions on the wiki.
+ 1. Attach your Nexus7 to the system.
+ 2. ./umt provision
 
-    # This variable is unique to the jobs that the kernel team runs on their
-    # jenkins server.
-    #
-    export KERNEL_TEAM_JOB="true"
+    This will do a "phablet-flash -l" which pulls down the latest phablet image
+    and reflashes your N7.
 
-    # Now run all the tests.
-    #
+ 3. Manually configure the wifi.
 
-    export KERNEL_TEST_LIST="kernel default"
+    This is a crucial step. It must be done manually for now.
 
-    /bin/sh kernel-testing/kernel-tests-runner
+ 4. ./umt configure
 
-# vi:set ts=4 sw=4 expandtab:
+    This sets up the N7 installing openssh-server and some other things. I'd
+    like to get this to also do the wifi config but have not gotten that to
+    work yet.
+
+    This will print out the IP address of your device. You will need that for
+    the next step.
+
+ 5. ./umt test <ip address>
+
+    This will run the tests.
+
+ 6. ./umt results <ip address>
+
+Known issues:
+
+ 1. Wireless setup is manual.
+ 2. The testing progress is too minimal. It should tell you if the test
+    passed or failed.
+ 3. The results are left on the tablet. The results are in the exact same
+    format that we use for our x86 testing so should be trivial to pull
+    it back to the test host and display. I just haven't gotten there yet.
