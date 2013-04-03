@@ -294,7 +294,7 @@ class Ingest():
                 raise ErrorExit('%s: File does not exist.' % results_file_path)
 
             if not path.exists(s.args.destination):
-                raise ErrorExit('%s: Directory does not exist.' % s.args.destination)
+                makedirs(s.args.destination)
 
             # Generate the web pages for the test results.
             #
