@@ -1,0 +1,41 @@
+Adding Tests
+------------
+
+Any new tests should be added to the "mobile-next" branch of the autotest-client-tests
+repository. However, for initial development, the test just needs to be in the
+autotest-client-tests directory that your umt.cfg file points at. That will make sure
+it gets copied over to the mobile device and run.
+
+. Edit lib/testsprops.py and add your tests' information to the 'TestProfiles'
+  dictionary. Initially you should be able to get away with just:
+
+  '<my new test>' : {
+      'packages' : {
+	  'common' : [
+	      ],
+          },
+      },
+
+. Run just your new test on the mobile device:
+
+  ./umt test --loud --tests=<my new test> <phablet@ip>
+
+  This will copy over your new test and the changes that you made to testsprops.py. It
+  will then run your new test in a very verbose mode so that you see all the output
+  from your test. This should help with debugging.
+
+Test Naming Convention
+----------------------
+. Any tests that we develop we prefix with 'ubuntu_'. For example, we have the QRT
+  test kernel_panic. This has been named 'ubuntu_qrt_kernel_panic' in the autotest
+  tests tree.
+
+. Any tests that we "poach" from the chromium os tests we are prefixing with 'chrome_'.
+
+ChromeOS Conversion Notes
+-------------------------
+. chronos -> phablet
+. from autotest_lib.client.bin import test, utils  -> from autotest.client import test, utils
+. from autotest_lib.client.common_lib import error -> from autotest.client.shared import error
+
+
