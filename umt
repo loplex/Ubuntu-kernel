@@ -317,6 +317,8 @@ class TheApp():
 
         import pexpect
 
+        stdout.write('.'), stdout.flush()
+
         try:
             ch = pexpect.spawn('adb shell', timeout=300)
             ch.expect('root@android:/ # ')
@@ -326,20 +328,23 @@ class TheApp():
             ch = pexpect.spawn('adb shell', timeout=300)
             ch.expect('root@android:/ # ')
 
+        stdout.write('.'), stdout.flush()
         ch.sendline('ubuntu_chroot shell')
         ch.expect('root@localhost:/# ')
 
+        stdout.write('.'), stdout.flush()
         ch.sendline('echo phablet ALL=\(ALL:ALL\) NOPASSWD: ALL >> /etc/sudoers')
         ch.expect('root@localhost:/# ')
 
+        stdout.write('.'), stdout.flush()
         ch.sendline('cat /etc/sudoers')
         ch.expect('root@localhost:/# ')
 
-        print('Installing: openssh-server')
-
+        stdout.write('.'), stdout.flush()
         ch.sendline('apt-get update')
         ch.expect('root@localhost:/# ')
 
+        stdout.write('.'), stdout.flush()
         ch.sendline('apt-get install -y openssh-server rsync')
         ch.expect('root@localhost:/# ')
 
@@ -370,16 +375,18 @@ class TheApp():
             except:
                 warning('Failed to configure the wireless on the device.')
 
-        info('The SUT should now be fully prepared for testing.')
-
+        stdout.write('. complete\n'), stdout.flush()
         ch.sendline('ip addr show wlan0')
         ch.expect('root@localhost:/# ')
         output = ch.before
+        print('')
+        print('Next step(s):')
         for l in output.split('\n'):
             if 'inet ' in l:
                 x = l.split()
                 ip = x[1][:x[1].rfind('/')]
-                print('Run the tests with: %s test phablet@%s' % (argv[0], ip))
+                print('    %s test phablet@%s' % (argv[0], ip))
+        print('')
 
         ch = None
 
@@ -397,7 +404,7 @@ class TheApp():
             makedirs(raw_results)
         raw_results = mkdtemp(dir=raw_results)
         sh('mkdir -p %s' % raw_results, quiet=True)
-        sh('rsync -ar %s:kernel-test-results/ %s/' % (target, raw_results))
+        sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -ar %s:kernel-test-results/ %s/' % (target, raw_results))
 
         # Each test set produces it's own set of results. We want to put them
         # together into one set of results.
@@ -424,32 +431,38 @@ class TheApp():
 
         s.device_reflash()
         print('')
-        print('** Note: Please manually configure your wireless networking.')
+        print('Next step(s):')
+        print('    Manually configure your wireless networking on the device.')
+        print('    %s configure' % argv[0])
         print('')
 
     # test
     #
     def test(s, umt):
         target = s.config.target[0]
-        print('Target: %s' % target)
 
         if not s.config.no_at:
-            ssh(target, 'sudo rm -rf autotest', user='phablet', quiet=True)
+            ssh(target, 'sudo rm -rf autotest', quiet=True)
 
             print('    Copying autotest core to SUT')
-            sh('rsync -arv --exclude=.git %s/autotest/ %s:autotest/' % (s.config.testing_root, target), quiet=True)
+            sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/autotest/ %s:autotest/' % (s.config.testing_root, target), quiet=True)
             print('    Copying autotest-client-tests to SUT')
-            sh('rsync -arv --exclude=.git %s/autotest-client-tests/* %s:autotest/client/tests/' % (s.config.testing_root, target), quiet=True)
+            sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/autotest-client-tests/* %s:autotest/client/tests/' % (s.config.testing_root, target), quiet=True)
 
         if not s.config.no_kt:
-            ssh(target, 'sudo rm -rf kernel-testing', user='phablet', quiet=True)
+            ssh(target, 'sudo rm -rf kernel-testing', quiet=True)
 
             print('    Copying kernel testing core to SUT')
-            sh('rsync -arv --exclude=.git %s/kernel-testing/ %s:kernel-testing/' % (s.config.testing_root, target), quiet=True)
+            sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/kernel-testing/ %s:kernel-testing/' % (s.config.testing_root, target), quiet=True)
 
         if not s.config.no_test:
-            ssh(target, 'python kernel-testing/runner %s 2>&1 | tee kerne-test-results/log' % s.config.tests, user='phablet', quiet=not s.config.loud, output_enqueue_fn=test_runner_progress)
+            ssh(target, 'python kernel-testing/runner %s 2>&1 | tee kerne-test-results/log' % s.config.tests, quiet=not s.config.loud, output_enqueue_fn=test_runner_progress)
             print('    Tests completed')
+
+        print('')
+        print('Next step:')
+        print('    %s results %s' % (argv[0], target))
+        print('')
 
     # main
     #

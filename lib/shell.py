@@ -124,7 +124,7 @@ class Shell():
     #
     @classmethod
     def ssh(cls, target, cmd, quiet=False, ignore_result=False, output_enqueue_fn=enqueue_output):
-        ssh_cmd = 'ssh %s %s' % (target, cmd)
+        ssh_cmd = 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no %s %s' % (target, cmd)
         result = 0
         output = ''
         #print("ssh: '%s'" % ssh_cmd)
