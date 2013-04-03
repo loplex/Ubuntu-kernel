@@ -383,13 +383,18 @@ class TheApp():
         ch.sendline('ip addr show wlan0')
         ch.expect('root@localhost:/# ')
         output = ch.before
+        ip_found = False
         print('')
         print('Next step(s):')
         for l in output.split('\n'):
             if 'inet ' in l:
                 x = l.split()
                 ip = x[1][:x[1].rfind('/')]
+                ip_found = True
                 print('    %s test phablet@%s' % (argv[0], ip))
+        if not ip_found:
+            print('    ** Manually configure your wireless networking on the device. **')
+            print('    %s configure' % argv[0])
         print('')
 
         ch = None
