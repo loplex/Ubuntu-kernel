@@ -338,7 +338,10 @@ class Ingest():
 
                 # Make a best effort to launch a browser to display the results.
                 #
-                print('Access the results with: gnome-open %s' % (path.join(new_results_root, 'results-index.html')))
+                print('')
+                print('Next step(s):')
+                print('    gnome-open %s' % (path.join(new_results_root, 'results-index.html')))
+                print('')
 
             except:
                 traceback = RichTraceback()
