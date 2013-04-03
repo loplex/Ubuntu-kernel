@@ -53,6 +53,9 @@ def test_runner_progress(out, queue, quiet=True, silent=False):
                 elif 'END ERROR' in l:
                     errors += 1
 
+                elif 'END FAIL' in l:
+                    errors += 1
+
                 elif 'INFO | END GOOD' in l:
                     if errors > 0:
                         stdout.write(' ... failed\n')
