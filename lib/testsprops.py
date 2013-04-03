@@ -157,7 +157,12 @@ TestCollections = {
 
     # The set of security tests
     #
-    'security' : ['ubuntu_qrt_kernel_hardening', 'ubuntu_qrt_kernel_panic', 'ubuntu_qrt_kernel_security' ],
+    'security' : [
+        'ubuntu_qrt_kernel_hardening',
+        'ubuntu_qrt_kernel_panic',
+        'ubuntu_qrt_kernel_security',
+        'chrome_security_HardlinkRestrictions',
+        ],
 
     ## The set of tests that Ubuntu Engineering QA run.
     ##
