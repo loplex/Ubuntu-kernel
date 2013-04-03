@@ -471,6 +471,7 @@ class TheApp():
             sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/kernel-testing/ %s:kernel-testing/' % (s.config.testing_root, target), quiet=True)
 
         if not s.config.no_test:
+            ssh(target, 'sudo rm -rf kernel-test-results', quiet=True)
             ssh(target, 'python kernel-testing/runner %s 2>&1 | tee kerne-test-results/log' % s.config.tests, quiet=not s.config.loud, output_enqueue_fn=test_runner_progress)
             print('    Tests completed')
 
