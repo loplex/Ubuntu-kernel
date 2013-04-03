@@ -7,6 +7,7 @@ from argparse                           import ArgumentParser, RawDescriptionHel
 from logging                            import warning, error, info, debug, basicConfig, INFO, DEBUG, getLogger
 from lib.shell                          import ShellError, ShellTimeoutError, sh, ssh
 from tempfile                           import mkdtemp
+from time                               import sleep
 import re
 import lib.JUnit_api as api
 from datetime                           import date
@@ -325,8 +326,12 @@ class TheApp():
         except pexpect.EOF:
             # If at first you don't succeed, try, try again
             #
-            ch = pexpect.spawn('adb shell', timeout=300)
-            ch.expect('root@android:/ # ')
+            try:
+                sleep(2)
+                ch = pexpect.spawn('adb shell', timeout=300)
+                ch.expect('root@android:/ # ')
+            except pexpect.EOF:
+                raise ErrorExit('Please try again, the device couldn\'t be found.')
 
         stdout.write('.'), stdout.flush()
         ch.sendline('ubuntu_chroot shell')
