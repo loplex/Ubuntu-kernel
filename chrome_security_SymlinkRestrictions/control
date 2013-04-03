@@ -2,10 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-NAME = "chrome_security_HardlinkRestrictions"
+NAME = "chrome_security_SymlinkRestrictions"
 AUTHOR = "The Chromium OS Authors"
-PURPOSE = "Verify hardlink restrictions introduced by the Yama LSM"
-CRITERIA = "Fails if kernel lacks hardlink restrictions"
+PURPOSE = "Verify symlink restrictions introduced by the Yama LSM"
+CRITERIA = "Fails if kernel lacks symlink restrictions"
 TIME = "SHORT"
 SUITE = "bvt, smoke"
 TEST_CATEGORY = "Functional"
@@ -13,8 +13,8 @@ TEST_CLASS = "security"
 TEST_TYPE = "client"
 
 DOC = """
-    Checks that the kernel correctly restrictions the creation of dangerous
-    hardlinks.
+    Checks that the kernel correctly restrictions the use of dangerous
+    symlinks.
 """
 
-job.run_test('chrome_security_HardlinkRestrictions')
+job.run_test('chrome_security_SymlinkRestrictions')

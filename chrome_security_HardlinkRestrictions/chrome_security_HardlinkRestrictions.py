@@ -24,7 +24,7 @@ import logging, os
 from autotest.client import test, utils
 from autotest.client.shared import error
 
-class security_HardlinkRestrictions(test.test):
+class chrome_security_HardlinkRestrictions(test.test):
     version = 1
 
     def _passed(self, msg):
@@ -172,9 +172,9 @@ class security_HardlinkRestrictions(test.test):
 
         # Verify Yama exists and has hardlink restrictions enabled.
         sysctl = "/proc/sys/kernel/yama/protected_nonaccess_hardlinks"
-        self.check(os.path.exists(sysctl), "%s exists" % (sysctl), fatal=True)
+        self.check(os.path.exists(sysctl), "%s exists" % (sysctl), fatal=False)
         self.check(open(sysctl).read() == '1\n', "%s enabled" % (sysctl),
-                   fatal=True)
+                   fatal=False)
 
         # Test the basic "user hardlinks to unwritable source" situation
         # first, in a more auditable way than the extensive behavior tests
