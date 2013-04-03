@@ -1,7 +1,8 @@
 The purpose of this bit of testing infrastructure is to make the testing of
 the mobile devices easy and repeatable.
 
-The following steps are intended to walk you through setting 
+The following steps are intended to walk you through getting the tests,
+setting up the necessary configuration and running the tests.
 
  1. mkdir mobile
  2. cd mobile
@@ -21,7 +22,8 @@ The following steps are intended to walk you through setting
 12. cp umt.cfg.example umt.cfg
 13. edit umt.cfg making the changes that are correct for your environment
 
-At this point you should be all setup. Normal testing would go
+At this point you should be all setup. The output from each individual step will
+give you the commands for the "Next step(s)". Normal testing would go
 something like this:
 
  0. Install the phablet tools based on the instructions on the wiki.
@@ -53,8 +55,3 @@ something like this:
 Known issues:
 
  1. Wireless setup is manual.
- 2. The testing progress is too minimal. It should tell you if the test
-    passed or failed.
- 3. The results are left on the tablet. The results are in the exact same
-    format that we use for our x86 testing so should be trivial to pull
-    it back to the test host and display. I just haven't gotten there yet.
