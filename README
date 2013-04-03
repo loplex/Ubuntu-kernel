@@ -13,14 +13,17 @@ setting up the necessary configuration and running the tests.
  5. cd autotest-client-tests
  6. git branch --track mobile origin/mobile
  7. git checkout mobile
+ 8. cd ..
 
- 8. git clone zinc.canonical.com:/srv/kernel.ubuntu.com/git/ubuntu/kernel-testing
- 9. cd kernel-testing
-10. git branch --track mobile origin/mobile
-11. git checkout mobile
+ 9. git clone zinc.canonical.com:/srv/kernel.ubuntu.com/git/ubuntu/kernel-testing
+10. cd kernel-testing
+11. git branch --track mobile origin/mobile
+12. git checkout mobile
 
-12. cp umt.cfg.example umt.cfg
-13. edit umt.cfg making the changes that are correct for your environment
+13. cp umt.cfg.example umt.cfg
+14. edit umt.cfg making the changes that are correct for your environment
+
+
 
 At this point you should be all setup. The output from each individual step will
 give you the commands for the "Next step(s)". Normal testing would go
