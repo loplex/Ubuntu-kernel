@@ -13,6 +13,14 @@
 #     autotest test via the autotest command line.
 #
 TestProfiles = {
+
+    'chrome_security_HardlinkRestrictions' : {
+        'packages' : {
+            'common' : [
+                ],
+            },
+        },
+
     'ubuntu_qrt_kernel' : {
         'packages' : {
             'common' : [
