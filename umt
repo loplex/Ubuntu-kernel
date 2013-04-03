@@ -9,7 +9,6 @@ from lib.shell                          import ShellError, ShellTimeoutError, sh
 from tempfile                           import mkdtemp
 from time                               import sleep
 import re
-import lib.JUnit_api as api
 from datetime                           import date
 
 import json
