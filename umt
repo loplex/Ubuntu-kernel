@@ -467,7 +467,7 @@ class TheApp():
                 emsg = []
                 emsg.append('Failed to rsync the autotest tree onto the SUT.')
                 emsg.append('')
-                emsg.append('    cmd: %s', e.cmd)
+                emsg.append('    cmd: %s' % e.cmd)
                 emsg.append('')
                 emsg.append(e.output)
                 raise ErrorExit(emsg)
