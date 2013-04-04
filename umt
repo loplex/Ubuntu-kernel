@@ -460,7 +460,18 @@ class TheApp():
             ssh(target, 'sudo rm -rf autotest', quiet=True)
 
             print('    Copying autotest core to SUT')
-            sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/autotest/ %s:autotest/' % (s.config.testing_root, target), quiet=True)
+            cmd = 'rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/autotest/ %s:autotest/' % (s.config.testing_root, target)
+            try:
+                sh(cmd, quiet=True)
+            except ShellError as e:
+                emsg = []
+                emsg.append('Failed to rsync the autotest tree onto the SUT.')
+                emsg.append('')
+                emsg.append('    cmd: %s', e.cmd)
+                emsg.append('')
+                emsg.append(e.output)
+                raise ErrorExit(emsg)
+
             print('    Copying autotest-client-tests to SUT')
             sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/autotest-client-tests/* %s:autotest/client/tests/' % (s.config.testing_root, target), quiet=True)
 
