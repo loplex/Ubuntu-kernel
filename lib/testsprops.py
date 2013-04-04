@@ -14,6 +14,14 @@
 #
 TestProfiles = {
 
+    'chrome_network_WiFiCaps' : {
+        'packages' : {
+            'common' : [
+                'iw', 'pkg-config', 'libnl-dev'
+                ],
+            },
+        },
+
     'chrome_security_SymlinkRestrictions' : {
         'packages' : {
             'common' : [
@@ -160,7 +168,11 @@ TestCollections = {
     # This is the set of tests that will run if no KERNEL_TEST_LIST variable is set.
     # (QA runs this set)
     #
-    'default' : ['security'],
+    'default' : ['security', 'wireless'],
+
+    'wireless' : ['chrome_network_WiFiCaps'],
+
+    'networking' : ['wireless'],
 
     # The set of security tests
     #
