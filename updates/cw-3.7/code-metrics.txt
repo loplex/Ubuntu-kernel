@@ -1,0 +1,22 @@
+
+[36mcompat-drivers code metrics[00m
+
+[35m   1176768[00m - Total upstream lines of code being pulled
+[01;32m      3111[00m - backport code changes
+[01;32m      2582[00m - backport code additions
+[01;32m       529[00m - backport code deletions
+[01;32m     12798[00m - backport from compat module
+[01;32m     15909[00m - total backport code
+[31m    1.3519[00m - % of code consists of backport work
+[01;32m       361[00m - backport code changes
+[01;32m       249[00m - backport code additions
+[01;32m       112[00m - backport code deletions
+[01;32m     12798[00m - backport from compat module
+[01;32m     13159[00m - total backport code
+[31m    1.1182[00m - % of code consists of backport work
+
+Base tree: [01;32mlinux-stable.git[00m
+Base tree version: [35mv3.7.9[00m
+compat.git: [36mcompat-v3.7.9-1[00m
+compat-drivers release: [01;33mcompat-drivers-v3.7.9-1[00m
+Code metrics archive: [01;32mhttp://bit.ly/H6BTF7[00m
