@@ -1,0 +1,26 @@
+Package: linux-headers-highbank
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-headers-generic (= ${binary:Version})
+Description: Linux kernel headers for the armhf architecture.
+ This is a transitional package for upgrade paths. You should
+ be using linux-headers-generic.
+
+Package: linux-image-highbank
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-image-generic (= ${binary:Version})
+Description: Linux kernel image for the armhf architecture.
+ This is a transitional package for upgrade paths. You should
+ be using linux-image-generic.
+
+Package: linux-highbank
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-generic (= ${binary:Version})
+Description: Complete Linux kernel and headers for the armhf architecture.
+ This is a transitional package for upgrade paths. You should
+ be using linux-generic.
