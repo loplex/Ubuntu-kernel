@@ -3,5 +3,8 @@
     "results_root" : "/home/work/mobile/test-results",
     "raw_results_root" : "/home/work/mobile/raw-results",
     "ssh_key" : "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAsLqbT1bgqDJkyNq+s4h9ke6pWChKEfdC0FaDodN4M3r7lC8bsZf/gMsaAvejSYg3La6wwfvAIgX8HJcTyvZQcf/pwby8MMn9DGM8IQEdnz1negrKeekm1TS/7cXiWOJ++ZRfeubOn6uuHUtm7K1BW3ChhZJIgAjLn5rs2G1hc1rIRnjliFS0pspRuIzdwyi+KGArcrHOYI7dnfJQy/7RGKP6Gy1o0olTz8KDCVEfYlh19HG7Fic9EHjfFCpl+EQudq6BF9opiaIVagFXE+MwRJ0Aqcq5A7JD296gkUTSAz/RHelYidS9Xpva0qIbTLn9TXcnEmDZiFsXKThwPGPGNQ== brad@brad-desktop",
-    "wpa" : "warthogs.cfg"
+    "wifi" : {
+        "ssid" : "warthogs",
+	"wpa2psk"  : "crancod39"
+    }
 }
