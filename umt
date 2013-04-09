@@ -91,9 +91,12 @@ def phablet_flash_progress(out, queue, quiet=False):
 
         if not downloading_md5sum:
             if '..........' in line:
-                d = line.split()
-                if len(d) >= 8:
-                    stdout.write('\rDownloading: ' + previous_fid + ' .. %s completed, %s until finished.     ' % (d[6], d[8]))
+                try:
+                    d = line.split()
+                    if len(d) > 8:
+                        stdout.write('\rDownloading: ' + previous_fid + ' .. %s completed, %s until finished.     ' % (d[6], d[8]))
+                except IndexError:
+                    error('IndexError. len(d) = %d' % len(d))
 
         if line.startswith('Downloading '):
             fid = line.replace('Downloading ', '')
@@ -325,6 +328,27 @@ class TheApp():
 
         stdout.write('.'), stdout.flush()
 
+        # Before we start interactively working with adb, push over the
+        # wifi configuration script that we will need later.
+        #
+        try:
+            sh('adb push %s/kernel-testing/wifi-config /data/ubuntu/tmp/' % (s.config.testing_root))
+        except ShellError:
+            # Try one more time
+            #
+            sleep(2)
+            try:
+                sh('adb push %s/kernel-testing/wifi-config /data/ubuntu/tmp/' % (s.config.testing_root))
+            except ShellError as e:
+                emsg = []
+                emsg.append('Failed to push wifi-config to the SUT.')
+                emsg.append('')
+                emsg.append('    cmd: %s' % e.cmd)
+                emsg.append('')
+                for l in e.output:
+                    emsg.append(l)
+                raise ErrorExit(emsg)
+
         try:
             ch = pexpect.spawn('adb shell', timeout=300)
             ch.expect('root@android:/ # ')
@@ -376,14 +400,12 @@ class TheApp():
 
         # Not sure this is the right place to do this but ...
         #
-        if s.config.wpa:
-            try:
-                contents = s.__load_file(s.config.wpa)
+        if s.config.wifi:
+            ssid = s.config.wifi['ssid']
+            key  = s.config.wifi['wpa2psk']
 
-                ch.sendline('echo \'%s\' > /etc/wpa_supplicant.cfg' % contents)
-                ch.expect('root@localhost:/# ')
-            except:
-                warning('Failed to configure the wireless on the device.')
+            ch.sendline('sudo ./tmp/wifi-config %s %s' % (ssid, key))
+            ch.expect('root@localhost:/# ')
 
         stdout.write('. complete\n'), stdout.flush()
         ch.sendline('ip addr show wlan0')
