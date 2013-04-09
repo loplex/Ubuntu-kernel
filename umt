@@ -328,26 +328,26 @@ class TheApp():
 
         stdout.write('.'), stdout.flush()
 
-        # Before we start interactively working with adb, push over the
-        # wifi configuration script that we will need later.
-        #
-        try:
-            sh('adb push %s/kernel-testing/wifi-config /data/ubuntu/tmp/' % (s.config.testing_root))
-        except ShellError:
-            # Try one more time
-            #
-            sleep(2)
-            try:
-                sh('adb push %s/kernel-testing/wifi-config /data/ubuntu/tmp/' % (s.config.testing_root))
-            except ShellError as e:
-                emsg = []
-                emsg.append('Failed to push wifi-config to the SUT.')
-                emsg.append('')
-                emsg.append('    cmd: %s' % e.cmd)
-                emsg.append('')
-                for l in e.output:
-                    emsg.append(l)
-                raise ErrorExit(emsg)
+        ## Before we start interactively working with adb, push over the
+        ## wifi configuration script that we will need later.
+        ##
+        #try:
+        #    sh('adb push %s/kernel-testing/wifi-config /data/ubuntu/tmp/' % (s.config.testing_root))
+        #except ShellError:
+        #    # Try one more time
+        #    #
+        #    sleep(2)
+        #    try:
+        #        sh('adb push %s/kernel-testing/wifi-config /data/ubuntu/tmp/' % (s.config.testing_root))
+        #    except ShellError as e:
+        #        emsg = []
+        #        emsg.append('Failed to push wifi-config to the SUT.')
+        #        emsg.append('')
+        #        emsg.append('    cmd: %s' % e.cmd)
+        #        emsg.append('')
+        #        for l in e.output:
+        #            emsg.append(l)
+        #        raise ErrorExit(emsg)
 
         try:
             ch = pexpect.spawn('adb shell', timeout=300)
@@ -398,14 +398,14 @@ class TheApp():
             ch.sendline('chown phablet.phablet ~phablet/.ssh/authorized_keys')
             ch.expect('root@localhost:/# ')
 
-        # Not sure this is the right place to do this but ...
-        #
-        if s.config.wifi:
-            ssid = s.config.wifi['ssid']
-            key  = s.config.wifi['wpa2psk']
+        ## Not sure this is the right place to do this but ...
+        ##
+        #if s.config.wifi:
+        #    ssid = s.config.wifi['ssid']
+        #    key  = s.config.wifi['wpa2psk']
 
-            ch.sendline('sudo ./tmp/wifi-config %s %s' % (ssid, key))
-            ch.expect('root@localhost:/# ')
+        #    ch.sendline('sudo ./tmp/wifi-config %s %s' % (ssid, key))
+        #    ch.expect('root@localhost:/# ')
 
         stdout.write('. complete\n'), stdout.flush()
         ch.sendline('ip addr show wlan0')
