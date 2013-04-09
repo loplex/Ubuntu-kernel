@@ -1,0 +1,221 @@
+#!/usr/bin/env python
+#
+
+from os                                 import getenv, path
+from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
+from logging                            import error, info, debug, basicConfig, INFO, DEBUG, getLogger
+import dbus
+from uuid                               import uuid4
+
+# NoSuchConnectionError
+#
+class NoSuchConnectionError(Exception):
+    """
+    """
+    def __init__(s, connection_id):
+        s.__connection_id = connection_id
+
+    def __str__(s):
+        return '%s: A connection by that name was not found' % s.__connection_id
+
+    @property
+    def connection_id(s):
+        return s.__connection_id
+
+# NetworkManager
+#
+# http://projects.gnome.org/NetworkManager/developers/api/09/spec.html
+# http://projects.gnome.org/NetworkManager/developers/api/09/ref-settings.html
+#
+class NetworkManager():
+    '''
+    A helper class to make working with network manager via dbus a little
+    easier.
+    '''
+    # __init__
+    #
+    def __init__(s):
+        s.bus = dbus.SystemBus()
+        p = s.bus.get_object("org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager")
+        s.network_manager = dbus.Interface(p, "org.freedesktop.NetworkManager")
+
+        p = s.bus.get_object("org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager/Settings")
+        s.network_manager_settings = dbus.Interface(p, "org.freedesktop.NetworkManager.Settings")
+
+    # connections
+    #
+    @property
+    def connections(s):
+        return s.network_manager_settings.ListConnections()
+
+    # get_connection_settings
+    #
+    def get_connection_settings(s, ptso):
+        '''
+        ptso - Path to settings object.
+        '''
+        o = s.get_object(ptso)
+        return o.GetSettings(), o
+
+    # get_object
+    #
+    def get_object(s, pto):
+        '''
+        pto - Path to object
+        '''
+        return s.bus.get_object('org.freedesktop.NetworkManager', pto)
+
+    # delete_wifi_connection
+    #
+    def delete_wifi_connection(s, setting_id):
+        connection = s.find_wifi_connection(setting_id)
+        if connection is not None:
+            connection.Delete()
+
+    # create_wifi_connection
+    #
+    def create_wifi_connection(s, setting):
+
+        dd = setting
+        if type(setting) is dict:
+            # Convert it to a dbus.Dictionary
+            #
+            dd = dbus.Dictionary()
+            for k in setting:
+                dd[k] = dbus.Dictionary()
+                for k2 in setting[k]:
+                    dd[k][k2] = setting[k][k2]
+
+            dd['connection']['uuid'] = str(uuid4())
+
+            if '802-11-wireless' in setting:
+                dd['802-11-wireless']['ssid'] = dbus.ByteArray(setting['802-11-wireless']['ssid'])
+
+            for k in dd:
+                print('%s' % (k))
+                for k2 in dd[k]:
+                    print('    %15s : %s' % (k2, dd[k][k2]))
+
+        s.network_manager_settings.AddConnection(dd)
+
+    # activate_wifi_connection
+    #
+    def activate_wifi_connection(s, setting_id):
+        connection = s.find_wifi_connection(setting_id)
+        if connection is not None:
+            target_device = s.network_manager.GetDeviceByIpIface('wlan0')
+            s.network_manager.ActivateConnection(connection, target_device, '/')
+
+    # find_wifi_connection
+    #
+    def find_wifi_connection(s, setting_id):
+        retval = None
+        for x in s.connections:
+            settings, connection = s.get_connection_settings(x)
+
+            try:
+                wifi = settings['802-11-wireless']
+                if settings['connection']['id'] == setting_id:
+                    retval = connection
+                    break
+
+            except KeyError:
+                pass
+
+        if retval is None:
+            raise NoSuchConnectionError(setting_id)
+
+        return retval
+
+# Connections
+#
+class Connections():
+    '''
+    '''
+    # __init__
+    #
+    def __init__(s, args):
+        s.args = args
+        s.args.ssid = s.args.ssid[0]
+        s.args.key  = s.args.key[0]
+
+    # main
+    #
+    def main(s):
+        retval = 1
+        try:
+            nm = NetworkManager()
+
+            #------------------------------------------------------------------------------------------
+            # Activate a defined connection
+            #
+            try:
+                nm.activate_wifi_connection(s.args.ssid)
+
+            except  NoSuchConnectionError as e:
+                #------------------------------------------------------------------------------------------
+                # Create/add a new wifi connection
+                #
+                warthogs = {
+                    'connection' : {
+                        'type' : '802-11-wireless',
+                        'id'   : s.args.ssid,
+                    },
+                    '802-11-wireless' : {
+                        'ssid' : s.args.ssid,
+                        'security' : '802-11-wireless-security',
+                    },
+                    '802-11-wireless-security' : {
+                        'key-mgmt' : 'wpa-psk',
+                        'psk' : s.args.key,
+                    },
+                    'ipv4' : {
+                        'method' : 'auto',
+                    },
+                    'ipv6' : {
+                        'method' : 'ignore',
+                    },
+                }
+
+                print warthogs
+                nm.create_wifi_connection(warthogs)
+                nm.activate_wifi_connection(s.args.ssid)
+
+            #------------------------------------------------------------------------------------------
+            # Delete an existing wifi connection
+            #
+            #nm.delete_wifi_connection_setting('trash')
+
+            retval = 0
+
+        # Handle the user presses <ctrl-C>.
+        #
+        except KeyboardInterrupt:
+            print("Aborting ...")
+
+        except  NoSuchConnectionError as e:
+            print(e)
+
+        return retval
+
+if __name__ == '__main__':
+    if getenv('DEBUG'):
+        LOGLEVEL = DEBUG
+    else:
+        LOGLEVEL = INFO
+    LOGLEVEL = DEBUG
+    basicConfig(level=LOGLEVEL, format="%(levelname)s - %(message)s")
+
+    app_description = '''
+    '''
+    app_epilog = '''
+    '''
+    parser = ArgumentParser(description=app_description, epilog=app_epilog, formatter_class=RawDescriptionHelpFormatter)
+    parser.add_argument('ssid',        metavar='ssid', type=str, nargs=1,                      help='The ssid of the AP.')
+    parser.add_argument('key',         metavar='key',  type=str, nargs=1,                      help='The WPA2-PSK key.')
+    args = parser.parse_args()
+
+    app = Connections(args)
+    exit(app.main())
+
+# vi:set ts=4 sw=4 expandtab syntax=python:
