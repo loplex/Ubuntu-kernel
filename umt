@@ -10,6 +10,8 @@ from tempfile                           import mkdtemp
 from time                               import sleep
 import re
 from datetime                           import date
+import pexpect
+
 
 import json
 
@@ -84,7 +86,7 @@ def phablet_flash_progress(out, queue, quiet=False):
         queue.put(line)
 
         line = line.rstrip()
-        if '%s: OK' % previous_fid == line:
+        if 'Validatind download for %s' % previous_fid == line:
             stdout.write('\rDownloading: ' + previous_fid + ' .. completed and verified.              \n')
             stdout.flush()
             downloading_md5sum = False
@@ -255,7 +257,7 @@ class TheApp():
             LOGLEVEL = DEBUG
         else:
             LOGLEVEL = INFO
-        LOGLEVEL = DEBUG
+        #LOGLEVEL = DEBUG
         basicConfig(level=LOGLEVEL, format="%(levelname)s - %(message)s")
 
     # __load_file
@@ -295,7 +297,7 @@ class TheApp():
     # device_reflash
     #
     def device_reflash(s):
-        sh('phablet-flash -l', output_enqueue_fn=phablet_flash_progress, quiet=True)
+        sh('phablet-flash', output_enqueue_fn=phablet_flash_progress, quiet=True)
 
     # device_configure_for_ssh
     #
@@ -316,6 +318,127 @@ class TheApp():
             warning('Unable to find a public ssh key (%s) to use for the authorized_keys file on the SUT' % p)
         return key
 
+    # wait_for_reboot
+    #
+    def wait_for_reboot(s):
+        up = False
+        tries = 0
+        while not up:
+            try:
+                sh('adb root', quiet=True)
+            except ShellError:
+                # This is probably going to bit me in the ass...
+                sleep(10)
+                continue
+
+            try:
+                ch = pexpect.spawn('adb shell', timeout=600)
+                ch.expect('root@android:/ # ')
+                up = True
+            except pexpect.EOF:
+                # If at first you don't succeed, try, try again
+                #
+                tries += 1
+                if tries >= 100:
+                    raise ErrorExit('Please try again, the device couldn\'t be found.')
+                    break
+                sleep(10)
+
+    # wait_for_ip
+    #
+    def wait_for_ip(s):
+        ip = None
+        ip_found = False
+        tries = 0
+
+        chx = pexpect.spawn('adb shell', timeout=600)
+        chx.expect('root@android:/ # ')
+
+        chx.sendline('ubuntu_chroot shell')
+        chx.expect('root@localhost:/# ')
+
+        cmd = 'ip addr show wlan0'
+        while not ip_found:
+            debug(cmd)
+            stdout.write('.'), stdout.flush()
+            chx.sendline(cmd)
+            chx.expect('root@localhost:/# ')
+
+            output = chx.before
+            ip_found = False
+            for l in output.split('\n'):
+                if 'inet ' in l:
+                    x = l.split()
+                    ip = x[1][:x[1].rfind('/')]
+                    ip_found = True
+                    debug('ip address: %s' % ip)
+                    break
+            if not ip_found:
+                tries += 1
+                if tries >= 5:
+                    break
+                sleep(10)
+
+        return ip_found, ip
+
+
+    # chroot_shell_ex
+    #
+    def chroot_shell(s, cmd):
+        completed = False
+        tries = 0
+        debug(cmd)
+        stdout.write('.'), stdout.flush()
+        chx = pexpect.spawn('adb shell', timeout=600)
+        chx.expect('root@android:/ # ')
+
+        chx.sendline('ubuntu_chroot shell')
+        chx.expect('root@localhost:/# ')
+
+        chx.sendline(cmd)
+        while not completed:
+            try:
+                chx.expect('root@localhost:/# ')
+                completed = True
+            except pexpect.EOF:
+                tries += 1
+                debug('retry:')
+                debug(chx.before)
+                if tries >= 50:
+                    completed = True
+                    error('%s : failed to find the expected prompt' % cmd)
+                    error(chx.before)
+                sleep(10)
+                chx = pexpect.spawn('adb shell', timeout=600)
+                chx.expect('root@android:/ # ')
+
+                chx.sendline('ubuntu_chroot shell')
+                chx.expect('root@localhost:/# ')
+
+                chx.sendline('echo boo')
+
+    # chroot_shell
+    #
+    def x_chroot_shell(s, cmd):
+        completed = False
+        tries = 0
+        debug(cmd)
+        stdout.write('.'), stdout.flush()
+        s.ch.sendline(cmd)
+        while not completed:
+            try:
+                s.ch.expect('root@localhost:/# ')
+                completed = True
+            except pexpect.EOF:
+                tries += 1
+                debug('retry:')
+                debug(s.ch.before)
+                if tries >= 50:
+                    completed = True
+                    error('%s : failed to find the expected prompt' % cmd)
+                    error(s.ch.before)
+                sleep(10)
+
     # configure
     #
     def configure(s, umt):
@@ -323,8 +446,6 @@ class TheApp():
             raise ErrorExit('No devices were found attached to this system.')
 
         sh('adb root', quiet=True)
-
-        import pexpect
 
         stdout.write('.'), stdout.flush()
 
@@ -349,84 +470,52 @@ class TheApp():
                     emsg.append(l)
                 raise ErrorExit(emsg)
 
-        try:
-            ch = pexpect.spawn('adb shell', timeout=300)
-            ch.expect('root@android:/ # ')
-        except pexpect.EOF:
-            # If at first you don't succeed, try, try again
-            #
-            try:
-                sleep(2)
-                ch = pexpect.spawn('adb shell', timeout=300)
-                ch.expect('root@android:/ # ')
-            except pexpect.EOF:
-                raise ErrorExit('Please try again, the device couldn\'t be found.')
+        #try:
+        #    ch = pexpect.spawn('adb shell', timeout=600)
+        #    ch.expect('root@android:/ # ')
+        #except pexpect.EOF:
+        #    # If at first you don't succeed, try, try again
+        #    #
+        #    try:
+        #        sleep(2)
+        #        ch = pexpect.spawn('adb shell', timeout=600)
+        #        ch.expect('root@android:/ # ')
+        #    except pexpect.EOF:
+        #        raise ErrorExit('Please try again, the device couldn\'t be found.')
+        #s.ch = ch
 
-        stdout.write('.'), stdout.flush()
-        ch.sendline('ubuntu_chroot shell')
-        ch.expect('root@localhost:/# ')
+        s.chroot_shell('ubuntu_chroot shell')
 
-        stdout.write('.'), stdout.flush()
-        ch.sendline('echo phablet ALL=\(ALL:ALL\) NOPASSWD: ALL >> /etc/sudoers')
-        ch.expect('root@localhost:/# ')
-
-        stdout.write('.'), stdout.flush()
-        ch.sendline('cat /etc/sudoers')
-        ch.expect('root@localhost:/# ')
-
-        stdout.write('.'), stdout.flush()
-        ch.sendline('apt-get update')
-        ch.expect('root@localhost:/# ')
-
-        stdout.write('.'), stdout.flush()
-        ch.sendline('apt-get install -y openssh-server rsync')
-        ch.expect('root@localhost:/# ')
-
-        if s.config.ssh_key:
-            ch.sendline('mkdir ~phablet/.ssh')
-            ch.expect('root@localhost:/# ')
-
-            ch.sendline('chown phablet.phablet ~phablet/.ssh')
-            ch.expect('root@localhost:/# ')
-
-            ch.sendline('chmod 0700 ~phablet/.ssh')
-            ch.expect('root@localhost:/# ')
-
-            ch.sendline('echo %s > ~phablet/.ssh/authorized_keys' % s.config.ssh_key)
-            ch.expect('root@localhost:/# ')
-
-            ch.sendline('chown phablet.phablet ~phablet/.ssh/authorized_keys')
-            ch.expect('root@localhost:/# ')
-
+        debug('configuring wifi')
         # Not sure this is the right place to do this but ...
         #
         if s.config.wifi:
             ssid = s.config.wifi['ssid']
             key  = s.config.wifi['wpa2psk']
 
-            ch.sendline('sudo ./tmp/wifi-config %s %s' % (ssid, key))
-            ch.expect('root@localhost:/# ')
+            s.chroot_shell('sudo ./tmp/wifi-config %s %s' % (ssid, key))
 
-            # Throwing a sleep in here is a hack but it's easier than
-            # polling for an ip address and timing out after some length
-            # of time.
-            #
-            sleep(10)
+        ip_found, ip = s.wait_for_ip()
+
+        s.chroot_shell('echo phablet ALL=\(ALL:ALL\) NOPASSWD: ALL >> /etc/sudoers')
+        s.chroot_shell('apt-get update')
+        s.chroot_shell('apt-get install -y openssh-server rsync')
+
+        debug('setup .ssh stuff')
+        if s.config.ssh_key:
+            s.chroot_shell('mkdir ~phablet/.ssh')
+            s.chroot_shell('chown phablet.phablet ~phablet/.ssh')
+            s.chroot_shell('chmod 0700 ~phablet/.ssh')
+            s.chroot_shell('echo %s > ~phablet/.ssh/authorized_keys' % s.config.ssh_key)
+            s.chroot_shell('chown phablet.phablet ~phablet/.ssh/authorized_keys')
 
         stdout.write('. complete\n'), stdout.flush()
-        ch.sendline('ip addr show wlan0')
-        ch.expect('root@localhost:/# ')
-        output = ch.before
-        ip_found = False
+
         print('')
         print('Next step(s):')
-        for l in output.split('\n'):
-            if 'inet ' in l:
-                x = l.split()
-                ip = x[1][:x[1].rfind('/')]
-                ip_found = True
-                print('    %s test phablet@%s' % (argv[0], ip))
-        if not ip_found:
+        if ip_found:
+            print('    %s test phablet@%s' % (argv[0], ip))
+        else:
             print('    ** Manually configure your wireless networking on the device. **')
             print('    %s configure' % argv[0])
         print('')
@@ -478,6 +567,17 @@ class TheApp():
         print('    Manually configure your wireless networking on the device.')
         print('    %s configure' % argv[0])
         print('')
+
+    # full
+    #
+    def full(s, umt):
+        if not s.device_attached():
+            raise ErrorExit('No devices were found attached to this system.')
+
+        s.device_reflash()
+        s.wait_for_reboot()
+        s.configure(umt)
+        #s.test(umt)
 
     # test
     #
@@ -551,6 +651,10 @@ class TheApp():
 
             subparsers = parent_parser.add_subparsers(title="actions", help="sub-commands help")
 
+            p = subparsers.add_parser("full", help="Install a new instance of the image, configure and then run the tests.")
+            p.set_defaults(func=s.full)
+            p.add_argument('-c', '--config', required=False,   type=str,                               help='The configuration file that is to be used.')
+
             p = subparsers.add_parser("provision", help="Install a new instance of the image onto the SUT and prepare it for testing.")
             p.set_defaults(func=s.provision)
             p.add_argument('-c', '--config', required=False,   type=str,                               help='The configuration file that is to be used.')
@@ -584,6 +688,18 @@ class TheApp():
         #
         except KeyboardInterrupt:
             print("Aborting ...")
+
+        # In case this wasn't handled earlier
+        #
+        except ShellError as e:
+            emsg = []
+            emsg.append('Command failed.')
+            emsg.append('')
+            emsg.append('    cmd: %s' % e.cmd)
+            emsg.append('')
+            for l in e.output:
+                emsg.append(l)
+            raise ErrorExit(emsg)
 
         except ErrorExit as e:
             msg = e.message
