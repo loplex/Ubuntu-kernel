@@ -14,6 +14,13 @@
 #
 TestProfiles = {
 
+    'ubuntu_WiFi_SimpleConnection': {
+        'packages' : {
+            'common' : [
+                ],
+            },
+        },
+
     'chrome_network_WiFiCaps' : {
         'packages' : {
             'common' : [
