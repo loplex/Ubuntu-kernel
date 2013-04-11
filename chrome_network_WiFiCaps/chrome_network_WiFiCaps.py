@@ -49,12 +49,16 @@ class chrome_network_WiFiCaps(test.test):
             '11b'    : 'true',
             '11g'    : 'true',
 
-            '5ghz'   : 'true',        # 5GHz band
-            '11a'    : 'true',
+            #'5ghz'   : 'true',        # 5GHz band
+            '5ghz'   : 'false',       # Ubuntu, the Nexus 7 doesn't have 5ghz
+            #'11a'    : 'true',
+            '11a'    : 'false',       # Ubuntu, the Nexus 7 doesn't have 11a
 
             '11n'    : 'true',        # 802.11n (both bands)
-            'ht40'   : 'true',        # HT40
-            'sgi40'  : 'true',        # Short GI in HT40
+            #'ht40'   : 'true',        # HT40
+            'ht40'   : 'false',       # Ubuntu, the Nexus 7 doesn't support ht40
+            #'sgi40'  : 'true',        # Short GI in HT40
+            'sgi40'  : 'false',       # Ubuntu, the Nexus 7 doesn't support sgi40
         }
 
         dep = 'iwcap'
