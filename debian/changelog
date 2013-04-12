@@ -1,6 +1,29 @@
 ubuntu-autotest (0.0.13-1) unstable; urgency=low
 
  * UBUNTU: SAUCE: [ubuntu_ecryptfs] Added lp-872905.sh to the blacklist
+ * Rebase to upstream
+ * Updating virt tests to the release 2013.03.27
+ * selftest: Supress E0602 error made on purpose
+ * autotest-client-tests.bonnie:update the bonnie binary
+ * virt: Updating to latest master
+ * client tests: Remove crontab module
+ * crontab: Fix a wrong python location
+ * Adding option to override the default config file with a local/remote config file for FFSB test.
+ * client.test.aiostress: Check available before creating test.srcdir folder
+ * Updating virt-test version
+ * Autotest module for testing crontab
+ * lsb_dtk: removal of test
+ * dacapo test: provide a more recent example of JRE using openjdk
+ * dacapo test: use software_manager instead of package
+ * replace netperf tar package
+ * Update netperf to 2.6.0
+ * client: Move disktest to test dependencies.
+ * lvsetup: Move the internal methods to utility library
+ * cgroup: Moving cgroup helper code to autotest core libs
+ * Update of libhugetlbfs to latest version and build fix
+ * Updating to the latest virt-tests master
+ * tests.cgroup: Add cpu subtest
+ * tests.cgroup: bugfixes and formatting cleanup
 
  -- Brad Figg <brad.figg@canonical.com>  Thu, 04 Apr 2013 09:38:15 -0700
 
