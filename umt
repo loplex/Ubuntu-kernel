@@ -112,17 +112,11 @@ def phablet_flash_progress(out, queue, quiet=False):
                 downloading_md5sum = True
 
         if line.startswith('Pushing '):
-            stdout.write(line + '\n')
+            stdout.write('\rUpdating device ...')
             stdout.flush()
 
-        if 'Once completed the device should reboot into Ubuntu' in line:
-            stdout.write('\n')
-            stdout.write('The device should be reflashing. Once completed the device\n')
-            stdout.write('should reboot into Ubuntu.\n')
-            stdout.flush()
-
-    stdout.write('\n')
-    stdout.flush()
+    #stdout.write(' complete\n')
+    #stdout.flush()
     out.close()
 
 # ErrorExit
@@ -419,10 +413,7 @@ class TheApp():
 
     # configure
     #
-    def configure(s, umt):
-        if not s.device_attached():
-            raise ErrorExit('No devices were found attached to this system.')
-
+    def __configure(s, umt):
         sh('adb root', quiet=True)
 
         stdout.write('.'), stdout.flush()
@@ -461,7 +452,8 @@ class TheApp():
 
         s.chroot_shell('echo phablet ALL=\(ALL:ALL\) NOPASSWD: ALL >> /etc/sudoers')
         s.chroot_shell('apt-get update')
-        s.chroot_shell('apt-get install -y openssh-server rsync')
+        s.chroot_shell('apt-get install -y rsync')
+        s.chroot_shell('apt-get install -y openssh-server')
 
         debug('setup .ssh stuff')
         if s.config.ssh_key:
@@ -472,6 +464,13 @@ class TheApp():
             s.chroot_shell('chown phablet.phablet ~phablet/.ssh/authorized_keys')
 
         stdout.write('. complete\n'), stdout.flush()
+        return ip_found, ip
+
+    def configure(s, umt):
+        if not s.device_attached():
+            raise ErrorExit('No devices were found attached to this system.')
+
+        ip_found, ip = s.__configure(umt)
 
         print('')
         print('Next step(s):')
@@ -500,7 +499,7 @@ class TheApp():
             makedirs(raw_results)
         raw_results = mkdtemp(dir=raw_results)
         sh('mkdir -p %s' % raw_results, quiet=True)
-        sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -ar %s:kernel-test-results/ %s/' % (target, raw_results))
+        sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -ar %s:kernel-test-results/ %s/' % (target, raw_results), quiet=True)
 
         # Each test set produces it's own set of results. We want to put them
         # together into one set of results.
@@ -526,6 +525,12 @@ class TheApp():
             raise ErrorExit('No devices were found attached to this system.')
 
         s.device_reflash()
+
+        stdout.write('\n')
+        stdout.write('The device should be reflashing. Once completed the device\n')
+        stdout.write('should reboot into Ubuntu.\n')
+        stdout.flush()
+
         print('')
         print('Next step(s):')
         print('    Manually configure your wireless networking on the device.')
@@ -535,82 +540,73 @@ class TheApp():
     # full
     #
     def full(s, umt):
+        setattr(s.config, 'no_at', False)
+        setattr(s.config, 'no_kt', False)
+        setattr(s.config, 'no_test', False)
+        setattr(s.config, 'tests', 'default')
+        setattr(s.config, 'loud', False)
+
         if not s.device_attached():
             raise ErrorExit('No devices were found attached to this system.')
 
         s.device_reflash()
+        stdout.write('\r                                      \rReflashing and Rebooting')
         s.wait_for_reboot()
-        stdout.write('Configuring ')
-        target = s.configure(umt)
-        s.config.target = [target]
-        s.test(umt)
+        stdout.write('\r                                      \rConfiguring ')
+
+        ip_found, ip = s.__configure(umt)
+        s.config.target = ['phablet@%s' % ip]
+        stdout.write('Testing:            \n')
+        s.__test(umt)
+
+        stdout.write('Retrieving results')
+        s.results(umt)
+
 
     # test
     #
-    def test(s, umt):
+    def __test(s, umt):
         target = s.config.target[0]
+        if not s.config.no_at:
+            if not path.exists(s.config.testing_root):
+                raise ErrorExit('%s: Path specified in umt.cfg does not exist.' % s.config.testing_root)
 
+            p = path.join(s.config.testing_root, 'autotest')
+            if not path.exists(p):
+                raise ErrorExit('%s: Path does not exist.' % p)
+
+            p = path.join(s.config.testing_root, 'autotest-client-tests')
+            if not path.exists(p):
+                raise ErrorExit('%s: Path does not exist.' % p)
+
+            p = path.join(s.config.testing_root, 'kernel-testing')
+            if not path.exists(p):
+                raise ErrorExit('%s: Path does not exist.' % p)
+
+            ssh(target, 'sudo rm -rf autotest', quiet=True)
+
+            print('    Copying autotest core to SUT')
+            cmd = 'rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/autotest/ %s:autotest/' % (s.config.testing_root, target)
+            sh(cmd, quiet=True)
+
+            print('    Copying autotest-client-tests to SUT')
+            sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/autotest-client-tests/* %s:autotest/client/tests/' % (s.config.testing_root, target), quiet=True)
+
+        if not s.config.no_kt:
+            ssh(target, 'sudo rm -rf kernel-testing', quiet=True)
+
+            print('    Copying kernel testing core to SUT')
+            sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/kernel-testing/ %s:kernel-testing/' % (s.config.testing_root, target), quiet=True)
+
+        if not s.config.no_test:
+            ssh(target, 'sudo rm -rf kernel-test-results', quiet=True)
+            ssh(target, 'python kernel-testing/runner %s 2>&1 | tee kernel-test-results/log' % s.config.tests, quiet=not s.config.loud, output_enqueue_fn=test_runner_progress)
+            print('    Tests completed')
+
+    def test(s, umt):
         try:
-            no_at = s.config.no_at
-        except AttributeError:
-            no_at = False
-
-        try:
-            no_kt = s.config.no_kt
-        except AttributeError:
-            no_kt = False
-
-        try:
-            no_test = s.config.no_tests
-        except AttributeError:
-            no_test = False
-
-        try:
-            tests = s.config.tests
-        except AttributeError:
-            tests = 'default'
-
-        try:
-            loud = s.config.loud
-        except AttributeError:
-            loud = False
-
-        try:
-            if not no_at:
-                if not path.exists(s.config.testing_root):
-                    raise ErrorExit('%s: Path specified in umt.cfg does not exist.' % s.config.testing_root)
-
-                p = path.join(s.config.testing_root, 'autotest')
-                if not path.exists(p):
-                    raise ErrorExit('%s: Path does not exist.' % p)
-
-                p = path.join(s.config.testing_root, 'autotest-client-tests')
-                if not path.exists(p):
-                    raise ErrorExit('%s: Path does not exist.' % p)
-
-                p = path.join(s.config.testing_root, 'kernel-testing')
-                if not path.exists(p):
-                    raise ErrorExit('%s: Path does not exist.' % p)
-
-                ssh(target, 'sudo rm -rf autotest', quiet=True)
-
-                print('    Copying autotest core to SUT')
-                cmd = 'rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/autotest/ %s:autotest/' % (s.config.testing_root, target)
-                sh(cmd, quiet=True)
-
-                print('    Copying autotest-client-tests to SUT')
-                sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/autotest-client-tests/* %s:autotest/client/tests/' % (s.config.testing_root, target), quiet=True)
-
-            if not no_kt:
-                ssh(target, 'sudo rm -rf kernel-testing', quiet=True)
-
-                print('    Copying kernel testing core to SUT')
-                sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/kernel-testing/ %s:kernel-testing/' % (s.config.testing_root, target), quiet=True)
-
-            if not no_test:
-                ssh(target, 'sudo rm -rf kernel-test-results', quiet=True)
-                ssh(target, 'python kernel-testing/runner %s 2>&1 | tee kernel-test-results/log' % tests, quiet=not loud, output_enqueue_fn=test_runner_progress)
-                print('    Tests completed')
+            target = s.config.target[0]
+            s.__test(umt)
 
             print('')
             print('Next step:')
@@ -672,6 +668,7 @@ class TheApp():
             args = parent_parser.parse_args()
 
             s.config = UMTConfiguration(args)
+
             umt = UbuntuMobileTester(s.config)
             retval = args.func(umt)
 
