@@ -189,6 +189,7 @@ TestCollections = {
         'ubuntu_qrt_kernel_security',
         'chrome_security_HardlinkRestrictions',
         'chrome_security_SymlinkRestrictions',
+        'ubuntu_WiFi_SimpleConnection',
         ],
 
     ## The set of tests that Ubuntu Engineering QA run.
