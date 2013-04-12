@@ -1,55 +1,5 @@
-linux-meta-nexus7 (3.1.10.10.17) raring; urgency=low
+linux-meta-nexus4 (3.4.0.0.1) UNRELEASED; urgency=low
 
-  * ABI: 3.1.10-10
+  * Initial revision 
 
- -- Tim Gardner <tim.gardner@canonical.com>  Tue, 26 Mar 2013 11:04:23 -0600
-
-linux-meta-nexus7 (3.1.10.9.16) raring; urgency=low
-
-  * ABI: 3.1.10-9
-
- -- Andy Whitcroft <apw@canonical.com>  Tue, 29 Jan 2013 11:28:09 +0000
-
-linux-meta-nexus7 (3.1.10.8.15) raring; urgency=low
-
-  * Change sections to devel/kernel to match the archive (LP: #1074787)
-  * Make linux-nexus7 depend on linux-headers-nexus7, like with master.
-
- -- Adam Conrad <adconrad@ubuntu.com>  Thu, 20 Dec 2012 21:18:53 -0700
-
-linux-meta-nexus7 (3.1.10.8.14) raring; urgency=low
-
-  * Added a Vcs-Git URL 
-    Vcs-Git: git://kernel.ubuntu.com/ubuntu/ubuntu-raring-meta.git nexus7
-
- -- Tim Gardner <tim.gardner@canonical.com>  Wed, 05 Dec 2012 07:42:12 -0700
-
-linux-meta-nexus7 (3.1.10.8.13) raring; urgency=low
-
-  * Make linux-image-nexus7 recommend linux-firmware-nexus7.
-
- -- Adam Conrad <adconrad@ubuntu.com>  Wed, 05 Dec 2012 05:23:44 -0700
-
-linux-meta-nexus7 (3.1.10.8.12) raring; urgency=low
-
-  * Ubuntu-3.1.10-8.14
-
- -- Tim Gardner <tim.gardner@canonical.com>  Thu, 15 Nov 2012 10:15:10 -0700
-
-linux-meta-nexus7 (3.1.10.7.11) quantal; urgency=low
-
-  * Ubuntu-3.1.10-7.11
-
- -- Jani Monoses <jani.monoses@canonical.com>  Wed, 07 Nov 2012 00:10:36 +0200
-
-linux-meta-nexus7 (3.1.10.7.10) quantal; urgency=low
-
-  * Ubuntu-3.1.10-7.10
-
- -- Jani Monoses <jani.monoses@canonical.com>  Thu, 01 Nov 2012 10:08:22 +0200
-
-linux-meta-nexus7 (3.1.10.6.8) quantal; urgency=low
-
-  * Ubuntu-3.1.10-6.8
-
- -- Jani Monoses <jani.monoses@canonical.com>  Mon, 29 Oct 2012 17:17:06 +0200
+ -- Tim Gardner <tim.gardner@canonical.com>  Fri, 12 Apr 2013 07:35:38 -0600
