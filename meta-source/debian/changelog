@@ -1,5 +1,5 @@
-linux-meta-nexus4 (3.4.0.0.1) UNRELEASED; urgency=low
+linux-meta-nexus4 (3.4.0.0.1) raring; urgency=low
 
-  * Initial revision 
+  * ABI Ubuntu-3.4.0-0
 
  -- Tim Gardner <tim.gardner@canonical.com>  Fri, 12 Apr 2013 07:35:38 -0600
