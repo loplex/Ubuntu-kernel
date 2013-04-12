@@ -1,3 +1,18 @@
+autotest (0.15.0-rc0-54-g1568d-Ubuntu-01) UNRELEASED; urgency=low
+
+  * Sync from upstream master.
+  * Start using upstream version numbers
+  * UBUNTU: SAUCE: network_manager.py a class for talking to the NetworkManager via dbus
+  * UBUNTU: SAUCE: Wireless testing infrastructure
+  * UBUNTU: SAUCE: [iwcap] dep added. Used by poached chrome os test network_WiFiCaps
+  * UBUNTU: SAUCE: [results2junit.py] Clean the text so the parser can deal with it.
+  * UBUNTU: SAUCE: glue_testsuites: a tool for stitching together autotest-results files.
+  * UBUNTU: SAUCE: Added process_metrics.py script to turn benchmark results into json data
+  * UBUNTU: SAUCE: Notes about work ongoing on Ubuntu
+  * UBUNTU: SAUCE: Add junit2xml.py script
+
+ -- Steve Conklin <sconklincanonical.com>  Fri, 12 Apr 2013 14:37:21 -0500
+
 autotest (0.15.0-rc0-54-g1568d) raring; urgency=low
 
   * Initial release.
