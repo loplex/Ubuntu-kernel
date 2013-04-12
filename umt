@@ -417,28 +417,6 @@ class TheApp():
 
                 chx.sendline('echo boo')
 
-    # chroot_shell
-    #
-    def x_chroot_shell(s, cmd):
-        completed = False
-        tries = 0
-        debug(cmd)
-        stdout.write('.'), stdout.flush()
-        s.ch.sendline(cmd)
-        while not completed:
-            try:
-                s.ch.expect('root@localhost:/# ')
-                completed = True
-            except pexpect.EOF:
-                tries += 1
-                debug('retry:')
-                debug(s.ch.before)
-                if tries >= 50:
-                    completed = True
-                    error('%s : failed to find the expected prompt' % cmd)
-                    error(s.ch.before)
-                sleep(10)
-
     # configure
     #
     def configure(s, umt):
@@ -469,22 +447,6 @@ class TheApp():
                 for l in e.output:
                     emsg.append(l)
                 raise ErrorExit(emsg)
-
-        #try:
-        #    ch = pexpect.spawn('adb shell', timeout=600)
-        #    ch.expect('root@android:/ # ')
-        #except pexpect.EOF:
-        #    # If at first you don't succeed, try, try again
-        #    #
-        #    try:
-        #        sleep(2)
-        #        ch = pexpect.spawn('adb shell', timeout=600)
-        #        ch.expect('root@android:/ # ')
-        #    except pexpect.EOF:
-        #        raise ErrorExit('Please try again, the device couldn\'t be found.')
-        #s.ch = ch
-
-        s.chroot_shell('ubuntu_chroot shell')
 
         debug('configuring wifi')
         # Not sure this is the right place to do this but ...
@@ -521,6 +483,8 @@ class TheApp():
         print('')
 
         ch = None
+
+        return 'phablet@%s' % ip
 
     # results
     #
@@ -576,8 +540,10 @@ class TheApp():
 
         s.device_reflash()
         s.wait_for_reboot()
-        s.configure(umt)
-        #s.test(umt)
+        stdout.write('Configuring ')
+        target = s.configure(umt)
+        s.config.target = [target]
+        s.test(umt)
 
     # test
     #
@@ -585,7 +551,32 @@ class TheApp():
         target = s.config.target[0]
 
         try:
-            if not s.config.no_at:
+            no_at = s.config.no_at
+        except AttributeError:
+            no_at = False
+
+        try:
+            no_kt = s.config.no_kt
+        except AttributeError:
+            no_kt = False
+
+        try:
+            no_test = s.config.no_tests
+        except AttributeError:
+            no_test = False
+
+        try:
+            tests = s.config.tests
+        except AttributeError:
+            tests = 'default'
+
+        try:
+            loud = s.config.loud
+        except AttributeError:
+            loud = False
+
+        try:
+            if not no_at:
                 if not path.exists(s.config.testing_root):
                     raise ErrorExit('%s: Path specified in umt.cfg does not exist.' % s.config.testing_root)
 
@@ -610,15 +601,15 @@ class TheApp():
                 print('    Copying autotest-client-tests to SUT')
                 sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/autotest-client-tests/* %s:autotest/client/tests/' % (s.config.testing_root, target), quiet=True)
 
-            if not s.config.no_kt:
+            if not no_kt:
                 ssh(target, 'sudo rm -rf kernel-testing', quiet=True)
 
                 print('    Copying kernel testing core to SUT')
                 sh('rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -arv --exclude=.git %s/kernel-testing/ %s:kernel-testing/' % (s.config.testing_root, target), quiet=True)
 
-            if not s.config.no_test:
+            if not no_test:
                 ssh(target, 'sudo rm -rf kernel-test-results', quiet=True)
-                ssh(target, 'python kernel-testing/runner %s 2>&1 | tee kernel-test-results/log' % s.config.tests, quiet=not s.config.loud, output_enqueue_fn=test_runner_progress)
+                ssh(target, 'python kernel-testing/runner %s 2>&1 | tee kernel-test-results/log' % tests, quiet=not loud, output_enqueue_fn=test_runner_progress)
                 print('    Tests completed')
 
             print('')
