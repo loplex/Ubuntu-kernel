@@ -338,6 +338,21 @@ class TheApp():
                     break
                 sleep(10)
 
+    # ip
+    #
+    def ip(s, umt):
+        chx = pexpect.spawn('adb shell', timeout=600)
+        chx.expect('root@android:/ # ')
+
+        chx.sendline('ubuntu_chroot shell')
+        chx.expect('root@localhost:/# ')
+
+        cmd = 'ip addr show wlan0'
+        chx.sendline(cmd)
+        chx.expect('root@localhost:/# ')
+        output = chx.before
+        print output
+
     # wait_for_ip
     #
     def wait_for_ip(s):
@@ -376,7 +391,43 @@ class TheApp():
         return ip_found, ip
 
 
-    # chroot_shell_ex
+    # install_package
+    #
+    def install_package(s, cmd):
+        completed = False
+        tries = 0
+        debug(cmd)
+        stdout.write('.'), stdout.flush()
+        chx = pexpect.spawn('adb shell', timeout=600)
+        chx.expect('root@android:/ # ')
+
+        chx.sendline('ubuntu_chroot shell')
+        chx.expect('root@localhost:/# ')
+
+        chx.sendline(cmd)
+        while not completed:
+            try:
+                chx.expect('root@localhost:/# ')
+                #print(chx.before)
+                completed = True
+            except pexpect.EOF:
+                tries += 1
+                debug('retry:')
+                debug(chx.before)
+                if tries >= 50:
+                    completed = True
+                    error('%s : failed to find the expected prompt' % cmd)
+                    error(chx.before)
+                sleep(10)
+                chx = pexpect.spawn('adb shell', timeout=600)
+                chx.expect('root@android:/ # ')
+
+                chx.sendline('ubuntu_chroot shell')
+                chx.expect('root@localhost:/# ')
+
+                chx.sendline('echo boo')
+
+    # chroot_shell
     #
     def chroot_shell(s, cmd):
         completed = False
@@ -452,8 +503,8 @@ class TheApp():
 
         s.chroot_shell('echo phablet ALL=\(ALL:ALL\) NOPASSWD: ALL >> /etc/sudoers')
         s.chroot_shell('apt-get update')
-        s.chroot_shell('apt-get install -y rsync')
-        s.chroot_shell('apt-get install -y openssh-server')
+        s.install_package('apt-get install -y rsync')
+        s.install_package('apt-get install -y openssh-server')
 
         debug('setup .ssh stuff')
         if s.config.ssh_key:
@@ -637,6 +688,10 @@ class TheApp():
             parent_parser = ArgumentParser(prog='kb')
 
             subparsers = parent_parser.add_subparsers(title="actions", help="sub-commands help")
+
+            p = subparsers.add_parser("ip", help="Print out the devices IP address.")
+            p.set_defaults(func=s.ip)
+            p.add_argument('-c', '--config', required=False,   type=str,                               help='The configuration file that is to be used.')
 
             p = subparsers.add_parser("full", help="Install a new instance of the image, configure and then run the tests.")
             p.set_defaults(func=s.full)
