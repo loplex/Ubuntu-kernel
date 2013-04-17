@@ -254,6 +254,10 @@ class TheApp():
         #LOGLEVEL = DEBUG
         basicConfig(level=LOGLEVEL, format="%(levelname)s - %(message)s")
 
+        #LOGFILE  = 'umt.log'
+        #basicConfig(filename=LOGFILE, level=LOGLEVEL, format="%(asctime)s %(levelname)s - %(message)s")
+
+
     # __load_file
     #
     def __load_file(s, fp):
@@ -651,6 +655,7 @@ class TheApp():
 
         if not s.config.no_test:
             ssh(target, 'sudo rm -rf kernel-test-results', quiet=True)
+            ssh(target, 'mkdir kernel-test-results', quiet=True)
             ssh(target, 'python kernel-testing/runner %s 2>&1 | tee kernel-test-results/log' % s.config.tests, quiet=not s.config.loud, output_enqueue_fn=test_runner_progress)
             print('    Tests completed')
 
