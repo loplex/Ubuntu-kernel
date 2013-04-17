@@ -735,14 +735,12 @@ class TheApp():
         # In case this wasn't handled earlier
         #
         except ShellError as e:
-            emsg = []
-            emsg.append('Command failed.')
-            emsg.append('')
-            emsg.append('    cmd: %s' % e.cmd)
-            emsg.append('')
+            error('Command failed.')
+            error('')
+            error('    cmd: %s' % e.cmd)
+            error('')
             for l in e.output:
-                emsg.append(l)
-            raise ErrorExit(emsg)
+                error(l)
 
         except ErrorExit as e:
             msg = e.message
