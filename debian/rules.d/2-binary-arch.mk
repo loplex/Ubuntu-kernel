@@ -121,7 +121,8 @@ ifneq ($(CWDIRS),)
 		cwpkgdir=$(CURDIR)/debian/linux-backports-modules-$${cw}-$(release)-$(abinum)-$(target_flavour); \
 		cwblddir=$(builddir)/build-$(target_flavour)/$${cw}; \
 		cwmoddir=$${cwpkgdir}/lib/modules/$(release)-$(abinum)-$(target_flavour)/updates; \
-		firmdir=$${cwpkgdir}/lib/firmware/updates/$(release)-$(abinum)-$(target_flavour); \
+		dstfirmdir=$${cwpkgdir}/lib/firmware/updates/$(release)-$(abinum)-$(target_flavour); \
+		srcfirmdir=$(CURDIR)/updates/$${cw}-firmware; \
 \
 		dh_clean -k -plinux-backports-modules-$${cw}-$(release)-$(abinum)-$(target_flavour); \
 \
@@ -144,8 +145,9 @@ ifneq ($(CWDIRS),)
 		install -d $${cwpkgdir}/lib/udev/rules.d; \
 		install --mode=0644 $${cwblddir}/udev/ubuntu/50-compat_firmware_$(abinum)_$(target_flavour).rules $${cwpkgdir}/lib/udev/rules.d; \
 \
-		install -d $${firmdir}; \
-		if [ -d firmware/iwlwifi ] ; then cp firmware/iwlwifi/*/*.ucode $${firmdir}/; fi; \
+		install -d $${dstfirmdir}; \
+		echo $${srcfirmdir} $${dstfirmdir}; \
+		if [ -d $${srcfirmdir} ] ; then cp -rv $${srcfirmdir}/* $${dstfirmdir}; fi; \
 	done
 endif
 
