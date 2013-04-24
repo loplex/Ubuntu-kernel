@@ -1,3 +1,9 @@
+linux-signed (3.5.0-28.48) quantal-proposed; urgency=low
+
+  * Version 3.5.0-28.48
+
+ -- Brad Figg <brad.figg@canonical.com>  Wed, 24 Apr 2013 06:55:49 -0700
+
 linux-signed (3.5.0-28.47) precise; urgency=low
 
   * Version 3.5.0-28.47
