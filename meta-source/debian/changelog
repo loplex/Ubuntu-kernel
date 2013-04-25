@@ -1,3 +1,9 @@
+linux-meta-lts-saucy (3.9.0.0.1) precise; urgency=low
+
+  * Ubuntu-lts-3.9.0-0.1
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Thu, 25 Apr 2013 13:57:05 -0600
+
 linux-meta-lts-raring (3.8.0.19.18) precise; urgency=low
 
   * Ubuntu-lts-3.8.0-19.29

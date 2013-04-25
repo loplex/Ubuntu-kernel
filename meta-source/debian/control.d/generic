@@ -1,4 +1,4 @@
-Package: linux-headers-generic-lts-raring
+Package: linux-headers-generic-lts-saucy
 Architecture: i386 amd64
 Section: devel
 Priority: optional
@@ -7,7 +7,7 @@ Description: Generic Linux kernel headers
  This package will always depend on the latest generic 12.10 kernel headers
  available.
 
-Package: linux-image-generic-lts-raring
+Package: linux-image-generic-lts-saucy
 Architecture: i386 amd64
 Section: metapackages
 Priority: optional
@@ -16,11 +16,11 @@ Description: Generic Linux kernel image
  This package will always depend on the latest generic 12.10 kernel image
  available.
 
-Package: linux-generic-lts-raring
+Package: linux-generic-lts-saucy
 Architecture: i386 amd64
 Section: metapackages
 Priority: optional
-Depends: ${misc:Depends}, linux-image-generic-lts-raring, linux-headers-generic-lts-raring
+Depends: ${misc:Depends}, linux-image-generic-lts-saucy, linux-headers-generic-lts-saucy
 Description: Generic Linux kernel image and headers
  This package will always depend on the latest generic 12.10 kernel image
  and headers packages available.

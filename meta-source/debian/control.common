@@ -1,12 +1,12 @@
-Source: linux-meta-lts-raring
+Source: linux-meta-lts-saucy
 Section: devel
 Priority: optional
 Maintainer: Ubuntu Kernel Team <kernel-team@lists.ubuntu.com>
 Standards-Version: 3.6.1
 Build-Depends: dpkg (>= 1.13.19), debhelper (>= 5), gawk
-Vcs-Git: http://kernel.ubuntu.com/git-repos/ubuntu/ubuntu-precise-meta.git lts-backport-raring
+Vcs-Git: http://kernel.ubuntu.com/git-repos/ubuntu/ubuntu-precise-meta.git lts-backport-saucy
 
-Package: linux-tools-lts-raring
+Package: linux-tools-lts-saucy
 Architecture: i386 amd64
 Section: kernel
 Depends: ${misc:Depends}, linux-tools-${kernel-abi-version} [i386 amd64]
