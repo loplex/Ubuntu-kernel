@@ -1,4 +1,4 @@
-linux-meta (3.8.0.19.36) UNRELEASED; urgency=low
+linux-meta (3.9.0.0.1) saucy; urgency=low
 
   * debian/rules: raring -> saucy name switch0
   * debian/control.common: move to using RELEASE_NAME for git links.
