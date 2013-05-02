@@ -1,0 +1,52 @@
+Package: linux-headers-grouper
+Architecture: armhf
+Section: devel
+Priority: optional
+Depends: ${misc:Depends}, linux-headers-${kernel-abi-version}-grouper 
+Description: Linux kernel headers for the Nexus7 (grouper).
+ This package will always depend on the latest kernel headers available
+ for Nexus7 (grouper).
+
+Package: linux-image-grouper
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-grouper, linux-firmware
+Recommends: linux-firmware-grouper
+Description: Linux kernel image for the Nexus7 (grouper).
+ This package will always depend on the latest kernel image available
+ for Nexus7 (grouper).
+
+Package: linux-grouper
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-image-grouper (= ${source:Version}), linux-headers-grouper (= ${source:Version})
+Description: Complete Linux kernel for the Nexus7 (grouper).
+ This package will always depend on the latest complete Linux kernel available
+ for Nexus7 (grouper).
+
+Package: linux-headers-nexus7
+Architecture: armhf
+Section: oldlibs
+Priority: optional
+Depends: ${misc:Depends}, linux-headers-grouper (= ${source:Version})
+Description: Transitional package
+ This package will always depend on linux-headers-grouper
+
+Package: linux-image-nexus7
+Architecture: armhf
+Section: oldlibs
+Priority: optional
+Depends: ${misc:Depends}, linux-image-grouper (= ${source:Version})
+Description: Transitional package
+ This package will always depend on linux-image-grouper
+
+Package: linux-nexus7
+Architecture: armhf
+Section: oldlibs
+Priority: optional
+Depends: ${misc:Depends}, linux-grouper (= ${source:Version})
+Description: Transitional package
+ This package will always depend on linux-grouper
+

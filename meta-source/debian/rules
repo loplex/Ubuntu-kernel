@@ -7,10 +7,14 @@
 # Copyright (c) 2004 Jens Schmalzing <jensen@debian.org>
 #
 
+VERSION=$(shell dpkg-parsechangelog | sed -n 's/^Version: //p')
+
 KERNEL_VERSION=$(shell dpkg-parsechangelog | grep ^Version | sed -e \
 	's/Version: \([0-9]*\.[0-9]*\.[0-9]*\)\..*/\1/')
 KERNEL_ABI=$(shell head -n1 < debian/changelog | gawk '{n=split($$0,v,"."); print v[4];}')
 KERNEL_ABI_VERSION=$(KERNEL_VERSION)-$(KERNEL_ABI)
+
+VERSION_TRANS=$(shell echo "$(VERSION)" | awk -F. '{ OFS="."; $$4 = $$4 + 10; print }')
 
 control_files := debian/control.common $(shell LC_ALL=C ls -d debian/control.d/*)
 
@@ -67,7 +71,10 @@ binary-arch: debian/control install
 	dh_compress -s
 	dh_fixperms -s
 	dh_installdeb -s
-	dh_gencontrol -s -- $(gencontrol_flags)
+	dh_gencontrol -s -N linux-headers-nexus7 -N linux-image-nexus7 -N linux-nexus7 -- $(gencontrol_flags)
+	dh_gencontrol -p linux-headers-nexus7 -- $(gencontrol_flags) -v$(VERSION_TRANS)
+	dh_gencontrol -p linux-image-nexus7 -- $(gencontrol_flags) -v$(VERSION_TRANS)
+	dh_gencontrol -p linux-nexus7 -- $(gencontrol_flags) -v$(VERSION_TRANS)
 	dh_md5sums -s
 	dh_builddeb -s
 

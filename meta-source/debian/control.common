@@ -1,4 +1,4 @@
-Source: linux-meta-nexus7
+Source: linux-meta-grouper
 Section: devel
 Priority: optional
 Maintainer: Ubuntu Kernel Team <kernel-team@lists.ubuntu.com>

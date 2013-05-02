@@ -1,3 +1,9 @@
+linux-meta-grouper (3.1.10.1.1) saucy; urgency=low
+
+  * switch naming to grouper.
+
+ -- Andy Whitcroft <apw@canonical.com>  Thu, 02 May 2013 22:15:33 +0100
+
 linux-meta-nexus7 (3.1.10.10.17) raring; urgency=low
 
   * ABI: 3.1.10-10
