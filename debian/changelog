@@ -1,3 +1,9 @@
+linux-signed (3.8.0-20.31) raring; urgency=low
+
+  * Version 3.8.0-20.31
+
+ -- Brad Figg <brad.figg@canonical.com>  Mon, 06 May 2013 09:53:33 -0700
+
 linux-signed (3.8.0-19.30) raring; urgency=low
 
   * Version 3.8.0-19.30
