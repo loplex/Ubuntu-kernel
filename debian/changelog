@@ -1,3 +1,17 @@
+linux-backports-modules-3.2.0 (3.2.0-42.29) precise-proposed; urgency=low
+
+  [ Leann Ogasawara ]
+
+  * Add Conflicts: for compat-wireless stacks
+    - LP: #1068751
+
+  [ Tim Gardner ]
+
+  * UBUNTU: Add version specific firmware delivery mechanism
+    - LP: #1170739
+
+ -- Brad Figg <brad.figg@canonical.com>  Mon, 06 May 2013 14:13:16 -0700
+
 linux-backports-modules-3.2.0 (3.2.0-41.28) precise-proposed; urgency=low
 
   [ Leann Ogasawara ]
