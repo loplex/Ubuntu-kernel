@@ -1,3 +1,11 @@
+linux-backports-modules-3.2.0 (3.2.0-42.30) precise-proposed; urgency=low
+
+  [ Brad Figg ]
+
+  * UBUNTU: Fix the redefinition of kref_get_unless_zero that causes a FTBS
+
+ -- Brad Figg <brad.figg@canonical.com>  Tue, 07 May 2013 09:17:37 -0700
+
 linux-backports-modules-3.2.0 (3.2.0-42.29) precise-proposed; urgency=low
 
   [ Leann Ogasawara ]
