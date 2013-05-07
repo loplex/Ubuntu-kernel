@@ -1,3 +1,9 @@
+linux-meta-lts-raring (3.8.0.20.19) precise; urgency=low
+
+  * Ubuntu-lts-3.8.0-20.30
+
+ -- Brad Figg <brad.figg@canonical.com>  Tue, 07 May 2013 16:10:57 -0700
+
 linux-meta-lts-raring (3.8.0.19.18) precise; urgency=low
 
   * Ubuntu-lts-3.8.0-19.29
