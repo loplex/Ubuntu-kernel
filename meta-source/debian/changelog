@@ -1,3 +1,11 @@
+linux-meta (2.6.32.47.54) lucid-proposed; urgency=low
+
+  [ Brad Figg ]
+
+  * Bump ABI
+
+ -- Brad Figg <brad.figg@canonical.com>  Mon, 06 May 2013 18:30:56 -0700
+
 linux-meta (2.6.32.46.53) lucid-proposed; urgency=low
 
   [ Brad Figg ]
