@@ -1,3 +1,9 @@
+linux-meta (3.9.0.1.2) saucy; urgency=low
+
+  * linux ABI 3.9.0-1
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Wed, 08 May 2013 15:03:02 -0600
+
 linux-meta (3.9.0.0.1) saucy; urgency=low
 
   * debian/rules: raring -> saucy name switch0
