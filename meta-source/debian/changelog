@@ -1,3 +1,9 @@
+linux-meta-ti-omap4 (3.5.0.224.24) quantal-proposed; urgency=low
+
+  * Ubuntu-3.5.0-224.35
+
+ -- Steve Conklin <sconklin@canonical.com>  Wed, 10 May 2013 15:31:10 -0500
+
 linux-meta-ti-omap4 (3.5.0.223.23) quantal-proposed; urgency=low
 
   * Ubuntu-3.5.0-223.34
