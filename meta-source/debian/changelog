@@ -1,3 +1,10 @@
+linux-meta (3.2.0.44.53) precise; urgency=low
+
+  * UBUNTU: Update *current* to reference Raring
+    -LP: #1180930
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Thu, 16 May 2013 14:06:24 -0600
+
 linux-meta (3.2.0.44.52) precise-proposed; urgency=low
 
   [ Brad Figg ]
