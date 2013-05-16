@@ -86,7 +86,7 @@ Package: linux-image-current-generic
 Architecture: i386 amd64 
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-image-hwe-generic
+Depends: ${misc:Depends}, linux-image-generic-lts-raring
 Description: Depends on the most recently released generic kernel image and headers.
  This package will always depend on the latest released generic kernel
  and headers, up to 14.04 inclusive.
@@ -95,7 +95,7 @@ Package: linux-current-generic
 Architecture: i386 amd64 
 Section: kernel
 Priority: optional
-Depends: ${misc:Depends}, linux-hwe-generic
+Depends: ${misc:Depends}, linux-image-generic-lts-raring, linux-headers-generic-lts-raring
 Description: Depends on the most recently released generic kernel image and headers.
  This package will always depend on the latest released generic kernel
  and headers, up to 14.04 inclusive.
