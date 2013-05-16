@@ -1,3 +1,9 @@
+linux-signed (3.5.0-31.52) precise; urgency=low
+
+  * Version 3.5.0-31.52
+
+ -- Brad Figg <brad.figg@canonical.com>  Thu, 16 May 2013 08:49:26 -0700
+
 linux-signed (3.5.0-30.51) precise; urgency=low
 
   * Version 3.5.0-30.51
