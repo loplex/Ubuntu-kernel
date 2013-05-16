@@ -4,6 +4,23 @@ linux-ti-omap4 (3.5.0-224.36) UNRELEASED; urgency=low
   CHANGELOG: Use the printchanges target to see the curent changes.
   CHANGELOG: Use the insertchanges target to create the final log.
 
+  [ Ubuntu: 3.5.0-31.52 ]
+
+  * Release Tracking Bug
+    - LP: #1180568
+  * merged back in delta from 28.48 to 29.49
+
+  [ Ubuntu: 3.5.0-30.51 ]
+
+  * Release Tracking Bug
+    - LP: #1180038
+  * Based on 3.5.0-28.48 release
+    - entire delta from 28.48 to 29.49 removed
+    - CVE release is based on updates+fix
+  * perf: Treat attr.config as u64 in perf_swevent_init()
+    - LP: #1179943
+    - CVE-2013-2094
+
  -- Paolo Pisati <paolo.pisati@canonical.com>  Thu, 16 May 2013 17:24:30 +0200
 
 linux-ti-omap4 (3.5.0-224.35) quantal-proposed; urgency=low
