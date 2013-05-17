@@ -1,8 +1,9 @@
 ubuntu-kernel-tests (0.0.13-1) unstable; urgency=low
 
+ * [kernel-test-expander] Add pkg dependencies for saucy
  * Start new release
 
- -- Brad Figg <brad.figg@canonical.com>  Thu, 06 Dec 2012 09:51:45 -0800
+ -- Brad Figg <brad.figg@canonical.com>  Fri, 17 May 2013 08:12:40 -0700
 
 ubuntu-kernel-tests (0.0.12-1) unstable; urgency=low
 
