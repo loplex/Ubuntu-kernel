@@ -712,12 +712,10 @@ class Shank(StdApp):
                 dest += ", %s" % (addr)
 
         bug = task.bug
-        package = re.findall('linux[^:]*', self.wfb.title)[0]
-        version = re.findall('([0-9]+\.[^ ]+)', self.wfb.title)[0]
-        series = self.ubuntu.series_name(package, version)
+        series = self.ubuntu.series_name(self.wfb.pkg_name, self.wfb.pkg_version)
         abi_bump = self.has_new_abi()
 
-        subj = "[" + series + "] " + package + " " + version + " uploaded"
+        subj = "[" + series + "] " + self.wfb.pkg_name + " " + self.wfb.pkg_version + " uploaded"
         if abi_bump:
             subj += " (ABI bump)"
 
@@ -728,7 +726,7 @@ class Shank(StdApp):
         msg += "\nThe full changelog about all bug fixes contained in this "
         msg += "upload can be found at:\n\n"
         msg += "https://launchpad.net/ubuntu/" + series + "/+source/"
-        msg += package + "/" + version + "\n\n"
+        msg += self.wfb.pkg_name + "/" + self.wfb.pkg_version + "\n\n"
         msg += "-- \nThis message was created by an automated script,"
         msg += " maintained by the\nUbuntu Kernel Team."
 
@@ -748,11 +746,9 @@ class Shank(StdApp):
 
         bugurl = quote(self.bug_url(taskobj.bug.id))
 
-        packagename = self.wfb.title.split(':')[0]
-        version = self.wfb.title.split(':')[1].split()[0]
-        kinfo = self.ubuntu.lookup(version.split('-')[0])
+        kinfo = self.ubuntu.lookup(self.wfb.pkg_version.split('-')[0])
         series_name = kinfo['name']
-        pkgid = '%s package %s %s ' % (series_name, packagename, version)
+        pkgid = '%s package %s %s ' % (series_name, self.wfb.pkg_name, self.wfb.pkg_version)
 
         self.status.update(bugurl + ' : ' + pkgid + ' ' + message)
         return
@@ -997,23 +993,21 @@ class Shank(StdApp):
                 return False
 
             # open new tracking bugs for derivative packages if needed
-            pkg_name = re.findall('linux[^:]*', self.wfb.title)[0]
-            pkg_ver = re.findall('([0-9]+\.[^ ]+)', self.wfb.title)[0]
-            series = self.ubuntu.series_name(pkg_name, pkg_ver)
+            series = self.ubuntu.series_name(self.wfb.pkg_name, self.wfb.pkg_version)
             if not series:
-                print("ERROR: Can't find series for %s-%s to get derivatives\n" % (pkg_name, pkg_ver))
+                print("ERROR: Can't find series for %s-%s to get derivatives\n" % (self.wfb.pkg_name, self.wfb.pkg_version))
                 return False
             der_list = []
             found = self.ubuntu.lookup(series)
             if 'derivative-packages' in found:
-                if pkg_name in found['derivative-packages']:
-                    der_list = found['derivative-packages'][pkg_name]
+                if self.wfb.pkg_name in found['derivative-packages']:
+                    der_list = found['derivative-packages'][self.wfb.pkg_name]
             bp_list = []
             for entry in self.ubuntu.db.itervalues():
                 if 'backport-packages' in entry:
                     bp_entries = entry['backport-packages']
                     for bp_entry in iter(bp_entries):
-                        if (bp_entries[bp_entry][0] == pkg_name and
+                        if (bp_entries[bp_entry][0] == self.wfb.pkg_name and
                             bp_entries[bp_entry][1] == found['series_version']):
                             bp_list.append([bp_entry, entry['name']])
 
@@ -1021,7 +1015,7 @@ class Shank(StdApp):
             bp_bug_list = []
             m_bug_list = []
             msgder =  "This tracking bug was opened to be worked from "
-            msgder += "%s-%s update (bug %s)" % (pkg_name, pkg_ver, taskobj.bug.id)
+            msgder += "%s-%s update (bug %s)" % (self.wfb.pkg_name, self.wfb.pkg_version, taskobj.bug.id)
             subder =  "Derivative package tracking bug"
             tb = TrackingBug(self.lp, 'staging' in self.cfg)
             for der_pkg in der_list:
@@ -1051,7 +1045,7 @@ class Shank(StdApp):
                                  % (bp_pkg[0]))
                     continue
                 try:
-                    bug = tb.open(bp_pkg[0], '%s~%s1' % (pkg_ver, bp_pkg[1]),
+                    bug = tb.open(bp_pkg[0], '%s~%s1' % (self.wfb.pkg_version, bp_pkg[1]),
                                   self.has_new_abi(), taskobj.bug.id)
                 except:
                     traceback.print_exc()
@@ -1216,30 +1210,25 @@ class Shank(StdApp):
         build status
         """
         # Get the source package names and required versions for this update
-        pkg_name = re.findall('linux[^:]*', self.wfb.title)
-        pkg_ver = re.findall('([0-9]+\.[^ ]+)', self.wfb.title)
-        if pkg_name and pkg_ver:
-            pkg_name = pkg_name[0]
-            pkg_ver = pkg_ver[0]
-        else:
+        if not self.wfb.pkg_name or not self.wfb.pkg_version:
             self.verbose('        Unable to check package builds for this bug:'
                          ' either the package name or\n        version are not'
                          ' properly available yet in the bug title.\n')
             return
-        pkg_mainver = re.findall('-[0-9]+[^ ]+', pkg_ver)
+        pkg_mainver = re.findall('-[0-9]+[^ ]+', self.wfb.pkg_version)
         if pkg_mainver:
-            pkg_mainver = pkg_ver.replace(pkg_mainver[0], '', 1)
+            pkg_mainver = self.wfb.pkg_version.replace(pkg_mainver[0], '', 1)
         if not pkg_mainver:
             self.verbose('        ')
             self.verbose('WARNING: unable to get main package version\n')
-        pkg_abi = re.findall('-[0-9]+\.', pkg_ver)
+        pkg_abi = re.findall('-[0-9]+\.', self.wfb.pkg_version)
         if pkg_abi:
             pkg_abi = pkg_abi[0].lstrip('-').rstrip('.')
         else:
             self.verbose('        ')
             self.verbose('WARNING: unable to get ABI from package version\n')
         distro_series = None
-        series = self.ubuntu.series_name(pkg_name, pkg_ver)
+        series = self.ubuntu.series_name(self.wfb.pkg_name, self.wfb.pkg_version)
         if series:
             sc = self.lp.launchpad.distributions["ubuntu"].series_collection
             for s in sc:
@@ -1249,15 +1238,15 @@ class Shank(StdApp):
         if not distro_series:
             print("        ")
             print("ERROR: can't figure out the distro series for %s-%s\n"
-                  % (pkg_name, pkg_ver))
+                  % (self.wfb.pkg_name, self.wfb.pkg_version))
             return
         pkgs = {}
         entry = self.ubuntu.lookup(series)
         if entry:
             if 'dependent-packages' in entry:
-                if pkg_name in entry['dependent-packages']:
-                    pkgs.update(entry['dependent-packages'][pkg_name])
-        pkgs['main'] = pkg_name
+                if self.wfb.pkg_name in entry['dependent-packages']:
+                    pkgs.update(entry['dependent-packages'][self.wfb.pkg_name])
+        pkgs['main'] = self.wfb.pkg_name
 
         # Try to verify if there was an abi change in this release. We
         # guess this by looking if there is already a package with same
@@ -1265,10 +1254,10 @@ class Shank(StdApp):
         new_abi = True
         main_archive = self.lp.launchpad.distributions["ubuntu"].main_archive
         if pkg_mainver and pkg_abi:
-            st_abi_rel, _ = self.build_status(distro_series, pkg_name,
+            st_abi_rel, _ = self.build_status(distro_series, self.wfb.pkg_name,
                                              pkg_mainver, pkg_abi, main_archive,
                                              'Release')
-            st_abi_upd, _ = self.build_status(distro_series, pkg_name,
+            st_abi_upd, _ = self.build_status(distro_series, self.wfb.pkg_name,
                                              pkg_mainver, pkg_abi, main_archive,
                                              'Updates')
             if st_abi_rel == 2 or st_abi_upd == 2:
@@ -1286,12 +1275,12 @@ class Shank(StdApp):
         ckt = self.lp.launchpad.people['canonical-kernel-team']
         ckt_archive = ckt.getPPAByName(name='ppa')
         for dep in iter(pkgs):
-            if pkgs[dep] == pkg_name:
+            if pkgs[dep] == self.wfb.pkg_name:
                 bug_task = 'prepare-package'
             else:
                 bug_task = 'prepare-package-%s' % (dep)
             abi_num = None
-            pkg_rel = pkg_ver
+            pkg_rel = self.wfb.pkg_version
             if dep in [ 'lbm', 'lrm', 'lum', 'meta', 'ports-meta' ] and pkg_abi:
                 abi_num = pkg_abi
                 pkg_rel = pkg_mainver
@@ -1444,14 +1433,12 @@ class Shank(StdApp):
             return False
 
         # Do the checking for proper packages in pocket->component
-        pkg_name = re.findall('linux[^:]*', self.wfb.title)[0]
-        pkg_ver = re.findall('([0-9]+\.[^ ]+)', self.wfb.title)[0]
-        series_name = self.ubuntu.series_name(pkg_name, pkg_ver)
+        series_name = self.ubuntu.series_name(self.wfb.pkg_name, self.wfb.pkg_version)
         check_component = CheckComponent(self.lp)
         name_meta = 'linux-meta'
         name_ports_meta = 'linux-ports-meta'
         name_signed = 'linux-signed'
-        name_split = pkg_name.split('-', 1)
+        name_split = self.wfb.pkg_name.split('-', 1)
         if len(name_split) > 1:
             name_meta = '%s-meta-%s' % (name_split[0], name_split[1])
             name_ports_meta = '%s-ports-meta-%s' % (name_split[0], name_split[1])
@@ -1462,9 +1449,9 @@ class Shank(StdApp):
                      'prepare-package-meta' : name_meta,
                      'prepare-package-ports-meta' : name_ports_meta,
                      'prepare-package-signed' : name_signed }
-        ver_split = pkg_ver.split('-')
+        ver_split = self.wfb.pkg_version.split('-')
         main_version = ver_split[0]
-        pkg_list = [ pkg_name ]
+        pkg_list = [ self.wfb.pkg_name ]
         for name in iter(name_map):
             if self.has_prep_task(name):
                 if ('lbm' in name) or ('lrm' in name) or ('lum' in name):
@@ -1481,8 +1468,8 @@ class Shank(StdApp):
             dep_ver2 = '%s.%s' % (main_version, pkg_abi)
         mis_lst = []
         for pkg in pkg_list:
-            if pkg == pkg_name:
-                check_ver = pkg_ver
+            if pkg == self.wfb.pkg_name:
+                check_ver = self.wfb.pkg_version
             else:
                 check_ver = None
             ps = check_component.get_published_sources(series_name, pkg,
@@ -1491,18 +1478,18 @@ class Shank(StdApp):
                 if check_ver:
                     missing_pkg.append([pkg, check_ver])
                 elif pkg == name_signed:
-                    missing_pkg.append([pkg, 'for version=%s' % (pkg_ver)])
+                    missing_pkg.append([pkg, 'for version=%s' % (self.wfb.pkg_version)])
                 else:
                     missing_pkg.append([pkg, 'with ABI=%s' % (pkg_abi)])
                 continue
             if pkg == name_signed:
                 src_ver = ps[0].source_package_version
-                if src_ver.startswith(pkg_ver):
+                if src_ver.startswith(self.wfb.pkg_version):
                     mis_lst.extend(check_component.mismatches_list(series_name,
                                    pkg, ps[0].source_package_version,
                                    pocket, ps))
                 else:
-                    missing_pkg.append([pkg, 'for version=%s' % (pkg_ver)])
+                    missing_pkg.append([pkg, 'for version=%s' % (self.wfb.pkg_version)])
             elif not check_ver:
                 src_ver = ps[0].source_package_version
                 # special hardcoded case for lrm on hardy...
