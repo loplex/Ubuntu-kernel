@@ -18,6 +18,7 @@ from urllib                             import quote
 from urllib2                            import HTTPError
 from ktl.messaging                      import Email, Status
 from ktl.bugs                           import DeltaTime
+from ktl.termcolor                      import colored
 import re
 import traceback
 
@@ -129,6 +130,37 @@ class Cmdline:
     #
     def verify_options(self, cfg):
         return
+
+def verbose(msg, color='green'):
+    stdo(colored(msg, color))
+
+# WorkflowBug
+#
+class WorkflowBug():
+    # __init__
+    #
+    def __init__(s, taskobj, sauron=False):
+        s.title = taskobj.bug.title
+        verbose('            WorkflowBug.__init__\n', 'blue')       # FIXME bjf - debugging
+        verbose('                      title: "%s"\n' % s.title, 'blue')  # FIXME bjf - debugging
+
+        try:
+            s.pkg_name = re.findall('linux[^:]*', s.title)[0]
+        except IndexError:
+            s.pkg_name = None
+        verbose('                   pkg_name: "%s"\n' % s.pkg_name, 'blue')  # FIXME bjf - debugging
+
+        try:
+            s.pkg_version = re.findall('([0-9]+\.[^ ]+)', s.title)[0]
+        except IndexError:
+            s.pkg_version = None
+        verbose('                pkg_version: "%s"\n' % s.pkg_version, 'blue')  # FIXME bjf - debugging
+
+        if s.pkg_name is not None and s.pkg_version is not None:
+            s.series = Ubuntu().series_name(s.pkg_name, s.pkg_version)
+        else:
+            s.series = None
+        verbose('                     series: "%s"\n' % s.series, 'blue')  # FIXME bjf - debugging
 
 # Shank
 #
@@ -364,7 +396,11 @@ class Shank(StdApp):
                                          'Fix Released' : {'action':self.security_signoff_finished},
                                          'Unknown' : {'action':None},
                                          },
-        } 
+        }
+
+    def verbose(self, msg, color='green'):
+        if 'verbose' in self.cfg and self.cfg['verbose']:
+            stdo(colored(msg, color))
 
     # initialize
     #
@@ -413,7 +449,7 @@ class Shank(StdApp):
             ]
         search_tags_combinator = "All"
         search_status          = ["New","In Progress","Invalid", "Incomplete", "Fix Committed"] # A list of the bug statuses that we care about
-        search_since           = datetime(year=2011, month=1, day=1)
+        search_since           = datetime(year=2013, month=1, day=1)
         tasks = project.search_tasks(status=search_status, tags=search_tags, tags_combinator=search_tags_combinator, modified_since=search_since)
 
         for task in tasks:
@@ -421,6 +457,8 @@ class Shank(StdApp):
             if 'buglist' in self.cfg:
                 if str(bug.id) not in self.cfg['buglist']:
                     continue
+
+            self.wfb = WorkflowBug(task)
 
             self.printlink =  '%s : (%s)\n' % (bug.id, self.bug_url(bug.id)),
             self.verbose('Processing: %s' % self.printlink)
@@ -519,7 +557,8 @@ class Shank(StdApp):
                 else:
                     assignee = assignee.display_name
 
-                self.verbose("\n        %-25s  %15s  %10s  %s\n" % (task_name, state, importance, assignee))
+                self.verbose("\n        %-25s  %15s" % (task_name, state), 'yellow')
+                self.verbose("  %10s  %s\n" % (importance, assignee))
 
                 if task_name not in self.state_map:
                     print self.printlink,
@@ -600,7 +639,7 @@ class Shank(StdApp):
         retval = 'https://%s/bugs/%s' % (lpserver, bug_id)
         return retval
 
-    def send_comment(self, task, subject, body):
+    def send_comment(self, taskobj, subject, body):
         """
         Add comment to tracking bug
         """
@@ -609,9 +648,9 @@ class Shank(StdApp):
             self.verbose('Dryrun - Adding comment to tracking bug\n')
         else:
             self.verbose('Adding comment to tracking bug\n')
-            task.bug.add_comment(body, subject)
+            taskobj.bug.add_comment(body, subject)
 
-    def send_email(self, task, subject, body, to_address=None):
+    def send_email(self, taskobj, subject, body, to_address=None):
         """
         Send email to the configured list or recipient
         """
@@ -628,8 +667,8 @@ class Shank(StdApp):
         mcfg = self.cfg['mail_notify']
         if not to_address:
             to_address = mcfg['to_address']
-        body_top = 'The following message is regarding the following Kernel SRU Tracking bug:\n%s\n' % self.bug_url(task.bug.id)
-        body_top = body_top + ('%s\n\n' % task.bug.title)
+        body_top = 'The following message is regarding the following Kernel SRU Tracking bug:\n%s\n' % self.bug_url(taskobj.bug.id)
+        body_top = body_top + ('%s\n\n' % self.wfb.title)
         msg = body_top + body
         subj =  '[ShankBot] ' + subject
         self.email.send(mcfg['from_address'], to_address, subj, msg)
@@ -673,9 +712,8 @@ class Shank(StdApp):
                 dest += ", %s" % (addr)
 
         bug = task.bug
-        title = bug.title
-        package = re.findall('linux[^:]*', title)[0]
-        version = re.findall('([0-9]+\.[^ ]+)', title)[0]
+        package = re.findall('linux[^:]*', self.wfb.title)[0]
+        version = re.findall('([0-9]+\.[^ ]+)', self.wfb.title)[0]
         series = self.ubuntu.series_name(package, version)
         abi_bump = self.has_new_abi()
 
@@ -697,7 +735,7 @@ class Shank(StdApp):
         self.email.send(from_addr, dest, subj, msg)
         return
 
-    def send_status_update(self, task, message):
+    def send_status_update(self, taskobj, message):
         """
         Send a status update to twitter, status.net, identi.ca, etc
         """
@@ -708,11 +746,10 @@ class Shank(StdApp):
 
         self.verbose('Sending Status\n')
 
-        bugurl = quote(self.bug_url(task.bug.id))
+        bugurl = quote(self.bug_url(taskobj.bug.id))
 
-        btitle = task.bug.title
-        packagename = btitle.split(':')[0]
-        version = btitle.split(':')[1].split()[0]
+        packagename = self.wfb.title.split(':')[0]
+        version = self.wfb.title.split(':')[1].split()[0]
         kinfo = self.ubuntu.lookup(version.split('-')[0])
         series_name = kinfo['name']
         pkgid = '%s package %s %s ' % (series_name, packagename, version)
@@ -827,50 +864,73 @@ class Shank(StdApp):
     # Begin action methods for state transitions
     #
 
-    def check_master_task(self, bug, tasks):
+    # master_bug_property_name
+    #
+    @property
+    def master_bug_property_name(s):
+        retval = 'kernel'
+        if s.projectname == 'kernel-sru-workflow':
+            retval += '-stable'
+        retval += '-master-bug'
+        return retval
+
+    # is_derivative_package
+    #
+    def is_derivative_package(s, bug):
+        return s.master_bug_property_name in bug.properties
+
+    # master_bug
+    #
+    def master_bug(s, bug):
+        '''
+        Find the 'master' bug of which this is a derivative and return that bug.
+        '''
+        return s.lp.get_bug(bug.properties[s.master_bug_property_name])
+
+    # check_master_task
+    #
+    def check_master_task(s, bug, tasks):
         """
         check if the dictionary of tasks is in one of the provided list of
         status on the master bug listed in the bug, returns:
         * -1 if we were unable to check the status
-        * 0 if the task on the master tracking bug is not Confirmed/
-          Fix Released
-        * 1 if this isn't a derivative (doesn't have a master tracking
-          bug
-        * 2 if the task on the master tracking bug is Confirmed or Fix
-          Released
+        * 0 if the task on the master tracking bug is not Confirmed/ Fix Released
+        * 1 if this isn't a derivative (doesn't have a master tracking bug
+        * 2 if the task on the master tracking bug is Confirmed or Fix Released
         The tasks provided must be a dictionary in the form:
             'task name' : [ list of desired status ]
         """
-        master_prop = 'kernel'
-        if self.projectname == 'kernel-sru-workflow':
-            master_prop += '-stable'
-        master_prop += '-master-bug'
-        props = bug.properties
-        if master_prop in props:
+        master_bug_missing     = -1
+        master_bug_bad_status  = 0
+        master_bug_good_status = 2
+        not_derivative         = 1
+
+        retval = not_derivative
+        if s.is_dervative_package(bug):
             try:
-                mbug = self.lp.get_bug(props[master_prop])
-                r = 2
-                for t in mbug.tasks:
-                    task_name = t.bug_target_name
-                    if (not task_name.startswith(self.projectname) or
-                        task_name == self.projectname):
+                master = s.master_bug
+
+                retval = master_bug_good_status
+                for task in master.tasks:
+                    task_name = task.bug_target_name
+
+                    if (not task_name.startswith(s.projectname) or task_name == s.projectname):
                         continue
-                    short_name = task_name[len(self.projectname)+1:].strip()
+
+                    short_name = task_name[len(s.projectname)+1:].strip()
                     for tname in iter(tasks):
                         if short_name.lower() == tname:
-                            if not t.status in tasks[tname]:
-                                r = 0
-                                self.verbose("%s doesn't match any of these "
-                                             "status in bug %s: %s."
-                                             % (tname, mbug.id, tasks[tname]))
-                                self.verbose(" Waiting on master bug\n")
-                                return 0
-                return r
+                            if not task.status in tasks[tname]:
+                                retval = master_bug_bad_status
+                                s.verbose("%s doesn't match any of these " "status in bug %s: %s." % (tname, master.id, tasks[tname]))
+                                s.verbose(" Waiting on master bug\n")
+                            return retval
             except:
                 traceback.print_exc()
-                print("ERROR: unable to get master bug\n")
-                return -1
-        return 1
+                print("ERROR: Unable to get the master bug\n")
+                retval = master_bug_missing
+
+        return retval
 
     def prepare_package_fixed(self):
         """
@@ -896,14 +956,23 @@ class Shank(StdApp):
         Confirmed. Otherwise, if upload-to-ppa task is present, just set
         it to Confirmed if necessary
         """
+        self.verbose('            prep_package_fix_relesed\n', 'blue')  # FIXME bjf - debugging
+
         if self.projectname == 'kernel-sru-workflow':
             taskname = 'promote-to-proposed'
         else:
             taskname = 'package-testing'
 
+        self.verbose('                %s status: %s\n' % (taskname, self.taskbyname[taskname].status), 'blue')  # FIXME bjf - debugging
+
+        # Even though we came in here do to one of the prepare-package* tasks being
+        # set to 'Fix Released' we don't actually do anything unless the next state
+        # (promote-to-proposed or package-testing) is 'New'.
+        #
         if self.taskbyname[taskname].status == 'New':
             # check if all prepare-package tasks are finished
             if not self.prepare_package_fixed():
+                self.verbose('                prepare_package_fixed: false\n', 'blue')  # FIXME bjf - debugging
                 return False
 
             # if this is a derivative tracking bug, first wait until
@@ -911,25 +980,28 @@ class Shank(StdApp):
             # already promoted. The way derivative package bugs are
             # opened already ensures this, but check the tasks on the
             # master bug anyway just in case...
-            tsk_st = { 'prepare-package' : [ 'Fix Released' ],
-                       'prepare-package-lbm' : [ 'Fix Released', 'Invalid' ],
-                       'prepare-package-lrm' : [ 'Fix Released', 'Invalid' ],
-                       'prepare-package-lum' : [ 'Fix Released', 'Invalid' ],
-                       'prepare-package-meta' : [ 'Fix Released', 'Invalid' ],
-                       'prepare-package-ports-meta' : [ 'Fix Released', 'Invalid' ],
-                       'prepare-package-signed' : [ 'Fix Released' ],
-                       taskname : [ 'Confirmed', 'Fix Released' ] }
+            tsk_st = {
+                'prepare-package'            : [ 'Fix Released' ],
+                'prepare-package-lbm'        : [ 'Fix Released', 'Invalid' ],
+                'prepare-package-lrm'        : [ 'Fix Released', 'Invalid' ],
+                'prepare-package-lum'        : [ 'Fix Released', 'Invalid' ],
+                'prepare-package-meta'       : [ 'Fix Released', 'Invalid' ],
+                'prepare-package-ports-meta' : [ 'Fix Released', 'Invalid' ],
+                'prepare-package-signed'     : [ 'Fix Released' ],
+                taskname                     : [ 'Confirmed', 'Fix Released' ]
+            }
+            # If the master bug's tasks are not completely ready.
+            #
             if self.check_master_task(taskobj.bug, tsk_st) <= 0:
+                self.verbose('                check_master_task: false\n', 'blue')  # FIXME bjf - debugging
                 return False
 
             # open new tracking bugs for derivative packages if needed
-            title = taskobj.bug.title
-            pkg_name = re.findall('linux[^:]*', title)[0]
-            pkg_ver = re.findall('([0-9]+\.[^ ]+)', title)[0]
+            pkg_name = re.findall('linux[^:]*', self.wfb.title)[0]
+            pkg_ver = re.findall('([0-9]+\.[^ ]+)', self.wfb.title)[0]
             series = self.ubuntu.series_name(pkg_name, pkg_ver)
             if not series:
-                print("ERROR: Can't find series for %s-%s to get derivatives\n"
-                      % (pkg_name, pkg_ver))
+                print("ERROR: Can't find series for %s-%s to get derivatives\n" % (pkg_name, pkg_ver))
                 return False
             der_list = []
             found = self.ubuntu.lookup(series)
@@ -1030,7 +1102,7 @@ class Shank(StdApp):
                 self.set_phase(taskobj, 'Testing')
                 self.send_upload_announcement(taskobj, 'proposed')
 
-                cmd = 'ssh zinc.canonical.com \'echo "<html>%s</html>" > /srv/kernel.ubuntu.com/www/kernel-pkg-status/%s.html\'' % (title, series)
+                cmd = 'ssh zinc.canonical.com \'echo "<html>%s</html>" > /srv/kernel.ubuntu.com/www/kernel-pkg-status/%s.html\'' % (self.wfb.title, series)
                 status, result = run_command(cmd)
 
         return False
@@ -1138,25 +1210,14 @@ class Shank(StdApp):
             res = bs, pkg
         return res
 
-    def get_series(s, bug):
-        '''
-        Use a bug's title to determine what series the kernel is related to.
-        '''
-        title = bug.title
-        pkg_name = re.findall('linux[^:]*', title)
-        pkg_ver = re.findall('([0-9]+\.[^ ]+)', title)
-        series = s.ubuntu.series_name(pkg_name, pkg_ver)
-        return series
-
     def package_check(self, bug):
         """
         Verify the required packages for this update, and determine its
         build status
         """
         # Get the source package names and required versions for this update
-        title = bug.title
-        pkg_name = re.findall('linux[^:]*', title)
-        pkg_ver = re.findall('([0-9]+\.[^ ]+)', title)
+        pkg_name = re.findall('linux[^:]*', self.wfb.title)
+        pkg_ver = re.findall('([0-9]+\.[^ ]+)', self.wfb.title)
         if pkg_name and pkg_ver:
             pkg_name = pkg_name[0]
             pkg_ver = pkg_ver[0]
@@ -1383,9 +1444,8 @@ class Shank(StdApp):
             return False
 
         # Do the checking for proper packages in pocket->component
-        title = bug.title
-        pkg_name = re.findall('linux[^:]*', title)[0]
-        pkg_ver = re.findall('([0-9]+\.[^ ]+)', title)[0]
+        pkg_name = re.findall('linux[^:]*', self.wfb.title)[0]
+        pkg_ver = re.findall('([0-9]+\.[^ ]+)', self.wfb.title)[0]
         series_name = self.ubuntu.series_name(pkg_name, pkg_ver)
         check_component = CheckComponent(self.lp)
         name_meta = 'linux-meta'
@@ -1655,6 +1715,9 @@ class Shank(StdApp):
             # opened already ensures this, but check the tasks on the
             # master bug anyway just in case...
             tsk_st = { 'promote-to-release' : [ 'Confirmed', 'Fix Released' ] }
+
+            # If the master bug's tasks are not completely ready.
+            #
             if self.check_master_task(taskobj.bug, tsk_st) <= 0:
                 return False
 
@@ -1803,8 +1866,7 @@ class Shank(StdApp):
                 tbug = self.taskbyname[self.projectname].bug
                 tsk_st = { 'promote-to-updates' : [ 'Confirmed', 'Fix Released' ],
                            'promote-to-security' : [ 'Confirmed', 'Fix Released', 'Invalid' ] }
-                if (not self.hold_updates_security_copy() and
-                    self.check_master_task(tbug, tsk_st) > 0):
+                if (not self.hold_updates_security_copy() and self.check_master_task(tbug, tsk_st) > 0):
                     task = self.taskbyname[self.projectname]
                     # If this is a derivative, it's supposed to be
                     # rebased on top of master, or to have security
@@ -1815,9 +1877,13 @@ class Shank(StdApp):
                     # status of the master security task, return (try
                     # again later)
                     tsk_st = { 'promote-to-security' : [ 'Confirmed', 'Fix Released' ] }
+
+                    # If the master bug's tasks are not completely ready.
+                    #
                     security_master = self.check_master_task(tbug, tsk_st)
                     if security_master < 0:
                         return
+
                     if self.security_publishing_required or security_master == 2:
                         self.verbose('Requires publishing to the -security pocket\n')
                         if self.taskbyname['promote-to-security'].status == 'New':
