@@ -1,3 +1,9 @@
+linux-meta-maguro (3.0.0.1.2) saucy; urgency=low
+
+  * ABI: 3.0.0-1
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Thu, 23 May 2013 08:27:22 -0600
+
 linux-meta-maguro (3.0.0.0.1) saucy; urgency=low
 
   * ABI: 3.0.0-0
