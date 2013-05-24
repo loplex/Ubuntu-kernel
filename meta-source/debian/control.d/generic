@@ -25,3 +25,14 @@ Description: Generic Linux kernel image and headers
  This package will always depend on the latest generic 12.10 kernel image
  and headers packages available.
 
+# Update this meta package to depend on the 14.04 LTS kernel when Quantal goes EOL.
+
+Package: linux-generic-lts-quantal-eol-upgrade
+Architecture: amd64
+Section: metapackages
+Priority: optional
+Depends: ${misc:Depends}, linux-generic-lts-quantal
+Description: Complete Generic Linux kernel and headers
+ This package will always depend on the latest 12.10 generic Linux kernel
+ and headers, or 14.04 when 12.10 is end of life.
+
