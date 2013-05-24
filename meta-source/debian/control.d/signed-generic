@@ -16,3 +16,14 @@ Description: Complete Signed Generic Linux kernel and headers
  This package will always depend on the latest complete generic Linux kernel
  and headers.  Signed with the Ubuntu EFI key.
 
+# Update this meta package to depend on the 14.04 signed LTS kernel when Raring goes EOL.
+
+Package: linux-signed-generic-lts-raring-eol-upgrade
+Architecture: amd64
+Section: metapackages
+Priority: optional
+Depends: ${misc:Depends}, linux-signed-generic-lts-raring
+Description: Complete Signed Generic Linux kernel and headers
+ This package will always depend on the latest 13.04 generic Linux kernel
+ and headers, or 14.04 when 13.04 is end of life.
+
