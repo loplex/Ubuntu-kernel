@@ -1,3 +1,9 @@
+linux-signed (3.5.0-32.53) precise; urgency=low
+
+  * Version 3.5.0-32.53
+
+ -- Steve Conklin <sconklin@canonical.com>  Tue, 28 May 2013 15:59:13 -0500
+
 linux-signed (3.5.0-31.52) precise; urgency=low
 
   * Version 3.5.0-31.52
