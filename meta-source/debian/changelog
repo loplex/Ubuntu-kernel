@@ -1,3 +1,10 @@
+linux-meta-lts-raring (3.8.0.23.22) precise; urgency=low
+
+  * Ubuntu-lts-3.8.0-23.34
+  * UBUNTU: Provide an EOL upgrade meta package
+
+ -- Steve Conklin <sconklin@canonical.com>  Wed, 29 May 2013 12:59:45 -0500
+
 linux-meta-lts-raring (3.8.0.22.21) precise; urgency=low
 
   * Ubuntu-lts-3.8.0-22.33
