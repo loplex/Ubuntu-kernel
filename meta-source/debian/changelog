@@ -1,3 +1,10 @@
+linux-meta-lts-quantal (3.5.0.32.39) precise-proposed; urgency=low
+
+  * Ubuntu-lts-3.5.0-32.53
+  * UBUNTU: Provide an EOL upgrade meta package
+
+ -- Steve Conklin <sconklin@canonical.com>  Wed, 29 May 2013 07:55:13 -0500
+
 linux-meta-lts-quantal (3.5.0.31.38) precise-proposed; urgency=low
 
   * Ubuntu-lts-3.5.0-31.52
