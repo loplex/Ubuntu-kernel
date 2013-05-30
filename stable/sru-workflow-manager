@@ -25,6 +25,7 @@ import json
 
 from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
 from logging                            import info, debug, error, warning, basicConfig, INFO, DEBUG, WARNING
+from sb.package                         import Package, PackageError
 
 def verbose(msg, color='green'):
     stdo(colored(msg, color))
@@ -415,27 +416,51 @@ class Shank(StdApp):
 
         return retval
 
-    def shank(s, bugid):
-        s.printlink =  '%s : (%s)\n' % (bugid, s.bug_url(bugid)),
-        s.verbose('Processing: %s' % s.printlink)
+    # shank
+    #
+    def shank(s, bugid, sauron):
+        s.printlink =  '%s : (%s)' % (bugid, s.bug_url(bugid)),
+        info('')
+        info('Processing: %s' % s.printlink)
 
-        bug = s.lp.get_bug(bugid)
+        bug = WorkflowBug(s.lp, s.projects_tracked, bugid, sauron)
+        if bug.is_valid:
+            try:
+                p = Package(s.lp, bug)
+                info('')
+                if p.is_released:
+                    info('        The package has been promoted to the approriate release directories. Nothing more to be done.')
 
+                elif p.is_prepd:
+                    info('        The package and all of it\'s dependents have been fully prepared.')
+
+                else:
+                    info('        Needs work')
+                    p.determine_build_status(bug)
+
+                s.process_bug_tasks(bug)
+
+            except PackageError:
+                pass
+
+    # process_bug_tasks
+    #
+    def process_bug_tasks(s, shankbug):
         # Determine this bugs project.
         #
-        for t in bug.tasks:
+        for t in shankbug.lpbug.tasks:
             task_name       = t.bug_target_name
             if task_name in s.projects_tracked:
                 s.projectname = task_name
                 break
         master_task_name = s.projectname
 
-        s.wfb = WorkflowBug(s.lp, s.projects_tracked, bugid, s.args.sauron)
+        s.wfb = shankbug
         s.wfb.tasks_by_name = s.wfb.tasks_by_name
 
         # initialize any per-bug variables that we use
         s.bugtags = []
-        for atag in bug.tags:
+        for atag in shankbug.lpbug.tags:
             s.bugtags.append(atag)
         performReleaseTest = False
         s.certification_testing_complete = False
@@ -444,25 +469,19 @@ class Shank(StdApp):
         s.security_publishing_required = False
 
         # Initialize the properties object
-        s.props = Properties(bug)
+        s.props = Properties(shankbug.lpbug)
         #
         # list any Properties from bug description
-        props = bug.properties
+        props = shankbug.lpbug.properties
         if len(props) > 0:
             s.verbose('    Properties:\n')
             for prop in props:
                 s.verbose('        %s: %s\n' % (prop, props[prop]))
 
-        # Verify the build state of packages in this bug. We do
-        # everything in one go as we get build information for all
-        # packages
-        s.verbose('\n    Checking status for packages in this bug:\n')
-        if not s.package_check(bug):
-            return
-
-        # now walk them one at a time
+        # Go through each task.
+        #
         s.verbose('\n    Processing bug tasks:')
-        for t in bug.tasks:
+        for t in shankbug.lpbug.tasks:
             task_name = t.bug_target_name.strip()
             # bug_target_name includes both the main and sub task in the string
             # so for example it could be "Kernel SRU Workflow prepare-package"
@@ -992,303 +1011,6 @@ class Shank(StdApp):
                 status, result = run_command(cmd)
 
         return False
-
-    def build_status(s, series, package, release, abi, archive, pocket = ''):
-        """
-        Return an status code, the possible assignee responsible and the
-        package creator related to the publishing of the package in the
-        given archive on the optionally specified pocket (if we want the
-        check to be restricted on a specific pocket). The following
-        values are returned as the status code:
-        0 - if the package-version wasn't found/published. In this case
-            the package creator and assignee returned is always None
-        1 - if the package-version is available (published), but still
-            didn't finish building
-        2 - package-version is available in the archive
-        The parameters are:
-        series - the distribution series (quantal, oneiric, etc.)
-        package - the package name
-        release - the version or version-abi number to match
-        abi_match - if provided, indicates that release is not an exact
-                    version number, and we must do an ABI check
-        archive - launchpad archive to look into
-        pocket - optional, if we want only results of the archive from
-                 the specified pocket
-        """
-
-        if pocket and not abi:
-            ps = archive.getPublishedSources(distro_series=series,
-                                             exact_match=True,
-                                             source_name=package,
-                                             status='Published',
-                                             version=release,
-                                             pocket=pocket)
-        elif not pocket and not abi:
-            ps = archive.getPublishedSources(distro_series=series,
-                                             exact_match=True,
-                                             source_name=package,
-                                             status='Published',
-                                             version=release)
-        elif pocket and abi:
-            ps = archive.getPublishedSources(distro_series=series,
-                                             exact_match=True,
-                                             source_name=package,
-                                             status='Published',
-                                             pocket=pocket)
-        else:
-            ps = archive.getPublishedSources(distro_series=series,
-                                             exact_match=True,
-                                             source_name=package,
-                                             status='Published')
-        matches = []
-        if abi:
-            dep_ver1 = '%s-%s' % (release, abi)
-            dep_ver2 = '%s.%s' % (release, abi)
-            rel_match = '<%s> or <%s>' % (dep_ver1, dep_ver2)
-            for p in ps:
-                src_ver = p.source_package_version
-                # special case for hardy lrm version...
-                if ((series.name == 'hardy') and
-                    (package == 'linux-restricted-modules-2.6.24')):
-                    if src_ver.startswith('2.6.24'):
-                        ver_split = src_ver.split('-', 1)
-                        if len(ver_split) > 1:
-                            src_ver = '2.6.24-%s' % (ver_split[1])
-                if ((src_ver.startswith(dep_ver1 + '.') or
-                     src_ver.startswith(dep_ver2 + '.'))):
-                    matches.append(p)
-            if not matches:
-                s.verbose('        ')
-                s.verbose('Can\'t find <%s> (%s) build on %s (pocket:%s)\n' %
-                             (package, rel_match, archive.displayname,
-                              pocket))
-                return 0, None
-        else:
-            rel_match = '<%s>' % (release)
-            for p in ps:
-                matches.append(p)
-            if not matches:
-                s.verbose('        ')
-                s.verbose('Can\'t find <%s> %s build on %s (pocket:%s)\n' %
-                             (package, rel_match, archive.displayname,
-                              pocket))
-                return 0, None
-        res = 0, None
-        lst_date = None
-        for pkg in matches:
-            src_id = str(pkg).rsplit('/', 1)[1]
-            build_summaries = archive.getBuildSummariesForSourceIds(source_ids=[src_id])[src_id]
-            if build_summaries['status'] == 'FULLYBUILT':
-                s.verbose('        ')
-                s.verbose('<%s> %s built (pocket:%s)\n'
-                             % (package, rel_match, pocket))
-                bs = 2
-            else:
-                s.verbose('        ')
-                s.verbose('<%s> %s not fully built yet, skipping (pocket:%s)\n'
-                             % (package, rel_match, pocket))
-                bs = 1
-            # prefer newer published items...
-            if lst_date:
-                if lst_date > pkg.date_published:
-                    continue
-            lst_date = pkg.date_published
-            res = bs, pkg
-        return res
-
-    def package_check(s, bug):
-        """
-        Verify the required packages for this update, and determine its
-        build status
-        """
-        # Get the source package names and required versions for this update
-        if not s.wfb.pkg_name or not s.wfb.pkg_version:
-            s.verbose('        Unable to check package builds for this bug:'
-                         ' either the package name or\n        version are not'
-                         ' properly available yet in the bug title.\n')
-            return False
-        pkg_mainver = re.findall('-[0-9]+[^ ]+', s.wfb.pkg_version)
-        if pkg_mainver:
-            pkg_mainver = s.wfb.pkg_version.replace(pkg_mainver[0], '', 1)
-        if not pkg_mainver:
-            s.verbose('        ')
-            s.verbose('WARNING: unable to get main package version\n')
-        pkg_abi = re.findall('-[0-9]+\.', s.wfb.pkg_version)
-        if pkg_abi:
-            pkg_abi = pkg_abi[0].lstrip('-').rstrip('.')
-        else:
-            s.verbose('        ')
-            s.verbose('WARNING: unable to get ABI from package version\n')
-        distro_series = None
-        series = s.ubuntu.series_name(s.wfb.pkg_name, s.wfb.pkg_version)
-        if series:
-            sc = s.lp.launchpad.distributions["ubuntu"].series_collection
-            for _s in sc:
-                if _s.name == series:
-                    distro_series = _s
-                    break
-        if not distro_series:
-            print("        ")
-            print("ERROR: can't figure out the distro series for %s-%s\n"
-                  % (s.wfb.pkg_name, s.wfb.pkg_version))
-            return False
-        pkgs = {}
-        entry = s.ubuntu.lookup(series)
-        if entry:
-            if 'dependent-packages' in entry:
-                if s.wfb.pkg_name in entry['dependent-packages']:
-                    pkgs.update(entry['dependent-packages'][s.wfb.pkg_name])
-        pkgs['main'] = s.wfb.pkg_name
-
-        # Try to verify if there was an abi change in this release. We
-        # guess this by looking if there is already a package with same
-        # abi in the updates/release pocket.
-        new_abi = True
-        main_archive = s.lp.launchpad.distributions["ubuntu"].main_archive
-        if pkg_mainver and pkg_abi:
-            st_abi_rel, _ = s.build_status(distro_series, s.wfb.pkg_name,
-                                             pkg_mainver, pkg_abi, main_archive,
-                                             'Release')
-            st_abi_upd, _ = s.build_status(distro_series, s.wfb.pkg_name,
-                                             pkg_mainver, pkg_abi, main_archive,
-                                             'Updates')
-            if st_abi_rel == 2 or st_abi_upd == 2:
-                new_abi = False
-
-        # Check build status. This is really convoluted... due to number
-        # of tasks and we wanting the better behaviour as possible
-        promoted_to_updates = True
-        promoted_to_security = True
-        promoted_to_release = True
-        pkg_security = None
-        pkg_updates = None
-        pkg_release = None
-        task_status = [ 'New', 'In Progress', 'Fix Released' ]
-        ckt = s.lp.launchpad.people['canonical-kernel-team']
-        ckt_archive = ckt.getPPAByName(name='ppa')
-        for dep in iter(pkgs):
-            if pkgs[dep] == s.wfb.pkg_name:
-                bug_task = 'prepare-package'
-            else:
-                bug_task = 'prepare-package-%s' % (dep)
-            abi_num = None
-            pkg_rel = s.wfb.pkg_version
-            if dep in [ 'lbm', 'lrm', 'lum', 'meta', 'ports-meta' ] and pkg_abi:
-                abi_num = pkg_abi
-                pkg_rel = pkg_mainver
-            status_updates = 0
-            status_release = 0
-            prepare_status = 0
-            prepare_assignee = None
-            prepare_uploader = None
-            if s.projectname == 'kernel-sru-workflow':
-                promoted_to_release = False
-                status_ckt, pkg_ckt = s.build_status(distro_series,
-                        pkgs[dep], pkg_rel, abi_num, ckt_archive)
-                status_proposed, pkg_proposed = s.build_status(distro_series,
-                        pkgs[dep], pkg_rel, abi_num, main_archive, 'Proposed')
-                status_updates, pkg_updates = s.build_status(distro_series,
-                        pkgs[dep], pkg_rel, abi_num, main_archive, 'Updates')
-                status_security, pkg_security = s.build_status(distro_series,
-                        pkgs[dep], pkg_rel, abi_num, main_archive, 'Security')
-                if status_security != 2:
-                    promoted_to_security = False
-                if status_updates != 2:
-                    promoted_to_updates = False
-                for _s in [ status_ckt, status_proposed, status_updates ]:
-                    if _s > prepare_status:
-                        prepare_status = _s
-                for c in [ pkg_ckt, pkg_proposed, pkg_updates, pkg_security ]:
-                    if c:
-                        prepare_assignee = c.package_creator
-                        prepare_uploader = c.package_signer
-                        break
-            else:
-                promoted_to_updates = False
-                promoted_to_security = False
-                status_proposed, pkg_proposed = s.build_status(distro_series,
-                        pkgs[dep], pkg_rel, abi_num, main_archive, 'Proposed')
-                status_release, pkg_release = s.build_status(distro_series,
-                        pkgs[dep], pkg_rel, abi_num, main_archive, 'Release')
-                if status_release != 2:
-                    promoted_to_release = False
-                prepare_status = status_proposed
-                if status_release > prepare_status:
-                    prepare_status = status_release
-                if pkg_proposed:
-                    prepare_assignee = pkg_proposed.package_creator
-                    prepare_uploader = pkg_proposed.package_signer
-                elif pkg_release:
-                    prepare_assignee = pkg_release.package_creator
-                    prepare_uploader = pkg_release.package_signer
-            # When things are moved from one pocket to another, things
-            # may be unavailable for some time, and we may think no
-            # packages were built. Thus we add a tagged timestamp,
-            # marking the time when we detect that the builds are
-            # missing. If after 1 hour the builds are still unavailable,
-            # then we allow to reset the tasks.
-            prop = 'kernel-%s-build-unavailable' % (dep)
-            if (s.wfb.tasks_by_name[bug_task].status == 'Fix Released' and
-                prepare_status != 2):
-                s.set_tagged_timestamp(s.wfb.tasks_by_name[bug_task], prop)
-                if not prop in bug.properties:
-                    continue
-                date_str = bug.properties[prop]
-                timestamp = datetime.strptime(date_str, '%A, %d. %B %Y %H:%M UTC')
-                delta = DeltaTime(timestamp, datetime.utcnow())
-                if delta.hours < 1:
-                    s.verbose('        ')
-                    s.verbose('Builds gone for %s, waiting 1 hour to reset tasks\n'
-                                 % (bug_task))
-                    continue
-            if prop in bug.properties:
-                s.props.set({prop:None})
-            new_status = s.wfb.tasks_by_name[bug_task].status
-            if abi_num:
-                if new_abi:
-                    new_status = task_status[prepare_status]
-                else:
-                    if new_status != 'Invalid' and new_status != 'Fix Released':
-                        new_status = 'Invalid'
-            else:
-                new_status = task_status[prepare_status]
-            if prepare_assignee and new_status != 'Invalid':
-                s.set_task_assignee(bug_task, prepare_assignee)
-
-            s.set_task_to_state(bug_task, new_status)
-            # Take care of the upload-to-ppa task if needed
-            if dep == 'main' and 'upload-to-ppa' in s.wfb.tasks_by_name:
-                if prepare_uploader:
-                    s.set_task_assignee('upload-to-ppa', prepare_uploader)
-                if prepare_status >= 1:
-                    s.set_task_to_state('upload-to-ppa', 'Fix Released')
-                elif s.wfb.tasks_by_name['upload-to-ppa'].status != 'Confirmed':
-                    s.set_task_to_state('upload-to-ppa', 'New')
-
-        # Set promotion bug tasks
-        if promoted_to_security:
-            if pkg_security:
-                s.set_task_assignee('promote-to-security',
-                                       pkg_security.creator)
-            s.set_task_to_state('promote-to-security', 'Fix Released')
-        #else:
-            # TODO: verify promote-to-security task state
-        if promoted_to_updates:
-            if pkg_updates:
-                s.set_task_assignee('promote-to-updates',
-                                       pkg_updates.creator)
-            s.set_task_to_state('promote-to-updates', 'Fix Released')
-        #else:
-            # TODO: verify promote-to-updates task state
-        if promoted_to_release:
-            if pkg_release:
-                s.set_task_assignee('promote-to-release',
-                                       pkg_release.creator)
-            s.set_task_to_state('promote-to-release', 'Fix Released')
-        #else:
-            # TODO: verify promote-to-updates task state
-
-        return True
 
     def has_prep_task(s, taskname):
         if taskname in s.wfb.tasks_by_name:
@@ -1903,14 +1625,14 @@ class Shank(StdApp):
             s.projects_tracked = [ 'kernel-development-workflow', 'kernel-sru-workflow' ]
             if s.args.bugs:
                 for bugid in s.args.bugs:
-                    s.shank(bugid)
+                    s.shank(bugid, s.args.sauron)
 
             else:
                 for project in s.projects_tracked:
                     info('Project: %s' % project)
 
                     for bugid in s.get_buglist(project):
-                        s.shank(bugid)
+                        s.shank(bugid, s.args.sauron)
 
         # Handle the user presses <ctrl-C>.
         #
