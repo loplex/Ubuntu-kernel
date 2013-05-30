@@ -693,20 +693,12 @@ class Shank(StdApp):
 
     # set_tagged_timestamp
     #
-    """
-    Add the supplied key with a timestamp. We do not replace existing keys
-    """
     def set_tagged_timestamp(s, taskobj, keyvalue):
-        bug = taskobj.bug
-        s.verbose('        ')
-        if keyvalue in bug.properties:
-            s.verbose('tagged timestamp <%s> already in the tracking bug, not replacing\n' % keyvalue)
-            return
-        if s.args.dryrun:
-            s.verbose('Dryrun - Adding tagged timestamp <%s> to tracking bug\n' % keyvalue)
-            return
-        else:
-            s.verbose('Adding tagged timestamp <%s> to tracking bug\n' % keyvalue)
+        '''
+        Add the supplied key with a timestamp. We do not replace existing keys
+        '''
+        if not s.args.dryrun and keyvalue not in taskobj.bug.properties:
+            cinfo('        Adding tagged timestamp <%s> to tracking bug' % keyvalue)
 
             now = datetime.utcnow()
             now.replace(tzinfo=None)
@@ -1136,8 +1128,7 @@ class Shank(StdApp):
                     s.props.set({tstamp_prop:None})
                 return False
             for item in missing_pkg:
-                s.verbose('Didn\'t find <%s> <%s> on -%s yet, check on next run\n'
-                             % (item[0], item[1], pocket))
+                cinfo('Didn\'t find <%s> <%s> on -%s yet' % (item[0], item[1], pocket), 'red')
             return False
 
         return True
