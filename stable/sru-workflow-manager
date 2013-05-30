@@ -415,39 +415,6 @@ class Shank(StdApp):
 
         return retval
 
-    # initialize
-    #
-    def initialize(self):
-        self.defaults['launchpad_client_name'] = 'kernel-team-sru-workflow-manager'
-        if self.args.staging:
-            self.defaults['launchpad_services_root'] = 'qastaging'
-        self.lp = LaunchpadService(self.defaults)
-        self.ubuntu = Ubuntu()
-
-        # The service.distributions property is a collection of distributions. We
-        # pretty much only care about one, 'ubuntu'.
-        #
-        self.distro = self.lp.distributions['ubuntu']
-
-        # Get set up for email and status messages
-        if 'mail_notify' in self.cfg:
-            mcfg = self.cfg['mail_notify']
-            self.email = Email(mcfg['smtp_server'].encode('UTF-8'), mcfg['smtp_user'].encode('UTF-8'), mcfg['smtp_pass'].encode('UTF-8'))
-
-        scfg = self.cfg['status_net']
-        self.status = Status(scfg['url'], scfg['user'], scfg['pass'])
-
-        # Get the text for spamming bugs
-        spamtextpath =  path.join(path.dirname(__file__), self.cfg['bug_spam']['text_filename'])
-        self.verbose('Bug spam text is from file %s\n' % spamtextpath)
-        self.spamtext = open(spamtextpath, 'r').read()
-
-        self.taskbyname = {}
-
-        self.printlink = "(No link)"
-
-        return
-
     def shank(self, bugid):
         self.printlink =  '%s : (%s)\n' % (bugid, self.bug_url(bugid)),
         self.verbose('Processing: %s' % self.printlink)
@@ -1916,9 +1883,51 @@ class Shank(StdApp):
         # We should never trigger a release test from this, since it should have lready been done
         return False
 
+    # initialize
+    #
+    def initialize(self):
+        '''
+        There are certain things (like connecting to LP) that I don't like to do
+        in the constructor because they are so time consuming. Those thinngs are
+        done here.
+        '''
+        self.defaults['launchpad_client_name'] = 'kernel-team-sru-workflow-manager'
+        if self.args.staging:
+            self.defaults['launchpad_services_root'] = 'qastaging'
+        self.lp = LaunchpadService(self.defaults)
+        self.ubuntu = Ubuntu()
+
+        # The service.distributions property is a collection of distributions. We
+        # pretty much only care about one, 'ubuntu'.
+        #
+        self.distro = self.lp.distributions['ubuntu']
+
+        # Get set up for email and status messages
+        if 'mail_notify' in self.cfg:
+            mcfg = self.cfg['mail_notify']
+            self.email = Email(mcfg['smtp_server'].encode('UTF-8'), mcfg['smtp_user'].encode('UTF-8'), mcfg['smtp_pass'].encode('UTF-8'))
+
+        scfg = self.cfg['status_net']
+        self.status = Status(scfg['url'], scfg['user'], scfg['pass'])
+
+        # Get the text for spamming bugs
+        spamtextpath =  path.join(path.dirname(__file__), self.cfg['bug_spam']['text_filename'])
+        self.verbose('Bug spam text is from file %s\n' % spamtextpath)
+        self.spamtext = open(spamtextpath, 'r').read()
+
+        self.taskbyname = {}
+
+        self.printlink = "(No link)"
+
+        return
+
     # main
     #
     def main(self):
+        '''
+        This drives the overall process. It gets a list of the bugs that need to
+        be worked (if not specified) and then runs through each of them.
+        '''
         try:
             # Load our config options.
             #
