@@ -504,39 +504,6 @@ class Shank(StdApp):
 
         return
 
-    # main
-    #
-    def main(self):
-        try:
-            # Load our config options.
-            #
-            cfg_path = path.dirname(__file__) + '/sru-workflow.cfg'
-            with open(cfg_path, 'r') as f:
-                self.cfg = json.load(f)
-
-            self.initialize()
-
-            self.projects_tracked = [ 'kernel-development-workflow', 'kernel-sru-workflow' ]
-            if self.args.bugs:
-                for bugid in self.args.bugs:
-                    self.shank(bugid)
-
-            else:
-                for project in self.projects_tracked:
-                    info('Project: %s' % project)
-
-                    for bugid in self.get_buglist(project):
-                        self.shank(bugid)
-
-        # Handle the user presses <ctrl-C>.
-        #
-        except KeyboardInterrupt:
-            pass
-
-        return
-
-    # end of main
-
     def bug_url(self, bug_id):
         if self.args.staging:
             lpserver = 'bugs.qastaging.launchpad.net'
@@ -1859,6 +1826,39 @@ class Shank(StdApp):
 
         # We should never trigger a release test from this, since it should have lready been done
         return False
+
+    # main
+    #
+    def main(self):
+        try:
+            # Load our config options.
+            #
+            cfg_path = path.dirname(__file__) + '/sru-workflow.cfg'
+            with open(cfg_path, 'r') as f:
+                self.cfg = json.load(f)
+
+            self.initialize()
+
+            self.projects_tracked = [ 'kernel-development-workflow', 'kernel-sru-workflow' ]
+            if self.args.bugs:
+                for bugid in self.args.bugs:
+                    self.shank(bugid)
+
+            else:
+                for project in self.projects_tracked:
+                    info('Project: %s' % project)
+
+                    for bugid in self.get_buglist(project):
+                        self.shank(bugid)
+
+        # Handle the user presses <ctrl-C>.
+        #
+        except KeyboardInterrupt:
+            pass
+
+        return
+
+    # end of main
 
 if __name__ == '__main__':
     # Command line argument setup and initial processing
