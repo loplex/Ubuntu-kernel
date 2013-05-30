@@ -30,6 +30,9 @@ from sb.package                         import Package, PackageError
 def verbose(msg, color='green'):
     stdo(colored(msg, color))
 
+def cinfo(msg, color='green'):
+    info(colored(msg, color))
+
 # WorkflowBugTask
 #
 class WorkflowBugTask(object):
@@ -61,26 +64,25 @@ class WorkflowBug():
 
         s.__package_name = None
 
-        verbose('            WorkflowBug.__init__\n', 'blue')       # FIXME bjf - debugging
-        verbose('                      title: "%s"\n' % s.title, 'blue')  # FIXME bjf - debugging
+        cinfo('                      title: "%s"' % s.title, 'blue')
 
         try:
             s.pkg_name = re.findall('linux[^:]*', s.title)[0]
         except IndexError:
             s.pkg_name = None
-        verbose('                   pkg_name: "%s"\n' % s.pkg_name, 'blue')  # FIXME bjf - debugging
+        cinfo('                   pkg_name: "%s"' % s.pkg_name, 'blue')
 
         try:
             s.pkg_version = re.findall('([0-9]+\.[^ ]+)', s.title)[0]
         except IndexError:
             s.pkg_version = None
-        verbose('                pkg_version: "%s"\n' % s.pkg_version, 'blue')  # FIXME bjf - debugging
+        cinfo('                pkg_version: "%s"' % s.pkg_version, 'blue')
 
         if s.pkg_name is not None and s.pkg_version is not None:
             s.series = Ubuntu().series_name(s.pkg_name, s.pkg_version)
         else:
             s.series = None
-        verbose('                     series: "%s"\n' % s.series, 'blue')  # FIXME bjf - debugging
+        cinfo('                     series: "%s"' % s.series, 'blue')
 
         # If a bug isn't to be processed, detect this as early as possible.
         #
@@ -446,6 +448,10 @@ class Shank(StdApp):
     # process_bug_tasks
     #
     def process_bug_tasks(s, shankbug):
+        '''
+        Go through every workflow task and perform the associated actions
+        based on the current state (status) of that task.
+        '''
         # Determine this bugs project.
         #
         for t in shankbug.lpbug.tasks:
@@ -473,58 +479,37 @@ class Shank(StdApp):
 
         # Go through each task.
         #
-        s.verbose('\n    Processing bug tasks:')
-        for t in shankbug.lpbug.tasks:
-            task_name = t.bug_target_name.strip()
-            # bug_target_name includes both the main and sub task in the string
-            # so for example it could be "Kernel SRU Workflow prepare-package"
-            # so we have to strip off the right hand part
-            # The task can also be just the single parent task
-            #
+        info('')
+        info('    Processing Workflow Tasks:')
 
-            if task_name == master_task_name:
-                s.verbose("\n        %-25s\n" % (task_name))
-                s.verbose('            Action: Skipping empty master workflow task \n')
-                return
+        for workflow_task_name in sorted(shankbug.tasks_by_name):
+            if workflow_task_name in ['kernel-sru-workflow', 'kernel-development-workflow']:
+                continue
 
-            if not task_name.startswith(master_task_name):
-                # Ignore the tasks assigned to the actual package, we care about workflow only
-                s.verbose("\n        %-25s\n" % (task_name))
-                s.verbose('            Action: Skipping non-workflow task\n')
-                return
+            task = shankbug.tasks_by_name[workflow_task_name]
+            info("        %-25s  %15s  %10s  %s" % (task.name, task.status, task.importance, task.assignee))
 
             therest = task_name[len(master_task_name)+1:].strip()
             task_name = therest
 
-            state      = t.status
-            importance = t.importance
-            assignee    = t.assignee
-            if assignee is None:
-                assignee = '*Unassigned'
-            else:
-                assignee = assignee.display_name
+            if workflow_task_name not in s.state_map:
+                info('            ' + s.printlink)
+                info('            Warning: I don\'t know how to handle the task <%s>, skipping' % (workflow_task_name))
+                continue
 
-            s.verbose("\n        %-25s  %15s" % (task_name, state), 'yellow')
-            s.verbose("  %10s  %s\n" % (importance, assignee))
+            try:
+                action = s.state_map[task.name][task.status]['action']
 
-            if task_name not in s.state_map:
-                print s.printlink,
-                print("            Warning: I don't know how to handle the task <%s>, skipping" % (task_name))
-                return
+                if action is None:
+                    info('            Action: No action for task %s in state %s\n' % (task.name, task.status))
+                else:
+                    res_action = action(t)
+                    if s.projectname == 'kernel-sru-workflow' and res_action:
+                        performReleaseTest = True
 
-            if 'action' not in s.state_map[task_name][state]:
-                print s.printlink,
-                print("            Error: No action found for state <%s> and task <%s>" % (state, task_name))
-                raise ValueError
-
-            action = s.state_map[task_name][state]['action']
-
-            if  action is None:
-                s.verbose('            Action: No action for task %s in state %s\n' % (task_name, state))
-            else:
-                res_action = action(t)
-                if s.projectname == 'kernel-sru-workflow' and res_action:
-                    performReleaseTest = True
+            except KeyError:
+                info('            ' + s.printlink)
+                info('            Error: No action found for state <%s> and task <%s>' % (task.status, task.name))
 
         # Now process any tests which require information from multiple tasks
         # will require info stored in class variables during task processing
@@ -1011,7 +996,7 @@ class Shank(StdApp):
                 return True
         return False
 
-    def check_component_in_pocket(s, taskobj, tstamp_prop, dt_utcnow, pocket):
+    def check_component_in_pocket(s, taskobj, tstamp_prop, pocket):
         """
         Check if packages for the given tracking bug were properly copied
         to the right component in the given pocket.
@@ -1033,7 +1018,7 @@ class Shank(StdApp):
         if tstamp_prop in bug.properties:
             date_str = bug.properties[tstamp_prop]
             timestamp = datetime.strptime(date_str, '%A, %d. %B %Y %H:%M UTC')
-            delta = DeltaTime(timestamp, dt_utcnow)
+            delta = DeltaTime(timestamp, datetime.utcnow())
             if delta.hours < 1:
                 s.verbose('Waiting 1 hour after promote-to-%s was Fix Released\n'
                              % (pocket))
@@ -1151,7 +1136,7 @@ class Shank(StdApp):
                     s.props.set({tstamp_prop:None})
                 return False
             for item in missing_pkg:
-                s.verbose('Didn\'t found <%s> <%s> on -%s yet, check on next run\n'
+                s.verbose('Didn\'t find <%s> <%s> on -%s yet, check on next run\n'
                              % (item[0], item[1], pocket))
             return False
 
@@ -1170,7 +1155,7 @@ class Shank(StdApp):
         # Check if packages were copied to the right pocket->component
         if not s.check_component_in_pocket(taskobj,
                 'kernel-stable-Promote-to-proposed-end',
-                datetime.utcnow(), 'proposed'):
+                'proposed'):
             return False
 
         # Update remaining time stamps and status, send announcement
@@ -1346,7 +1331,7 @@ class Shank(StdApp):
             return
 
         if not s.check_component_in_pocket(taskobj,
-                    'kernel-Promote-to-release-end', datetime.utcnow(),
+                    'kernel-Promote-to-release-end',
                     'release'):
             return False
 
@@ -1541,10 +1526,10 @@ class Shank(StdApp):
             if s.wfb.tasks_by_name['promote-to-security'].status == 'Fix Released':
                 pok_sec = s.check_component_in_pocket(taskobj,
                             'kernel-stable-Promote-to-updates-end',
-                            current_time, 'security')
+                            'security')
             pok_upd = s.check_component_in_pocket(taskobj,
                         'kernel-stable-Promote-to-updates-end',
-                        current_time, 'updates')
+                        'updates')
             if not (pok_sec and pok_upd):
                 return False
 
