@@ -127,7 +127,7 @@ class WorkflowBug():
         We are only interested in the tasks that are specific to the workflow project. Others
         are ignored.
         '''
-        taskbyname = {}
+        tasks_by_name = {}
 
         info('')
         info('    Scanning bug tasks:')
@@ -138,13 +138,13 @@ class WorkflowBug():
             if task_name.startswith(s.targeted_project):
                 if '/' in task_name:
                     task_name = task_name[len(s.targeted_project)+1:].strip()
-                taskbyname[task_name] = WorkflowBugTask(t, task_name)
+                tasks_by_name[task_name] = WorkflowBugTask(t, task_name)
             else:
                 info('')
                 info('        %-25s' % (task_name))
                 info('            Action: Skipping non-workflow task')
 
-        return taskbyname
+        return tasks_by_name
 
 # Shank
 #
@@ -431,7 +431,7 @@ class Shank(StdApp):
         master_task_name = s.projectname
 
         s.wfb = WorkflowBug(s.lp, s.projects_tracked, bugid, s.args.sauron)
-        s.taskbyname = s.wfb.tasks_by_name
+        s.wfb.tasks_by_name = s.wfb.tasks_by_name
 
         # initialize any per-bug variables that we use
         s.bugtags = []
@@ -573,8 +573,8 @@ class Shank(StdApp):
                       'prepare-package-lum', 'prepare-package-meta',
                       'prepare-package-ports-meta' ]
         for taskname in tasks_abi:
-            if taskname in s.taskbyname:
-                if s.taskbyname[taskname].status != "Fix Released":
+            if taskname in s.wfb.tasks_by_name:
+                if s.wfb.tasks_by_name[taskname].status != "Fix Released":
                     return False
         return True
 
@@ -659,14 +659,14 @@ class Shank(StdApp):
 
         # TODO could add error handling and retries here if needed
         new_assignee = None
-        current_assignee = s.taskbyname[taskname].assignee
+        current_assignee = s.wfb.tasks_by_name[taskname].assignee
         if current_assignee and current_assignee.username != assignee.name:
             new_assignee = assignee
         elif not current_assignee:
             new_assignee = assignee
         if new_assignee:
             print('        Assigning Task <%s> to <%s>' % (taskname, assignee))
-            s.taskbyname[taskname].assignee = assignee
+            s.wfb.tasks_by_name[taskname].assignee = assignee
             return True
         else:
             s.verbose('        ')
@@ -685,9 +685,9 @@ class Shank(StdApp):
 
         s.verbose('        Setting %s to %s\n' % (taskname, state), 'red')
         # TODO could add error handling and retries here if needed
-        if s.taskbyname[taskname].status != state:
+        if s.wfb.tasks_by_name[taskname].status != state:
             print('        Setting Task <%s> to State <%s>' % (taskname, state))
-            s.taskbyname[taskname].status = state
+            s.wfb.tasks_by_name[taskname].status = state
             return True
         else:
             s.verbose('        ')
@@ -828,10 +828,10 @@ class Shank(StdApp):
         Check if all prepare-package tasks are finished, returning a
         boolean value indicating so
         """
-        for task in iter(s.taskbyname):
+        for task in iter(s.wfb.tasks_by_name):
             if task.startswith('prepare-package'):
-                if (s.taskbyname[task].status != 'Fix Released' and
-                    s.taskbyname[task].status != 'Invalid'):
+                if (s.wfb.tasks_by_name[task].status != 'Fix Released' and
+                    s.wfb.tasks_by_name[task].status != 'Invalid'):
                     return False
         return True
 
@@ -854,13 +854,13 @@ class Shank(StdApp):
         else:
             taskname = 'package-testing'
 
-        s.verbose('                %s status: %s\n' % (taskname, s.taskbyname[taskname].status), 'blue')  # FIXME bjf - debugging
+        s.verbose('                %s status: %s\n' % (taskname, s.wfb.tasks_by_name[taskname].status), 'blue')  # FIXME bjf - debugging
 
         # Even though we came in here do to one of the prepare-package* tasks being
         # set to 'Fix Released' we don't actually do anything unless the next state
         # (promote-to-proposed or package-testing) is 'New'.
         #
-        if s.taskbyname[taskname].status == 'New':
+        if s.wfb.tasks_by_name[taskname].status == 'New':
             # check if all prepare-package tasks are finished
             if not s.prepare_package_fixed():
                 s.verbose('                prepare_package_fixed: false\n', 'blue')  # FIXME bjf - debugging
@@ -972,7 +972,7 @@ class Shank(StdApp):
                 msgbody += ' must be handled manually):'
                 for ln in m_bug_list:
                     msgbody += '\n%s' % (ln)
-            task = s.taskbyname[s.projectname]
+            task = s.wfb.tasks_by_name[s.projectname]
             s.send_comment(task, 'Packages available', msgbody)
 
             # Set promote-to-proposed
@@ -1228,9 +1228,9 @@ class Shank(StdApp):
             # missing. If after 1 hour the builds are still unavailable,
             # then we allow to reset the tasks.
             prop = 'kernel-%s-build-unavailable' % (dep)
-            if (s.taskbyname[bug_task].status == 'Fix Released' and
+            if (s.wfb.tasks_by_name[bug_task].status == 'Fix Released' and
                 prepare_status != 2):
-                s.set_tagged_timestamp(s.taskbyname[bug_task], prop)
+                s.set_tagged_timestamp(s.wfb.tasks_by_name[bug_task], prop)
                 if not prop in bug.properties:
                     continue
                 date_str = bug.properties[prop]
@@ -1243,7 +1243,7 @@ class Shank(StdApp):
                     continue
             if prop in bug.properties:
                 s.props.set({prop:None})
-            new_status = s.taskbyname[bug_task].status
+            new_status = s.wfb.tasks_by_name[bug_task].status
             if abi_num:
                 if new_abi:
                     new_status = task_status[prepare_status]
@@ -1257,12 +1257,12 @@ class Shank(StdApp):
 
             s.set_task_to_state(bug_task, new_status)
             # Take care of the upload-to-ppa task if needed
-            if dep == 'main' and 'upload-to-ppa' in s.taskbyname:
+            if dep == 'main' and 'upload-to-ppa' in s.wfb.tasks_by_name:
                 if prepare_uploader:
                     s.set_task_assignee('upload-to-ppa', prepare_uploader)
                 if prepare_status >= 1:
                     s.set_task_to_state('upload-to-ppa', 'Fix Released')
-                elif s.taskbyname['upload-to-ppa'].status != 'Confirmed':
+                elif s.wfb.tasks_by_name['upload-to-ppa'].status != 'Confirmed':
                     s.set_task_to_state('upload-to-ppa', 'New')
 
         # Set promotion bug tasks
@@ -1291,8 +1291,8 @@ class Shank(StdApp):
         return True
 
     def has_prep_task(s, taskname):
-        if taskname in s.taskbyname:
-            if s.taskbyname[taskname].status == "Fix Released":
+        if taskname in s.wfb.tasks_by_name:
+            if s.wfb.tasks_by_name[taskname].status == "Fix Released":
                 return True
         return False
 
@@ -1448,7 +1448,7 @@ class Shank(StdApp):
         verification-testing to In Progress, add tags to the bugs, and spam with text
         """
         # Exit if processed already
-        task = s.taskbyname['verification-testing']
+        task = s.wfb.tasks_by_name['verification-testing']
         if task.status != 'New':
             return False
 
@@ -1476,22 +1476,22 @@ class Shank(StdApp):
         These are certification-testing, regression-testing, and security-signoff
         """
         # Add time stamp and status
-        if ((s.taskbyname['certification-testing'].status != 'Fix Released' and
-             s.taskbyname['certification-testing'].status != 'Invalid') or
-            (s.taskbyname['security-signoff'].status != 'Fix Released' and
-             s.taskbyname['security-signoff'].status != 'Invalid') or
-            (s.taskbyname['regression-testing'].status != 'Fix Released' and
-             s.taskbyname['regression-testing'].status != 'Invalid')):
+        if ((s.wfb.tasks_by_name['certification-testing'].status != 'Fix Released' and
+             s.wfb.tasks_by_name['certification-testing'].status != 'Invalid') or
+            (s.wfb.tasks_by_name['security-signoff'].status != 'Fix Released' and
+             s.wfb.tasks_by_name['security-signoff'].status != 'Invalid') or
+            (s.wfb.tasks_by_name['regression-testing'].status != 'Fix Released' and
+             s.wfb.tasks_by_name['regression-testing'].status != 'Invalid')):
             s.set_tagged_timestamp(taskobj, 'kernel-stable-Verification-testing-end')
             s.set_phase(taskobj, 'Testing')
 
-        if s.taskbyname['certification-testing'].status == 'New':
+        if s.wfb.tasks_by_name['certification-testing'].status == 'New':
             s.set_task_to_state('certification-testing', 'Confirmed')
             s.set_tagged_timestamp(taskobj, 'kernel-stable-Certification-testing-start')
-        if s.taskbyname['regression-testing'].status == 'New':
+        if s.wfb.tasks_by_name['regression-testing'].status == 'New':
             s.set_task_to_state('regression-testing', 'Confirmed')
             s.set_tagged_timestamp(taskobj, 'kernel-stable-Regression-testing-start')
-        if s.taskbyname['security-signoff'].status == 'New':
+        if s.wfb.tasks_by_name['security-signoff'].status == 'New':
             s.set_task_to_state('security-signoff', 'Confirmed')
             s.set_tagged_timestamp(taskobj, 'kernel-stable-Security-signoff-start')
         return False
@@ -1589,7 +1589,7 @@ class Shank(StdApp):
         development kernel passed all wanted testing and is acked to go
         to the release pocket by the Ubuntu Kernel Team
         """
-        if s.taskbyname['promote-to-release'].status == 'New':
+        if s.wfb.tasks_by_name['promote-to-release'].status == 'New':
             # if this is a derivative tracking bug, first wait until
             # that packages on the master tracking bug are also ready or
             # already promoted. The way derivative package bugs are
@@ -1621,12 +1621,12 @@ class Shank(StdApp):
         # Ensure all tasks are closed
         if not s.prepare_package_fixed():
             return
-        if (s.taskbyname['package-testing'].status != 'Fix Released' or
-            s.taskbyname['package-testing'].status != 'Invalid'):
-            s.taskbyname['package-testing'].status = "Won't Fix"
+        if (s.wfb.tasks_by_name['package-testing'].status != 'Fix Released' or
+            s.wfb.tasks_by_name['package-testing'].status != 'Invalid'):
+            s.wfb.tasks_by_name['package-testing'].status = "Won't Fix"
 
         # Do we halted processing?
-        if (s.taskbyname[s.projectname].status != 'In Progress'):
+        if (s.wfb.tasks_by_name[s.projectname].status != 'In Progress'):
             s.verbose('*** promote-to-release halted on bug with status!=In Progress\n')
             return
 
@@ -1653,7 +1653,7 @@ class Shank(StdApp):
         return True
 
     def release_test_state_check(s, taskname, desired_state_list):
-        taskobj = s.taskbyname[taskname]
+        taskobj = s.wfb.tasks_by_name[taskname]
         if taskobj.status not in desired_state_list:
             s.verbose('ERROR: %s task set to Unexpected state!\n' % taskname)
             # Send email and possibly a status update
@@ -1719,36 +1719,36 @@ class Shank(StdApp):
             s.release_test_state_check('promote-to-updates', ['New', 'Confirmed', 'Incomplete', 'Fix Released'])
 
             # If we found any problems, we've halted processing and set this
-            if (s.taskbyname[s.projectname].status != 'In Progress' or
-                s.taskbyname['promote-to-security'].status == 'Incomplete' or
-                s.taskbyname['promote-to-updates'].status == 'Incomplete'):
+            if (s.wfb.tasks_by_name[s.projectname].status != 'In Progress' or
+                s.wfb.tasks_by_name['promote-to-security'].status == 'Incomplete' or
+                s.wfb.tasks_by_name['promote-to-updates'].status == 'Incomplete'):
                 s.verbose('*** Exiting release test without triggering any publishing\n')
                 return
 
-            if ((s.taskbyname['promote-to-security'].status == 'Confirmed' or
-                 s.taskbyname['promote-to-security'].status == 'Invalid') and
-                s.taskbyname['promote-to-updates'].status == 'Confirmed'):
+            if ((s.wfb.tasks_by_name['promote-to-security'].status == 'Confirmed' or
+                 s.wfb.tasks_by_name['promote-to-security'].status == 'Invalid') and
+                s.wfb.tasks_by_name['promote-to-updates'].status == 'Confirmed'):
                 s.verbose('*** Exiting release test, all set\n')
                 return
 
-            if s.taskbyname['security-signoff'].status == 'Fix Released':
+            if s.wfb.tasks_by_name['security-signoff'].status == 'Fix Released':
                 # publishing to security is required
                 s.security_publishing_required = True
 
             # one last check for test results
-            if ('qa-testing-passed' in s.bugtags or s.taskbyname['regression-testing'].status == 'Invalid') and \
-                    ('certification-testing-passed' in s.bugtags or s.taskbyname['certification-testing'].status == 'Invalid'):
+            if ('qa-testing-passed' in s.bugtags or s.wfb.tasks_by_name['regression-testing'].status == 'Invalid') and \
+                    ('certification-testing-passed' in s.bugtags or s.wfb.tasks_by_name['certification-testing'].status == 'Invalid'):
 
                 # We don't publish on Fri/Sat/Sun (see comment on function
                 # hold_updates_security_copy). Also, only allow the
                 # promote-to-{updates,security} on derivative packages
                 # if the master packages are already ready for promotion
                 # or already promoted to the updates/security pockets.
-                tbug = s.taskbyname[s.projectname].bug
+                tbug = s.wfb.tasks_by_name[s.projectname].bug
                 tsk_st = { 'promote-to-updates' : [ 'Confirmed', 'Fix Released' ],
                            'promote-to-security' : [ 'Confirmed', 'Fix Released', 'Invalid' ] }
                 if (not s.hold_updates_security_copy() and s.check_master_task(tbug, tsk_st) > 0):
-                    task = s.taskbyname[s.projectname]
+                    task = s.wfb.tasks_by_name[s.projectname]
                     # If this is a derivative, it's supposed to be
                     # rebased on top of master, or to have security
                     # fixes as master has. Thus, we also enable
@@ -1767,13 +1767,13 @@ class Shank(StdApp):
 
                     if s.security_publishing_required or security_master == 2:
                         s.verbose('Requires publishing to the -security pocket\n')
-                        if s.taskbyname['promote-to-security'].status == 'New':
+                        if s.wfb.tasks_by_name['promote-to-security'].status == 'New':
                             s.set_task_to_state('promote-to-security', 'Confirmed')
                     else:
-                        if s.taskbyname['promote-to-security'].status == 'New':
+                        if s.wfb.tasks_by_name['promote-to-security'].status == 'New':
                             s.set_task_to_state('promote-to-security', 'Invalid')
 
-                    if s.taskbyname['promote-to-updates'].status == 'New':
+                    if s.wfb.tasks_by_name['promote-to-updates'].status == 'New':
                         s.set_task_to_state('promote-to-updates', 'Confirmed')
                         s.set_tagged_timestamp(task, 'kernel-stable-Promote-to-updates-start')
                         s.set_phase(task, 'CopyToUpdates')
@@ -1798,10 +1798,10 @@ class Shank(StdApp):
                     msgbody = msgbody + '    ' + ftag + '\n'
                 msgbody = msgbody + '\n'
                 msgbody = msgbody + 'Further processing of this bug by Workflow Manager is halted.\n'
-                s.send_comment(s.taskbyname[s.projectname], 'Test completion tags not found during release test', msgbody)
+                s.send_comment(s.wfb.tasks_by_name[s.projectname], 'Test completion tags not found during release test', msgbody)
                 # stop further processing by this bot
                 s.set_task_to_state(s.projectname, 'Incomplete')
-                s.set_phase(s.taskbyname[s.projectname], 'OnHold')
+                s.set_phase(s.wfb.tasks_by_name[s.projectname], 'OnHold')
         # this method is not associated with a task state transition so no status returned
         return 
 
@@ -1812,18 +1812,18 @@ class Shank(StdApp):
         """
         s.verbose('*** Performing check for final close test\n')
 
-        if s.taskbyname[s.projectname].status == 'Fix Released':
+        if s.wfb.tasks_by_name[s.projectname].status == 'Fix Released':
             print ' Bug already closed, aborting check'
             return False
 
-        if (( s.taskbyname['promote-to-updates'].status == 'Fix Released') and
-            (s.taskbyname['promote-to-security'].status == 'Invalid' or
-            s.taskbyname['promote-to-security'].status == 'Fix Released')):
+        if (( s.wfb.tasks_by_name['promote-to-updates'].status == 'Fix Released') and
+            (s.wfb.tasks_by_name['promote-to-security'].status == 'Invalid' or
+            s.wfb.tasks_by_name['promote-to-security'].status == 'Fix Released')):
 
             # Check if packages were copied to the right pocket->component
             current_time = datetime.utcnow()
             pok_sec = True
-            if s.taskbyname['promote-to-security'].status == 'Fix Released':
+            if s.wfb.tasks_by_name['promote-to-security'].status == 'Fix Released':
                 pok_sec = s.check_component_in_pocket(taskobj,
                             'kernel-stable-Promote-to-updates-end',
                             current_time, 'security')
@@ -1842,7 +1842,7 @@ class Shank(StdApp):
             msgbody = 'The package has been published and the bug is being set to Fix Released\n'
             s.send_comment(taskobj, 'Package Released!', msgbody)
 
-            task = s.taskbyname['promote-to-updates']
+            task = s.wfb.tasks_by_name['promote-to-updates']
             s.send_status_update(task, 'has been published.')
 
         # We should never trigger a release test from this, since it should have lready been done
@@ -1879,8 +1879,6 @@ class Shank(StdApp):
         spamtextpath =  path.join(path.dirname(__file__), s.cfg['bug_spam']['text_filename'])
         s.verbose('Bug spam text is from file %s\n' % spamtextpath)
         s.spamtext = open(spamtextpath, 'r').read()
-
-        s.taskbyname = {}
 
         s.printlink = "(No link)"
 
