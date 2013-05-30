@@ -523,7 +523,8 @@ class Shank(StdApp):
             # everything in one go as we get build information for all
             # packages
             self.verbose('\n    Checking status for packages in this bug:\n')
-            self.package_check(bug)
+            if not self.package_check(bug):
+                continue
 
             # now walk them one at a time
             self.verbose('\n    Processing bug tasks:')
@@ -789,6 +790,7 @@ class Shank(StdApp):
             self.verbose('Dryrun - Set task %s to state %s\n' % (taskname, state))
             return
 
+        self.verbose('        Setting %s to %s' % (taskname, state), 'red')
         # TODO could add error handling and retries here if needed
         if self.taskbyname[taskname].status != state:
             print('        Setting Task <%s> to State <%s>' % (taskname, state))
@@ -997,62 +999,59 @@ class Shank(StdApp):
             if not series:
                 print("ERROR: Can't find series for %s-%s to get derivatives\n" % (self.wfb.pkg_name, self.wfb.pkg_version))
                 return False
+
             der_list = []
-            found = self.ubuntu.lookup(series)
-            if 'derivative-packages' in found:
-                if self.wfb.pkg_name in found['derivative-packages']:
-                    der_list = found['derivative-packages'][self.wfb.pkg_name]
+            record = self.ubuntu.lookup(series)
+            if 'derivative-packages' in record:
+                if self.wfb.pkg_name in record['derivative-packages']:
+                    der_list = record['derivative-packages'][self.wfb.pkg_name]
             bp_list = []
             for entry in self.ubuntu.db.itervalues():
                 if 'backport-packages' in entry:
                     bp_entries = entry['backport-packages']
                     for bp_entry in iter(bp_entries):
-                        if (bp_entries[bp_entry][0] == self.wfb.pkg_name and
-                            bp_entries[bp_entry][1] == found['series_version']):
+                        if (bp_entries[bp_entry][0] == self.wfb.pkg_name and bp_entries[bp_entry][1] == record['series_version']):
                             bp_list.append([bp_entry, entry['name']])
 
             der_bug_list = []
-            bp_bug_list = []
-            m_bug_list = []
-            msgder =  "This tracking bug was opened to be worked from "
-            msgder += "%s-%s update (bug %s)" % (self.wfb.pkg_name, self.wfb.pkg_version, taskobj.bug.id)
-            subder =  "Derivative package tracking bug"
+            bp_bug_list  = []
+            m_bug_list   = []
+
             tb = TrackingBug(self.lp, 'staging' in self.cfg)
             for der_pkg in der_list:
                 if 'dryrun' in self.cfg:
                     self.verbose('        ')
-                    self.verbose('Dryrun - Would open tracking bug for derivative package %s\n'
-                                 % (der_pkg))
+                    self.verbose('Dryrun - Would open tracking bug for derivative package %s\n' % (der_pkg))
                     continue
                 try:
                     print('        ')
-                    bug = tb.open(der_pkg, '<version to be filled>', True,
-                                  taskobj.bug.id, series)
+                    bug = tb.open(der_pkg, '<version to be filled>', True, taskobj.bug.id, series)
                 except:
                     traceback.print_exc()
                     bug = None
                 if bug:
                     # Friendly comment on the bug stating that this is a derivative
+                    msgder =  "This tracking bug was opened to be worked from "
+                    msgder += "%s-%s update (bug %s)" % (self.wfb.pkg_name, self.wfb.pkg_version, taskobj.bug.id)
+                    subder =  "Derivative package tracking bug"
                     bug.add_comment(msgder, subder)
                     print '        Action: Opened tracking bug %s for derivative package %s\n' % (bug.id, der_pkg)
                     der_bug_list.append([der_pkg, bug.id])
                 else:
                     m_bug_list.append('%s' % (der_pkg))
+
             for bp_pkg in bp_list:
                 if 'dryrun' in self.cfg:
                     self.verbose('        ')
-                    self.verbose('Dryrun - Would open tracking bug for backport package %s\n'
-                                 % (bp_pkg[0]))
+                    self.verbose('Dryrun - Would open tracking bug for backport package %s\n' % (bp_pkg[0]))
                     continue
                 try:
-                    bug = tb.open(bp_pkg[0], '%s~%s1' % (self.wfb.pkg_version, bp_pkg[1]),
-                                  self.has_new_abi(), taskobj.bug.id)
+                    bug = tb.open(bp_pkg[0], '%s~%s1' % (self.wfb.pkg_version, bp_pkg[1]), self.has_new_abi(), taskobj.bug.id)
                 except:
                     traceback.print_exc()
                     bug = None
                 if bug:
-                    print('        Action: Opened tracking bug %s for backport package %s (%s)\n'
-                          % (bug.id, bp_pkg[0], bp_pkg[1]))
+                    print('        Action: Opened tracking bug %s for backport package %s (%s)\n' % (bug.id, bp_pkg[0], bp_pkg[1]))
                     bp_bug_list.append([bp_pkg[0], bp_pkg[1], bug.id])
                 else:
                     m_bug_list.append('%s (%s)' % (bp_pkg[0], bp_pkg[1]))
@@ -1214,7 +1213,7 @@ class Shank(StdApp):
             self.verbose('        Unable to check package builds for this bug:'
                          ' either the package name or\n        version are not'
                          ' properly available yet in the bug title.\n')
-            return
+            return False
         pkg_mainver = re.findall('-[0-9]+[^ ]+', self.wfb.pkg_version)
         if pkg_mainver:
             pkg_mainver = self.wfb.pkg_version.replace(pkg_mainver[0], '', 1)
@@ -1239,7 +1238,7 @@ class Shank(StdApp):
             print("        ")
             print("ERROR: can't figure out the distro series for %s-%s\n"
                   % (self.wfb.pkg_name, self.wfb.pkg_version))
-            return
+            return False
         pkgs = {}
         entry = self.ubuntu.lookup(series)
         if entry:
@@ -1395,6 +1394,8 @@ class Shank(StdApp):
             self.set_task_to_state('promote-to-release', 'Fix Released')
         #else:
             # TODO: verify promote-to-updates task state
+
+        return True
 
     def has_prep_task(self, taskname):
         if taskname in self.taskbyname:
