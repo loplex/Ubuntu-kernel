@@ -29,13 +29,37 @@ from logging                            import info, debug, error, warning, basi
 def verbose(msg, color='green'):
     stdo(colored(msg, color))
 
+# WorkflowBugTask
+#
+class WorkflowBugTask(object):
+    # __init__
+    #
+    def __init__(s, lp_task, task_name):
+        setattr(s, 'name', task_name)
+        setattr(s, 'status', lp_task.status)
+        setattr(s, 'importance', lp_task.importance)
+        setattr(s, 'lp_task', lp_task)
+
+        assignee    = lp_task.assignee
+        if assignee is None:
+            setattr(s, 'assignee', '*Unassigned')
+        else:
+            setattr(s, 'assignee', assignee.display_name)
+
 # WorkflowBug
 #
 class WorkflowBug():
     # __init__
     #
-    def __init__(s, lpbug, sauron=False):
-        s.title = lpbug.title
+    def __init__(s, lp, projects, bugid, sauron=False):
+        s.lp = lp
+        s.lpbug = s.lp.get_bug(bugid)
+        s.projects = projects
+        s.sauron = sauron
+        s.title = s.lpbug.title
+
+        s.__package_name = None
+
         verbose('            WorkflowBug.__init__\n', 'blue')       # FIXME bjf - debugging
         verbose('                      title: "%s"\n' % s.title, 'blue')  # FIXME bjf - debugging
 
@@ -56,6 +80,71 @@ class WorkflowBug():
         else:
             s.series = None
         verbose('                     series: "%s"\n' % s.series, 'blue')  # FIXME bjf - debugging
+
+        # If a bug isn't to be processed, detect this as early as possible.
+        #
+        s.is_valid = s.check_is_valid(s.lpbug)
+
+        if s.is_valid:
+            info('    Targeted Project:')
+            info('        %s' % s.targeted_project)
+            info('')
+            s.properties = s.lpbug.properties
+            if len(s.properties) > 0:
+                info('    Properties:')
+                for prop in s.properties:
+                    info('        %s: %s' % (prop, s.properties[prop]))
+
+            s.tasks_by_name = s.create_tasks_by_name()
+
+    # check_is_valid
+    #
+    def check_is_valid(s, bug):
+        '''
+        Determine if this bug is one that we wan't to be processing.
+        '''
+        retval = True
+        for t in s.lpbug.tasks:
+            task_name       = t.bug_target_name
+
+            if task_name in s.projects:
+                s.targeted_project = task_name
+                if t.status == 'In Progress':
+                    continue
+                else:
+                    if s.sauron:
+                        continue
+                    info('        Not processing this bug because master task state is set to %s' % (t.status))
+                    info('        Quitting this bug')
+                    retval = False
+
+        return retval
+
+    # create_tasks_by_name
+    #
+    def create_tasks_by_name(s):
+        '''
+        We are only interested in the tasks that are specific to the workflow project. Others
+        are ignored.
+        '''
+        taskbyname = {}
+
+        info('')
+        info('    Scanning bug tasks:')
+
+        for t in s.lpbug.tasks:
+            task_name       = t.bug_target_name
+
+            if task_name.startswith(s.targeted_project):
+                if '/' in task_name:
+                    task_name = task_name[len(s.targeted_project)+1:].strip()
+                taskbyname[task_name] = WorkflowBugTask(t, task_name)
+            else:
+                info('')
+                info('        %-25s' % (task_name))
+                info('            Action: Skipping non-workflow task')
+
+        return taskbyname
 
 # Shank
 #
@@ -360,6 +449,9 @@ class Shank(StdApp):
         return
 
     def shank(self, bugid):
+        self.printlink =  '%s : (%s)\n' % (bugid, self.bug_url(bugid)),
+        self.verbose('Processing: %s' % self.printlink)
+
         bug = self.lp.get_bug(bugid)
 
         # Determine this bugs project.
@@ -370,10 +462,7 @@ class Shank(StdApp):
                 self.projectname = task_name
                 break
 
-        self.wfb = WorkflowBug(bug)
-
-        self.printlink =  '%s : (%s)\n' % (bug.id, self.bug_url(bug.id)),
-        self.verbose('Processing: %s' % self.printlink)
+        self.wfb = WorkflowBug(self.lp, self.projects_tracked, bugid, self.args.sauron)
 
         # initialize any per-bug variables that we use
         self.bugtags = []
