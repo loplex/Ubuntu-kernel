@@ -21,115 +21,10 @@ from ktl.bugs                           import DeltaTime
 from ktl.termcolor                      import colored
 import re
 import traceback
+import json
 
-# CmdlineError
-#
-# The type of exception that will be raised by Cmdline.process() if there
-# are command line processing errors.
-#
-class CmdlineError(Exception):
-    # __init__
-    #
-    def __init__(self, error):
-        self.msg = error
-
-# Cmdline
-#
-# Do all the command line processing.
-#
-class Cmdline:
-    # __init__
-    #
-    def __init__(self):
-        self.cfg = {}
-
-    # error
-    #
-    def error(self, e, defaults):
-        if e != '': print e
-        self.usage(defaults)
-
-    # usage
-    #
-    # Prints out the help text which explains the command line options.
-    #
-    def usage(self, defaults):
-        stdo("    Usage:                                                                                   \n")
-        stdo("        %s [--verbose] [--config=<cfg file>] [--debug=<dbg options>]                         \n" % self.cfg['app_name'])
-        stdo("                                                                                             \n")
-        stdo("    Options:                                                                                 \n")
-        stdo("        --help           Prints this text.                                                   \n")
-        stdo("                                                                                             \n")
-        stdo("        --verbose        Give some feedback of what is happening while the script is         \n")
-        stdo("                         running.                                                            \n")
-        stdo("                                                                                             \n")
-        stdo("        --bugs=<bug list>  Only process the included bugs                                    \n")
-        stdo("                                                                                             \n")
-        stdo("        --dry-run         Don't actually change any bugs, just print info.                   \n")
-        stdo("                                                                                             \n")
-        stdo("        --config=<cfg file>                                                                  \n")
-        stdo("                         The full path to the configuration file to use instead of           \n")
-        stdo("                         the default location.                                               \n")
-        stdo("                                                                                             \n")
-        stdo("        --debug=<debug options>                                                              \n")
-        stdo("                         Performs additional output related to the option enabled and        \n")
-        stdo("                         the application defined support for the option.                     \n")
-        stdo("                                                                                             \n")
-        stdo("        --staging                                                                            \n")
-        stdo("                         Use the staging LP service instead of the production one.           \n")
-        stdo("                                                                                             \n")
-        stdo("    Examples:                                                                                \n")
-        stdo("        %s --verbose                                                                         \n" % self.cfg['app_name'])
-
-    # process
-    #
-    # As you can probably tell from the name, this method is responsible
-    # for calling the getopt function to process the command line. All
-    # parameters are processed into class variables for use by other
-    # methods.
-    #
-    def process(self, argv, defaults):
-        self.cfg['app_name'] = argv[0]
-        try:
-            optsShort = ''
-            optsLong  = ['help', 'verbose', 'config=', 'debug=', 'staging', 'dry-run', 'bugs=']
-            opts, args = getopt(argv[1:], optsShort, optsLong)
-
-            for opt, val in opts:
-                if (opt == '--help'):
-                    raise CmdlineError('')
-
-                elif (opt == '--verbose'):
-                    self.cfg['verbose'] = True
-
-                elif (opt == '--dry-run'):
-                    self.cfg['dryrun'] = True
-
-                elif opt in ('--config'):
-                    self.cfg['configuration_file'] = val
-
-                elif opt in '--bugs':
-                    buglist = []
-                    for bugnum in val.split(','):
-                        buglist.append(bugnum)
-                    self.cfg['buglist'] = buglist
-
-                elif opt in ('--debug'):
-                    self.cfg['debug'] = val.split(',')
-
-                elif (opt == '--staging'):
-                    self.cfg['staging'] = True
-
-        except GetoptError, error:
-            print(error, defaults)
-            raise CmdlineError('')
-
-        return self.cfg
-
-    # verify_options
-    #
-    def verify_options(self, cfg):
-        return
+from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
+from logging                            import info, debug, error, warning, basicConfig, INFO, DEBUG, WARNING
 
 def verbose(msg, color='green'):
     stdo(colored(msg, color))
@@ -167,9 +62,11 @@ class WorkflowBug():
 class Shank(StdApp):
     # __init__
     #
-    def __init__(self):
+    def __init__(self, args):
         StdApp.__init__(self)
         self.defaults = {}
+
+        self.args = args
 
         self.state_map = {
             # Task, Current State, Action
@@ -399,14 +296,14 @@ class Shank(StdApp):
         }
 
     def verbose(self, msg, color='green'):
-        if 'verbose' in self.cfg and self.cfg['verbose']:
+        if self.args.verbose:
             stdo(colored(msg, color))
 
     # initialize
     #
     def initialize(self):
         self.defaults['launchpad_client_name'] = 'kernel-team-sru-workflow-manager'
-        if 'staging' in self.cfg:
+        if self.args.staging:
             self.defaults['launchpad_services_root'] = 'qastaging'
         self.lp = LaunchpadService(self.defaults)
         self.ubuntu = Ubuntu()
@@ -454,8 +351,8 @@ class Shank(StdApp):
 
         for task in tasks:
             bug = task.bug
-            if 'buglist' in self.cfg:
-                if str(bug.id) not in self.cfg['buglist']:
+            if self.args.bugs:
+                if str(bug.id) not in self.args.bugs:
                     continue
 
             self.wfb = WorkflowBug(task)
@@ -594,22 +491,12 @@ class Shank(StdApp):
     # main
     #
     def main(self):
-        cmdline = Cmdline()
         try:
-            # set our config file, which can be overridden on the command line
-            self.defaults['configuration_file'] = path.dirname(__file__) + '/sru-workflow.cfg'
-
-            # The configuraton file is required and if it's not found we can get some
-            # odd error messages. So, just check for it and bail out if it's not found.
+            # Load our config options.
             #
-            if not path.exists(self.defaults['configuration_file']):
-                print("\n  *** Error: The required configuration file (%s) does not exist.\n             Further execution aborted." % (self.defaults['configuration_file']))
-                return
-
-            #print('config file = %s' % self.defaults['configuration_file'])
-
-            self.merge_config_options(self.defaults, cmdline.process(argv, self.defaults))
-            cmdline.verify_options(self.cfg)
+            cfg_path = path.dirname(__file__) + '/sru-workflow.cfg'
+            with open(cfg_path, 'r') as f:
+                self.cfg = json.load(f)
 
             self.initialize()
 
@@ -623,17 +510,12 @@ class Shank(StdApp):
         except KeyboardInterrupt:
             pass
 
-        # Handle command line errors.
-        #
-        except CmdlineError as e:
-            cmdline.error(e.msg, self.defaults)
-
         return
 
     # end of main
 
     def bug_url(self, bug_id):
-        if 'staging' in self.cfg:
+        if self.args.staging:
             lpserver = 'bugs.qastaging.launchpad.net'
         else:
             lpserver = 'bugs.launchpad.net'
@@ -645,7 +527,7 @@ class Shank(StdApp):
         Add comment to tracking bug
         """
         self.verbose('        ')
-        if 'dryrun' in self.cfg:
+        if self.args.dryrun:
             self.verbose('Dryrun - Adding comment to tracking bug\n')
         else:
             self.verbose('Adding comment to tracking bug\n')
@@ -655,7 +537,7 @@ class Shank(StdApp):
         """
         Send email to the configured list or recipient
         """
-        if 'dryrun' in self.cfg:
+        if self.args.dryrun:
             self.verbose('Dryrun - Sending email\n')
             return
 
@@ -690,7 +572,7 @@ class Shank(StdApp):
         Send email with upload announcement
         """
         self.verbose('        ')
-        if 'dryrun' in self.cfg:
+        if self.args.dryrun:
             self.verbose('Dryrun - Sending upload announcement\n')
             return
         self.verbose('Sending upload announcement\n')
@@ -739,7 +621,7 @@ class Shank(StdApp):
         Send a status update to twitter, status.net, identi.ca, etc
         """
         self.verbose('        ')
-        if 'dryrun' in self.cfg:
+        if self.args.dryrun:
             self.verbose('Dryrun - Sending Status\n')
             return
 
@@ -759,7 +641,7 @@ class Shank(StdApp):
         Assign the task for the given assignee
         returns True if we changed the state and False if it was already at the desired state
         """
-        if 'dryrun' in self.cfg:
+        if self.args.dryrun:
             self.verbose('        ')
             self.verbose('Dryrun - Assign task %s to %s\n' % (taskname, assignee))
             return
@@ -785,7 +667,7 @@ class Shank(StdApp):
         Set a task with a given name to the desired state
         returns True if we changed the state and False if it was already at the desired state
         """
-        if 'dryrun' in self.cfg:
+        if self.args.dryrun:
             self.verbose('        ')
             self.verbose('Dryrun - Set task %s to state %s\n' % (taskname, state))
             return
@@ -812,7 +694,7 @@ class Shank(StdApp):
         if keyvalue in bug.properties:
             self.verbose('tagged timestamp <%s> already in the tracking bug, not replacing\n' % keyvalue)
             return
-        if 'dryrun' in self.cfg:
+        if self.args.dryrun:
             self.verbose('Dryrun - Adding tagged timestamp <%s> to tracking bug\n' % keyvalue)
             return
         else:
@@ -846,7 +728,7 @@ class Shank(StdApp):
                 return
         # Handle dryrun mode
         self.verbose('        ')
-        if 'dryrun' in self.cfg:
+        if self.args.dryrun:
             self.verbose('Dryrun - Changing bug phase to <%s>\n' % phasetext)
             return
         else:
@@ -1017,9 +899,9 @@ class Shank(StdApp):
             bp_bug_list  = []
             m_bug_list   = []
 
-            tb = TrackingBug(self.lp, 'staging' in self.cfg)
+            tb = TrackingBug(self.lp, self.args.staging)
             for der_pkg in der_list:
-                if 'dryrun' in self.cfg:
+                if self.args.dryrun:
                     self.verbose('        ')
                     self.verbose('Dryrun - Would open tracking bug for derivative package %s\n' % (der_pkg))
                     continue
@@ -1041,7 +923,7 @@ class Shank(StdApp):
                     m_bug_list.append('%s' % (der_pkg))
 
             for bp_pkg in bp_list:
-                if 'dryrun' in self.cfg:
+                if self.args.dryrun:
                     self.verbose('        ')
                     self.verbose('Dryrun - Would open tracking bug for backport package %s\n' % (bp_pkg[0]))
                     continue
@@ -1519,7 +1401,7 @@ class Shank(StdApp):
                 bugbody += "\n\nOnce this is fixed, set the "
                 bugbody += "promote-to-%s to Fix Released again" % (pocket)
                 self.send_comment(taskobj, 'Packages outside of proper component', bugbody)
-                if not 'dryrun' in self.cfg:
+                if not self.args.dryrun:
                     self.props.set({tstamp_prop:None})
                 self.send_email(taskobj, '[bug %s] Packages copied to the wrong component'
                                 % (bug.id), msgbody)
@@ -1539,7 +1421,7 @@ class Shank(StdApp):
                     msgbody += '\n%s %s' % (item[0], item[1])
                 self.send_comment(taskobj, 'Can\'t find packages published in -%s' %
                                   (pocket), msgbody)
-                if not 'dryrun' in self.cfg:
+                if not self.args.dryrun:
                     self.props.set({tstamp_prop:None})
                 return False
             for item in missing_pkg:
@@ -1956,9 +1838,47 @@ class Shank(StdApp):
         return False
 
 if __name__ == '__main__':
-    app = Shank()
+    # Command line argument setup and initial processing
+    #
+    app_description = '''
+I do increadible things to kernel workflow bugs.
+    '''
+    app_epilog = '''
+examples:
+    sb
+    sb --verbose
+    sb --verbose --dry-run
+    sb --verbose --staging
+    sb --bugs=1134424,1133589
+    '''
+    parser = ArgumentParser(description=app_description, epilog=app_epilog, formatter_class=RawDescriptionHelpFormatter)
+    parser.add_argument('--verbose', action='store_true', default=False, help='Print out a lot of messages about what is going on.')
+    parser.add_argument('--dryrun', action='store_true',  default=False, help='Don\'t modify the bug(s). Should be used with --verbose.')
+    parser.add_argument('--staging', action='store_true', default=False, help='Use the staging LP service instead of the production one.')
+    parser.add_argument('--sauron',  action='store_true', default=False, help='I\'m a professional, I know what I\'m doing. (will work on bugs marked \'invalid\')')
+    parser.add_argument('--bugs',                         default=None,  help='A comma seperated list of bug ids. Only these bug ids will be processed.')
+    parser.add_argument('--logfile',                      default=None,  help='Where to log the output.')
+    args = parser.parse_args()
+
+    # If logging parameters were set on the command line, handle them
+    # here.
+    #
+    log_format = "%(levelname)s - %(message)s"
+    if args.verbose:
+        basicConfig(filename=args.logfile, level=DEBUG, format=log_format)
+    else:
+        basicConfig(filename=args.logfile, level=INFO, format=log_format)
+
+    if args.bugs:
+        args.bugs = args.bugs.replace(' ', '')
+        if ',' in args.bugs:
+            args.bugs = args.bugs.split(',')
+        else:
+            args.bugs = [args.bugs]
+
     try:
-        app.main()
+        app = Shank(args)
+        exit(app.main())
     except HTTPError, err:
         if err.code == 503:
             print 'Launchpad server is down (503)'
