@@ -8,6 +8,9 @@ from datetime                           import datetime
 from lpltk.LaunchpadService             import LaunchpadService
 
 from sb.package                         import Package, PackageError
+
+# Task handlers
+#
 from sb.th.prep_package                 import PrepPackage
 from sb.th.promote_to_proposed          import PromoteToProposed
 from sb.th.verification_testing         import VerificationTesting
@@ -41,10 +44,11 @@ class WorkflowBugTask(object):
 class WorkflowBug():
     # __init__
     #
-    def __init__(s, lp, projects, bugid):
+    def __init__(s, lp, projects, bugid, sauron=False):
         s.lp = lp
         s.lpbug = s.lp.get_bug(bugid)
         s.projects = projects
+        s.sauron = sauron
 
         s.__package_name = None
 
@@ -68,6 +72,7 @@ class WorkflowBug():
     #
     def check_is_valid(s, bug):
         '''
+        Determine if this bug is one that we wan't to be processing.
         '''
         retval = True
         for t in s.lpbug.tasks:
@@ -78,6 +83,8 @@ class WorkflowBug():
                 if t.status == 'In Progress':
                     continue
                 else:
+                    if s.sauron:
+                        continue
                     info('        Not processing this bug because master task state is set to %s' % (t.status))
                     info('        Quitting this bug')
                     retval = False
@@ -110,30 +117,17 @@ class WorkflowBug():
 
         return taskbyname
 
-# BS
+# TaskActions
 #
-class BS(object):
-    '''
-    Build Status
-    '''
-    # __init__
-    #
-    def __init__(s, status, package):
-        '''
-        0 - if the package-version wasn't found/published. In this case
-            the package creator and assignee returned is always None
-        1 - if the package-version is available (published), but still
-            didn't finish building
-        2 - package-version is available in the archive
-        '''
-        s.status = status
-        s.package = package
-
-    @property
-    def is_built_and_published(s):
-        return s.status == 2
-
 class TaskActions(dict):
+    '''
+    For every workflow task there is one or more action(s) that are to
+    be perfomed on it. The action the be performed depends on the current
+    state (status) of that task.
+
+    This class (a dictionary) helps building the master dictionary of
+    tasks and actions.
+    '''
     # __init__
     #
     def __init__(s, d, *args):
@@ -158,7 +152,7 @@ class Shankbot():
         s.lpserver = lpserver
         s.projects = projects
 
-        s.sm = {
+        s.sm = { # sm - State Mapping
             'upload-to-ppa'             : TaskActions({}),
             'prepare-package'           : TaskActions({'Fix Released' : PrepPackage}),
             'prepare-package-lbm'       : TaskActions({'Fix Released' : PrepPackage}),
@@ -187,6 +181,11 @@ class Shankbot():
     # process_bug_tasks
     #
     def process_bug_tasks(s, shankbug):
+        '''
+        Go through every workflow task and perform the associated actions
+        based on the current state (status) of that task.
+        '''
+
         info('')
         info('    Processing Workflow Tasks:')
 
@@ -208,7 +207,9 @@ class Shankbot():
                 info('            Action: No action for task %s in state %s' % (workflow_task_name, task.status))
 
             else:
-                handler(task).action()
+                h = handler(shankbug.targeted_project, task)
+                if h.preconditions_met:
+                    h.action()
 
                 #if s.projectname == 'kernel-sru-workflow' and res_action:
                 #    performReleaseTest = True
@@ -218,12 +219,12 @@ class Shankbot():
 
     # shank
     #
-    def shank(s, bugid):
+    def shank(s, bugid, sauron):
         s.printlink =  '%s : (%s)' % (bugid, s.bug_url(bugid)),
         info('')
         info('Processing: %s' % s.printlink)
 
-        bug = WorkflowBug(s.lp, s.projects, bugid)
+        bug = WorkflowBug(s.lp, s.projects, bugid, sauron)
         if bug.is_valid:
             try:
                 p = Package(s.lp, bug)
@@ -247,11 +248,18 @@ class Shankbot():
 #
 class TheApp():
     '''
+    This class is just the engine that makes everything go. It either goes through each
+    bug specified on the command line or it searches Launchpad for the bugs that it
+    needs to work on and then cranks through them.
     '''
 
     # __init__
     #
     def __init__(s, args):
+        '''
+        When instantiated, we go ahead and make our initial connection to Launchpad and
+        get signed in.
+        '''
         s.args = args
 
         lp_cfg = {}
@@ -263,7 +271,15 @@ class TheApp():
             s.lpserver = 'bugs.launchpad.net'
         s.lp = LaunchpadService(lp_cfg)
 
+    # get_buglist
+    #
     def get_buglist(s, project):
+        '''
+        Perform a search of Launchpad to get a list of all the bugs that match
+        our criteria.
+
+        A list of the bug ids is returned.
+        '''
         retval = []
 
         search_tags            = [   # A list of the tags we care about
@@ -293,14 +309,14 @@ class TheApp():
             bot = Shankbot(s.lp, s.lpserver, projects_tracked)
             if s.args.bugs:
                 for bug in s.args.bugs:
-                    bot.shank(bug)
+                    bot.shank(bug, s.args.sauron)
 
             else:
                 for project in projects_tracked:
                     info('Project: %s' % project)
 
                     for bug in s.get_buglist(project):
-                        bot.shank(bug)
+                        bot.shank(bug, s.args.sauron)
 
             retval = 0
 
@@ -335,8 +351,9 @@ examples:
     parser.add_argument('--verbose', action='store_true', default=False, help='Print out a lot of messages about what is going on.')
     parser.add_argument('--dry-run', action='store_true', default=False, help='Don\'t modify the bug(s). Should be used with --verbose.')
     parser.add_argument('--staging', action='store_true', default=False, help='Use the staging LP service instead of the production one.')
+    parser.add_argument('--sauron',  action='store_true', default=False, help='I\'m a professional, I know what I\'m doing. (will work on bugs marked \'invalid\')')
     parser.add_argument('--bugs',                         default=None,  help='A comma seperated list of bug ids. Only these bug ids will be processed.')
-    parser.add_argument('--log-file',                     default=None,  help='Where to log the output.')
+    parser.add_argument('--logfile',                      default=None,  help='Where to log the output.')
     args = parser.parse_args()
 
     # If logging parameters were set on the command line, handle them
@@ -344,9 +361,9 @@ examples:
     #
     log_format = "%(levelname)s - %(message)s"
     if args.verbose:
-        basicConfig(filename=args.log_file, level=DEBUG, format=log_format)
+        basicConfig(filename=args.logfile, level=DEBUG, format=log_format)
     else:
-        basicConfig(filename=args.log_file, level=INFO, format=log_format)
+        basicConfig(filename=args.logfile, level=INFO, format=log_format)
 
     if args.bugs:
         args.bugs = args.bugs.replace(' ', '')

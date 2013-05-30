@@ -6,7 +6,7 @@ from logging                            import info, debug, error, warning, basi
 class PromoteToProposed():
     # __init__
     #
-    def __init__(s, task):
+    def __init__(s, targeted_project, task):
         s.task = task
 
     # action
