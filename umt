@@ -349,11 +349,11 @@ class TheApp():
         chx.expect('root@android:/ # ')
 
         chx.sendline('ubuntu_chroot shell')
-        chx.expect('root@localhost:/# ')
+        chx.expect('root@ubuntu-phablet:/# ')
 
         cmd = 'ip addr show wlan0'
         chx.sendline(cmd)
-        chx.expect('root@localhost:/# ')
+        chx.expect('root@ubuntu-phablet:/# ')
         output = chx.before
         print output
 
@@ -368,14 +368,14 @@ class TheApp():
         chx.expect('root@android:/ # ')
 
         chx.sendline('ubuntu_chroot shell')
-        chx.expect('root@localhost:/# ')
+        chx.expect('root@ubuntu-phablet:/# ')
 
         cmd = 'ip addr show wlan0'
         while not ip_found:
             debug(cmd)
             stdout.write('.'), stdout.flush()
             chx.sendline(cmd)
-            chx.expect('root@localhost:/# ')
+            chx.expect('root@ubuntu-phablet:/# ')
 
             output = chx.before
             ip_found = False
@@ -406,12 +406,12 @@ class TheApp():
         chx.expect('root@android:/ # ')
 
         chx.sendline('ubuntu_chroot shell')
-        chx.expect('root@localhost:/# ')
+        chx.expect('root@ubuntu-phablet:/# ')
 
         chx.sendline(cmd)
         while not completed:
             try:
-                chx.expect('root@localhost:/# ')
+                chx.expect('root@ubuntu-phablet:/# ')
                 #print(chx.before)
                 completed = True
             except pexpect.EOF:
@@ -427,7 +427,7 @@ class TheApp():
                 chx.expect('root@android:/ # ')
 
                 chx.sendline('ubuntu_chroot shell')
-                chx.expect('root@localhost:/# ')
+                chx.expect('root@ubuntu-phablet:/# ')
 
                 chx.sendline('echo boo')
 
@@ -442,12 +442,12 @@ class TheApp():
         chx.expect('root@android:/ # ')
 
         chx.sendline('ubuntu_chroot shell')
-        chx.expect('root@localhost:/# ')
+        chx.expect('root@ubuntu-phablet:/# ')
 
         chx.sendline(cmd)
         while not completed:
             try:
-                chx.expect('root@localhost:/# ')
+                chx.expect('root@ubuntu-phablet:/# ')
                 completed = True
             except pexpect.EOF:
                 tries += 1
@@ -462,7 +462,7 @@ class TheApp():
                 chx.expect('root@android:/ # ')
 
                 chx.sendline('ubuntu_chroot shell')
-                chx.expect('root@localhost:/# ')
+                chx.expect('root@ubuntu-phablet:/# ')
 
                 chx.sendline('echo boo')
 
