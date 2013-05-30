@@ -428,8 +428,10 @@ class Shank(StdApp):
             if task_name in self.projects_tracked:
                 self.projectname = task_name
                 break
+        master_task_name = self.projectname
 
         self.wfb = WorkflowBug(self.lp, self.projects_tracked, bugid, self.args.sauron)
+        self.taskbyname = self.wfb.tasks_by_name
 
         # initialize any per-bug variables that we use
         self.bugtags = []
@@ -451,43 +453,6 @@ class Shank(StdApp):
             for prop in props:
                 self.verbose('        %s: %s\n' % (prop, props[prop]))
 
-        self.verbose('\n    Scanning bug tasks:')
-        # We iterate through tasks on a bug but we need access to the other tasks, so first build a list up from of all tasks on this bug
-        # TODO This is a bit sloppy and I should probably build one list and walk it twice.
-        try:
-            # TODO revisit this, but hardcode for now
-            #mtstring = self.project.display_name
-            mtstring = self.projectname
-
-            self.taskbyname = {}
-            for t in bug.tasks:
-                task_name       = t.bug_target_name
-
-                if task_name == mtstring:
-                    # we save a pointer to the master task and check to make sure we should process this bug
-                    self.taskbyname[mtstring] = t
-                    if t.status == 'In Progress':
-                        continue
-                    else:
-                        if not self.args.sauron:
-                            self.verbose('    Not processing this bug because master task state is set to %s\n' % (t.status))
-                            raise RuntimeError
-
-                if not task_name.startswith(mtstring):
-                    # Ignore the tasks assigned to the actual package, we care about workflow only
-                    self.verbose("\n        %-25s\n" % (task_name))
-                    self.verbose('            Action: Skipping non-workflow task\n')
-                    continue
-
-                # add one to account for the trailing /
-                therest = task_name[len(mtstring)+1:].strip()
-                self.taskbyname[therest] = t
-
-        except RuntimeError:
-            # end processing for this bug
-            self.verbose('    Quitting this bug\n')
-            return
-
         # Verify the build state of packages in this bug. We do
         # everything in one go as we get build information for all
         # packages
@@ -505,18 +470,18 @@ class Shank(StdApp):
             # The task can also be just the single parent task
             #
 
-            if task_name == mtstring:
+            if task_name == master_task_name:
                 self.verbose("\n        %-25s\n" % (task_name))
                 self.verbose('            Action: Skipping empty master workflow task \n')
                 return
 
-            if not task_name.startswith(mtstring):
+            if not task_name.startswith(master_task_name):
                 # Ignore the tasks assigned to the actual package, we care about workflow only
                 self.verbose("\n        %-25s\n" % (task_name))
                 self.verbose('            Action: Skipping non-workflow task\n')
                 return
 
-            therest = task_name[len(mtstring)+1:].strip()
+            therest = task_name[len(master_task_name)+1:].strip()
             task_name = therest
 
             state      = t.status
