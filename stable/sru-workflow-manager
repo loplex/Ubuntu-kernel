@@ -398,8 +398,9 @@ class Shank(StdApp):
                         if t.status == 'In Progress':
                             continue
                         else:
-                            self.verbose('    Not processing this bug because master task state is set to %s\n' % (t.status))
-                            raise RuntimeError
+                            if not self.args.sauron:
+                                self.verbose('    Not processing this bug because master task state is set to %s\n' % (t.status))
+                                raise RuntimeError
 
                     if not task_name.startswith(mtstring):
                         # Ignore the tasks assigned to the actual package, we care about workflow only
@@ -672,7 +673,7 @@ class Shank(StdApp):
             self.verbose('Dryrun - Set task %s to state %s\n' % (taskname, state))
             return
 
-        self.verbose('        Setting %s to %s' % (taskname, state), 'red')
+        self.verbose('        Setting %s to %s\n' % (taskname, state), 'red')
         # TODO could add error handling and retries here if needed
         if self.taskbyname[taskname].status != state:
             print('        Setting Task <%s> to State <%s>' % (taskname, state))
