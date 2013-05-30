@@ -470,13 +470,6 @@ class Shank(StdApp):
 
         # Initialize the properties object
         s.props = Properties(shankbug.lpbug)
-        #
-        # list any Properties from bug description
-        props = shankbug.lpbug.properties
-        if len(props) > 0:
-            s.verbose('    Properties:\n')
-            for prop in props:
-                s.verbose('        %s: %s\n' % (prop, props[prop]))
 
         # Go through each task.
         #
