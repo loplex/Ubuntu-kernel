@@ -151,13 +151,13 @@ class WorkflowBug():
 class Shank(StdApp):
     # __init__
     #
-    def __init__(self, args):
-        StdApp.__init__(self)
-        self.defaults = {}
+    def __init__(s, args):
+        StdApp.__init__(s)
+        s.defaults = {}
 
-        self.args = args
+        s.args = args
 
-        self.state_map = {
+        s.state_map = {
             # Task, Current State, Action
             # Note: some tasks are only for and present in Kernel
             # Development Workflow, others only on SRU workflow
@@ -171,7 +171,7 @@ class Shank(StdApp):
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.prep_package_fix_released},
+                                         'Fix Released' : {'action':s.prep_package_fix_released},
                                          'Unknown' : {'action':None},
                                          },
             'upload-to-ppa'           : {'New' : {'action':None},
@@ -180,7 +180,7 @@ class Shank(StdApp):
                                          'Invalid' : {'action':None},
                                          "Won't Fix" : {'action':None},
                                          'Expired' : {'action':None},
-                                         'Confirmed' : {'action':self.upload_to_ppa_confirmed},
+                                         'Confirmed' : {'action':s.upload_to_ppa_confirmed},
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
@@ -197,7 +197,7 @@ class Shank(StdApp):
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.prep_package_fix_released},
+                                         'Fix Released' : {'action':s.prep_package_fix_released},
                                          'Unknown' : {'action':None},
                                          },
             'prepare-package-lrm'     : {'New' : {'action':None},
@@ -210,7 +210,7 @@ class Shank(StdApp):
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.prep_package_fix_released},
+                                         'Fix Released' : {'action':s.prep_package_fix_released},
                                          'Unknown' : {'action':None},
                                          },
             'prepare-package-lum'     : {'New' : {'action':None},
@@ -223,7 +223,7 @@ class Shank(StdApp):
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.prep_package_fix_released},
+                                         'Fix Released' : {'action':s.prep_package_fix_released},
                                          'Unknown' : {'action':None},
                                          },
             'prepare-package-meta'    : {'New' : {'action':None},
@@ -236,7 +236,7 @@ class Shank(StdApp):
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.prep_package_fix_released},
+                                         'Fix Released' : {'action':s.prep_package_fix_released},
                                          'Unknown' : {'action':None},
                                          },
             'prepare-package-ports-meta':{'New' : {'action':None},
@@ -249,7 +249,7 @@ class Shank(StdApp):
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.prep_package_fix_released},
+                                         'Fix Released' : {'action':s.prep_package_fix_released},
                                          'Unknown' : {'action':None},
                                          },
             'prepare-package-signed'   : {'New' : {'action':None},
@@ -262,7 +262,7 @@ class Shank(StdApp):
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.prep_package_fix_released},
+                                         'Fix Released' : {'action':s.prep_package_fix_released},
                                          'Unknown' : {'action':None},
                                          },
             'promote-to-proposed'     : {'New' : {'action':None},
@@ -275,7 +275,7 @@ class Shank(StdApp):
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.promote_to_proposed_fix_released},
+                                         'Fix Released' : {'action':s.promote_to_proposed_fix_released},
                                          'Unknown' : {'action':None},
                                          },
             'verification-testing'    : {'New' : {'action':None},
@@ -288,33 +288,33 @@ class Shank(StdApp):
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.verification_testing_fix_released},
+                                         'Fix Released' : {'action':s.verification_testing_fix_released},
                                          'Unknown' : {'action':None},
                                          },
             'certification-testing'   : {'New' : {'action':None},
                                          'Incomplete' : {'action':None},
                                          'Opinion' : {'action':None},
-                                         'Invalid' : {'action':self.certification_testing_invalid},
+                                         'Invalid' : {'action':s.certification_testing_invalid},
                                          "Won't Fix" : {'action':None},
                                          'Expired' : {'action':None},
                                          'Confirmed' : {'action':None},
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.certification_testing_fix_released},
+                                         'Fix Released' : {'action':s.certification_testing_fix_released},
                                          'Unknown' : {'action':None},
                                          },
             'regression-testing'      : {'New' : {'action':None},
                                          'Incomplete' : {'action':None},
                                          'Opinion' : {'action':None},
-                                         'Invalid' : {'action':self.regression_testing_invalid},
+                                         'Invalid' : {'action':s.regression_testing_invalid},
                                          "Won't Fix" : {'action':None},
                                          'Expired' : {'action':None},
                                          'Confirmed' : {'action':None},
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.regression_testing_fix_released},
+                                         'Fix Released' : {'action':s.regression_testing_fix_released},
                                          'Unknown' : {'action':None},
                                          },
             'package-testing'         : {'New' : {'action':None},
@@ -327,7 +327,7 @@ class Shank(StdApp):
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.package_testing_fix_released},
+                                         'Fix Released' : {'action':s.package_testing_fix_released},
                                          'Unknown' : {'action':None},
                                          },
             'promote-to-updates'      : {'New' : {'action':None},
@@ -340,7 +340,7 @@ class Shank(StdApp):
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.check_for_final_close},
+                                         'Fix Released' : {'action':s.check_for_final_close},
                                          'Unknown' : {'action':None},
                                          },
             'promote-to-security'     : {'New' : {'action':None},
@@ -353,7 +353,7 @@ class Shank(StdApp):
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.check_for_final_close},
+                                         'Fix Released' : {'action':s.check_for_final_close},
                                          'Unknown' : {'action':None},
                                          },
             'promote-to-release'      : {'New' : {'action':None},
@@ -366,26 +366,26 @@ class Shank(StdApp):
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.promote_to_release_fix_released},
+                                         'Fix Released' : {'action':s.promote_to_release_fix_released},
                                          'Unknown' : {'action':None},
                                          },
             'security-signoff'        : {'New' : {'action':None},
                                          'Incomplete' : {'action':None},
                                          'Opinion' : {'action':None},
-                                         'Invalid' : {'action':self.security_signoff_finished},
+                                         'Invalid' : {'action':s.security_signoff_finished},
                                          "Won't Fix" : {'action':None},
                                          'Expired' : {'action':None},
                                          'Confirmed' : {'action':None},
                                          'Triaged' : {'action':None},
                                          'In Progress' : {'action':None},
                                          'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':self.security_signoff_finished},
+                                         'Fix Released' : {'action':s.security_signoff_finished},
                                          'Unknown' : {'action':None},
                                          },
         }
 
-    def verbose(self, msg, color='green'):
-        if self.args.verbose:
+    def verbose(s, msg, color='green'):
+        if s.args.verbose:
             stdo(colored(msg, color))
 
     # get_buglist
@@ -415,53 +415,53 @@ class Shank(StdApp):
 
         return retval
 
-    def shank(self, bugid):
-        self.printlink =  '%s : (%s)\n' % (bugid, self.bug_url(bugid)),
-        self.verbose('Processing: %s' % self.printlink)
+    def shank(s, bugid):
+        s.printlink =  '%s : (%s)\n' % (bugid, s.bug_url(bugid)),
+        s.verbose('Processing: %s' % s.printlink)
 
-        bug = self.lp.get_bug(bugid)
+        bug = s.lp.get_bug(bugid)
 
         # Determine this bugs project.
         #
         for t in bug.tasks:
             task_name       = t.bug_target_name
-            if task_name in self.projects_tracked:
-                self.projectname = task_name
+            if task_name in s.projects_tracked:
+                s.projectname = task_name
                 break
-        master_task_name = self.projectname
+        master_task_name = s.projectname
 
-        self.wfb = WorkflowBug(self.lp, self.projects_tracked, bugid, self.args.sauron)
-        self.taskbyname = self.wfb.tasks_by_name
+        s.wfb = WorkflowBug(s.lp, s.projects_tracked, bugid, s.args.sauron)
+        s.taskbyname = s.wfb.tasks_by_name
 
         # initialize any per-bug variables that we use
-        self.bugtags = []
+        s.bugtags = []
         for atag in bug.tags:
-            self.bugtags.append(atag)
+            s.bugtags.append(atag)
         performReleaseTest = False
-        self.certification_testing_complete = False
-        self.regression_testing_complete = False
-        self.security_signoff_complete = False
-        self.security_publishing_required = False
+        s.certification_testing_complete = False
+        s.regression_testing_complete = False
+        s.security_signoff_complete = False
+        s.security_publishing_required = False
 
         # Initialize the properties object
-        self.props = Properties(bug)
+        s.props = Properties(bug)
         #
         # list any Properties from bug description
         props = bug.properties
         if len(props) > 0:
-            self.verbose('    Properties:\n')
+            s.verbose('    Properties:\n')
             for prop in props:
-                self.verbose('        %s: %s\n' % (prop, props[prop]))
+                s.verbose('        %s: %s\n' % (prop, props[prop]))
 
         # Verify the build state of packages in this bug. We do
         # everything in one go as we get build information for all
         # packages
-        self.verbose('\n    Checking status for packages in this bug:\n')
-        if not self.package_check(bug):
+        s.verbose('\n    Checking status for packages in this bug:\n')
+        if not s.package_check(bug):
             return
 
         # now walk them one at a time
-        self.verbose('\n    Processing bug tasks:')
+        s.verbose('\n    Processing bug tasks:')
         for t in bug.tasks:
             task_name = t.bug_target_name.strip()
             # bug_target_name includes both the main and sub task in the string
@@ -471,14 +471,14 @@ class Shank(StdApp):
             #
 
             if task_name == master_task_name:
-                self.verbose("\n        %-25s\n" % (task_name))
-                self.verbose('            Action: Skipping empty master workflow task \n')
+                s.verbose("\n        %-25s\n" % (task_name))
+                s.verbose('            Action: Skipping empty master workflow task \n')
                 return
 
             if not task_name.startswith(master_task_name):
                 # Ignore the tasks assigned to the actual package, we care about workflow only
-                self.verbose("\n        %-25s\n" % (task_name))
-                self.verbose('            Action: Skipping non-workflow task\n')
+                s.verbose("\n        %-25s\n" % (task_name))
+                s.verbose('            Action: Skipping non-workflow task\n')
                 return
 
             therest = task_name[len(master_task_name)+1:].strip()
@@ -492,124 +492,124 @@ class Shank(StdApp):
             else:
                 assignee = assignee.display_name
 
-            self.verbose("\n        %-25s  %15s" % (task_name, state), 'yellow')
-            self.verbose("  %10s  %s\n" % (importance, assignee))
+            s.verbose("\n        %-25s  %15s" % (task_name, state), 'yellow')
+            s.verbose("  %10s  %s\n" % (importance, assignee))
 
-            if task_name not in self.state_map:
-                print self.printlink,
+            if task_name not in s.state_map:
+                print s.printlink,
                 print("            Warning: I don't know how to handle the task <%s>, skipping" % (task_name))
                 return
 
-            if 'action' not in self.state_map[task_name][state]:
-                print self.printlink,
+            if 'action' not in s.state_map[task_name][state]:
+                print s.printlink,
                 print("            Error: No action found for state <%s> and task <%s>" % (state, task_name))
                 raise ValueError
 
-            action = self.state_map[task_name][state]['action']
+            action = s.state_map[task_name][state]['action']
 
             if  action is None:
-                self.verbose('            Action: No action for task %s in state %s\n' % (task_name, state))
+                s.verbose('            Action: No action for task %s in state %s\n' % (task_name, state))
             else:
                 res_action = action(t)
-                if self.projectname == 'kernel-sru-workflow' and res_action:
+                if s.projectname == 'kernel-sru-workflow' and res_action:
                     performReleaseTest = True
 
         # Now process any tests which require information from multiple tasks
         # will require info stored in class variables during task processing
         if performReleaseTest:
-            self.perform_release_test()
+            s.perform_release_test()
 
         # Now flush any property changes to the bug description
-        self.props.flush()
-        self.verbose('--\n')
+        s.props.flush()
+        s.verbose('--\n')
 
         return
 
-    def bug_url(self, bug_id):
-        if self.args.staging:
+    def bug_url(s, bug_id):
+        if s.args.staging:
             lpserver = 'bugs.qastaging.launchpad.net'
         else:
             lpserver = 'bugs.launchpad.net'
         retval = 'https://%s/bugs/%s' % (lpserver, bug_id)
         return retval
 
-    def send_comment(self, taskobj, subject, body):
+    def send_comment(s, taskobj, subject, body):
         """
         Add comment to tracking bug
         """
-        self.verbose('        ')
-        if self.args.dryrun:
-            self.verbose('Dryrun - Adding comment to tracking bug\n')
+        s.verbose('        ')
+        if s.args.dryrun:
+            s.verbose('Dryrun - Adding comment to tracking bug\n')
         else:
-            self.verbose('Adding comment to tracking bug\n')
+            s.verbose('Adding comment to tracking bug\n')
             taskobj.bug.add_comment(body, subject)
 
-    def send_email(self, taskobj, subject, body, to_address=None):
+    def send_email(s, taskobj, subject, body, to_address=None):
         """
         Send email to the configured list or recipient
         """
-        if self.args.dryrun:
-            self.verbose('Dryrun - Sending email\n')
+        if s.args.dryrun:
+            s.verbose('Dryrun - Sending email\n')
             return
 
-        self.verbose('Sending email\n')
+        s.verbose('Sending email\n')
 
-        if not 'mail_notify' in self.cfg:
-            self.verbose('No mail_notify config found, can\'t send email\n')
+        if not 'mail_notify' in s.cfg:
+            s.verbose('No mail_notify config found, can\'t send email\n')
             return
 
-        mcfg = self.cfg['mail_notify']
+        mcfg = s.cfg['mail_notify']
         if not to_address:
             to_address = mcfg['to_address']
-        body_top = 'The following message is regarding the following Kernel SRU Tracking bug:\n%s\n' % self.bug_url(taskobj.bug.id)
-        body_top = body_top + ('%s\n\n' % self.wfb.title)
+        body_top = 'The following message is regarding the following Kernel SRU Tracking bug:\n%s\n' % s.bug_url(taskobj.bug.id)
+        body_top = body_top + ('%s\n\n' % s.wfb.title)
         msg = body_top + body
         subj =  '[ShankBot] ' + subject
-        self.email.send(mcfg['from_address'], to_address, subj, msg)
+        s.email.send(mcfg['from_address'], to_address, subj, msg)
         return
 
-    def has_new_abi(self):
+    def has_new_abi(s):
         tasks_abi = [ 'prepare-package-lbm', 'prepare-package-lrm',
                       'prepare-package-lum', 'prepare-package-meta',
                       'prepare-package-ports-meta' ]
         for taskname in tasks_abi:
-            if taskname in self.taskbyname:
-                if self.taskbyname[taskname].status != "Fix Released":
+            if taskname in s.taskbyname:
+                if s.taskbyname[taskname].status != "Fix Released":
                     return False
         return True
 
-    def send_upload_announcement(self, task, pocket):
+    def send_upload_announcement(s, task, pocket):
         """
         Send email with upload announcement
         """
-        self.verbose('        ')
-        if self.args.dryrun:
-            self.verbose('Dryrun - Sending upload announcement\n')
+        s.verbose('        ')
+        if s.args.dryrun:
+            s.verbose('Dryrun - Sending upload announcement\n')
             return
-        self.verbose('Sending upload announcement\n')
+        s.verbose('Sending upload announcement\n')
 
         from_addr = None
-        if 'mail_notify' in self.cfg:
-            if 'from_address' in self.cfg['mail_notify']:
-                from_addr = self.cfg['mail_notify']['from_address']
+        if 'mail_notify' in s.cfg:
+            if 'from_address' in s.cfg['mail_notify']:
+                from_addr = s.cfg['mail_notify']['from_address']
         if not from_addr:
-            self.verbose('        ')
-            self.verbose('No valid email config found, can\'t'
+            s.verbose('        ')
+            s.verbose('No valid email config found, can\'t'
                          ' send upload announcement\n')
             return
 
         dest  = "kernel-team@lists.ubuntu.com"
         dest += ", ubuntu-installer@lists.ubuntu.com"
         dest += ", gema.gomez-solano@canonical.com"
-        if 'upload_announce_to' in self.cfg:
-            for addr in self.cfg['upload_announce_to']:
+        if 'upload_announce_to' in s.cfg:
+            for addr in s.cfg['upload_announce_to']:
                 dest += ", %s" % (addr)
 
         bug = task.bug
-        series = self.ubuntu.series_name(self.wfb.pkg_name, self.wfb.pkg_version)
-        abi_bump = self.has_new_abi()
+        series = s.ubuntu.series_name(s.wfb.pkg_name, s.wfb.pkg_version)
+        abi_bump = s.has_new_abi()
 
-        subj = "[" + series + "] " + self.wfb.pkg_name + " " + self.wfb.pkg_version + " uploaded"
+        subj = "[" + series + "] " + s.wfb.pkg_name + " " + s.wfb.pkg_version + " uploaded"
         if abi_bump:
             subj += " (ABI bump)"
 
@@ -620,78 +620,78 @@ class Shank(StdApp):
         msg += "\nThe full changelog about all bug fixes contained in this "
         msg += "upload can be found at:\n\n"
         msg += "https://launchpad.net/ubuntu/" + series + "/+source/"
-        msg += self.wfb.pkg_name + "/" + self.wfb.pkg_version + "\n\n"
+        msg += s.wfb.pkg_name + "/" + s.wfb.pkg_version + "\n\n"
         msg += "-- \nThis message was created by an automated script,"
         msg += " maintained by the\nUbuntu Kernel Team."
 
-        self.email.send(from_addr, dest, subj, msg)
+        s.email.send(from_addr, dest, subj, msg)
         return
 
-    def send_status_update(self, taskobj, message):
+    def send_status_update(s, taskobj, message):
         """
         Send a status update to twitter, status.net, identi.ca, etc
         """
-        self.verbose('        ')
-        if self.args.dryrun:
-            self.verbose('Dryrun - Sending Status\n')
+        s.verbose('        ')
+        if s.args.dryrun:
+            s.verbose('Dryrun - Sending Status\n')
             return
 
-        self.verbose('Sending Status\n')
+        s.verbose('Sending Status\n')
 
-        bugurl = quote(self.bug_url(taskobj.bug.id))
+        bugurl = quote(s.bug_url(taskobj.bug.id))
 
-        kinfo = self.ubuntu.lookup(self.wfb.pkg_version.split('-')[0])
+        kinfo = s.ubuntu.lookup(s.wfb.pkg_version.split('-')[0])
         series_name = kinfo['name']
-        pkgid = '%s package %s %s ' % (series_name, self.wfb.pkg_name, self.wfb.pkg_version)
+        pkgid = '%s package %s %s ' % (series_name, s.wfb.pkg_name, s.wfb.pkg_version)
 
-        self.status.update(bugurl + ' : ' + pkgid + ' ' + message)
+        s.status.update(bugurl + ' : ' + pkgid + ' ' + message)
         return
 
-    def set_task_assignee(self, taskname, assignee):
+    def set_task_assignee(s, taskname, assignee):
         """
         Assign the task for the given assignee
         returns True if we changed the state and False if it was already at the desired state
         """
-        if self.args.dryrun:
-            self.verbose('        ')
-            self.verbose('Dryrun - Assign task %s to %s\n' % (taskname, assignee))
+        if s.args.dryrun:
+            s.verbose('        ')
+            s.verbose('Dryrun - Assign task %s to %s\n' % (taskname, assignee))
             return
 
         # TODO could add error handling and retries here if needed
         new_assignee = None
-        current_assignee = self.taskbyname[taskname].assignee
+        current_assignee = s.taskbyname[taskname].assignee
         if current_assignee and current_assignee.username != assignee.name:
             new_assignee = assignee
         elif not current_assignee:
             new_assignee = assignee
         if new_assignee:
             print('        Assigning Task <%s> to <%s>' % (taskname, assignee))
-            self.taskbyname[taskname].assignee = assignee
+            s.taskbyname[taskname].assignee = assignee
             return True
         else:
-            self.verbose('        ')
-            self.verbose('Task <%s> already assigned to <%s>\n' % (taskname, assignee))
+            s.verbose('        ')
+            s.verbose('Task <%s> already assigned to <%s>\n' % (taskname, assignee))
             return False
 
-    def set_task_to_state(self, taskname, state):
+    def set_task_to_state(s, taskname, state):
         """
         Set a task with a given name to the desired state
         returns True if we changed the state and False if it was already at the desired state
         """
-        if self.args.dryrun:
-            self.verbose('        ')
-            self.verbose('Dryrun - Set task %s to state %s\n' % (taskname, state))
+        if s.args.dryrun:
+            s.verbose('        ')
+            s.verbose('Dryrun - Set task %s to state %s\n' % (taskname, state))
             return
 
-        self.verbose('        Setting %s to %s\n' % (taskname, state), 'red')
+        s.verbose('        Setting %s to %s\n' % (taskname, state), 'red')
         # TODO could add error handling and retries here if needed
-        if self.taskbyname[taskname].status != state:
+        if s.taskbyname[taskname].status != state:
             print('        Setting Task <%s> to State <%s>' % (taskname, state))
-            self.taskbyname[taskname].status = state
+            s.taskbyname[taskname].status = state
             return True
         else:
-            self.verbose('        ')
-            self.verbose('Task <%s> already in state <%s>\n' % (taskname, state))
+            s.verbose('        ')
+            s.verbose('Task <%s> already in state <%s>\n' % (taskname, state))
             return False
 
     # set_tagged_timestamp
@@ -699,23 +699,23 @@ class Shank(StdApp):
     """
     Add the supplied key with a timestamp. We do not replace existing keys
     """
-    def set_tagged_timestamp(self, taskobj, keyvalue):
+    def set_tagged_timestamp(s, taskobj, keyvalue):
         bug = taskobj.bug
-        self.verbose('        ')
+        s.verbose('        ')
         if keyvalue in bug.properties:
-            self.verbose('tagged timestamp <%s> already in the tracking bug, not replacing\n' % keyvalue)
+            s.verbose('tagged timestamp <%s> already in the tracking bug, not replacing\n' % keyvalue)
             return
-        if self.args.dryrun:
-            self.verbose('Dryrun - Adding tagged timestamp <%s> to tracking bug\n' % keyvalue)
+        if s.args.dryrun:
+            s.verbose('Dryrun - Adding tagged timestamp <%s> to tracking bug\n' % keyvalue)
             return
         else:
-            self.verbose('Adding tagged timestamp <%s> to tracking bug\n' % keyvalue)
+            s.verbose('Adding tagged timestamp <%s> to tracking bug\n' % keyvalue)
 
             now = datetime.utcnow()
             now.replace(tzinfo=None)
             tstamp = date_to_string(now)
             props = {keyvalue:tstamp}
-            self.props.set(props)
+            s.props.set(props)
 
     # set_phase
     #
@@ -723,9 +723,9 @@ class Shank(StdApp):
     Add the phase we're entering as a 'property',
     along with a time stamp
     """
-    def set_phase(self, taskobj, phasetext):
+    def set_phase(s, taskobj, phasetext):
         bug_prop = 'kernel'
-        if self.projectname == 'kernel-sru-workflow':
+        if s.projectname == 'kernel-sru-workflow':
             bug_prop += '-stable'
         bug_prop += '-phase'
         bug_prop_chg = bug_prop + '-changed'
@@ -734,22 +734,22 @@ class Shank(StdApp):
         if bug_prop in taskobj.bug.properties:
             if taskobj.bug.properties[bug_prop] == phasetext:
                 # we already have this one
-                self.verbose('        ')
-                self.verbose('Not overwriting identical phase property\n')
+                s.verbose('        ')
+                s.verbose('Not overwriting identical phase property\n')
                 return
         # Handle dryrun mode
-        self.verbose('        ')
-        if self.args.dryrun:
-            self.verbose('Dryrun - Changing bug phase to <%s>\n' % phasetext)
+        s.verbose('        ')
+        if s.args.dryrun:
+            s.verbose('Dryrun - Changing bug phase to <%s>\n' % phasetext)
             return
         else:
-            self.verbose('Changing bug phase to <%s>\n' % phasetext)
+            s.verbose('Changing bug phase to <%s>\n' % phasetext)
         # Add phase and time stamp
         now = datetime.utcnow()
         now.replace(tzinfo=None)
         tstamp = date_to_string(now)
         props = {bug_prop:phasetext, bug_prop_chg:tstamp}
-        self.props.set(props)
+        s.props.set(props)
 
     #
     # Begin action methods for state transitions
@@ -823,23 +823,23 @@ class Shank(StdApp):
 
         return retval
 
-    def prepare_package_fixed(self):
+    def prepare_package_fixed(s):
         """
         Check if all prepare-package tasks are finished, returning a
         boolean value indicating so
         """
-        for task in iter(self.taskbyname):
+        for task in iter(s.taskbyname):
             if task.startswith('prepare-package'):
-                if (self.taskbyname[task].status != 'Fix Released' and
-                    self.taskbyname[task].status != 'Invalid'):
+                if (s.taskbyname[task].status != 'Fix Released' and
+                    s.taskbyname[task].status != 'Invalid'):
                     return False
         return True
 
-    def upload_to_ppa_confirmed(self, taskobj):
-        self.set_phase(taskobj, 'ReadyToBePackaged')
+    def upload_to_ppa_confirmed(s, taskobj):
+        s.set_phase(taskobj, 'ReadyToBePackaged')
         return True
 
-    def prep_package_fix_released(self, taskobj):
+    def prep_package_fix_released(s, taskobj):
         """
         when the prep-package task is set to Fix Released and there is
         no upload-to-ppa task, we create new tracking bugs for
@@ -847,23 +847,23 @@ class Shank(StdApp):
         Confirmed. Otherwise, if upload-to-ppa task is present, just set
         it to Confirmed if necessary
         """
-        self.verbose('            prep_package_fix_relesed\n', 'blue')  # FIXME bjf - debugging
+        s.verbose('            prep_package_fix_relesed\n', 'blue')  # FIXME bjf - debugging
 
-        if self.projectname == 'kernel-sru-workflow':
+        if s.projectname == 'kernel-sru-workflow':
             taskname = 'promote-to-proposed'
         else:
             taskname = 'package-testing'
 
-        self.verbose('                %s status: %s\n' % (taskname, self.taskbyname[taskname].status), 'blue')  # FIXME bjf - debugging
+        s.verbose('                %s status: %s\n' % (taskname, s.taskbyname[taskname].status), 'blue')  # FIXME bjf - debugging
 
         # Even though we came in here do to one of the prepare-package* tasks being
         # set to 'Fix Released' we don't actually do anything unless the next state
         # (promote-to-proposed or package-testing) is 'New'.
         #
-        if self.taskbyname[taskname].status == 'New':
+        if s.taskbyname[taskname].status == 'New':
             # check if all prepare-package tasks are finished
-            if not self.prepare_package_fixed():
-                self.verbose('                prepare_package_fixed: false\n', 'blue')  # FIXME bjf - debugging
+            if not s.prepare_package_fixed():
+                s.verbose('                prepare_package_fixed: false\n', 'blue')  # FIXME bjf - debugging
                 return False
 
             # if this is a derivative tracking bug, first wait until
@@ -883,38 +883,38 @@ class Shank(StdApp):
             }
             # If the master bug's tasks are not completely ready.
             #
-            if self.check_master_task(taskobj.bug, tsk_st) <= 0:
-                self.verbose('                check_master_task: false\n', 'blue')  # FIXME bjf - debugging
+            if s.check_master_task(taskobj.bug, tsk_st) <= 0:
+                s.verbose('                check_master_task: false\n', 'blue')  # FIXME bjf - debugging
                 return False
 
             # open new tracking bugs for derivative packages if needed
-            series = self.ubuntu.series_name(self.wfb.pkg_name, self.wfb.pkg_version)
+            series = s.ubuntu.series_name(s.wfb.pkg_name, s.wfb.pkg_version)
             if not series:
-                print("ERROR: Can't find series for %s-%s to get derivatives\n" % (self.wfb.pkg_name, self.wfb.pkg_version))
+                print("ERROR: Can't find series for %s-%s to get derivatives\n" % (s.wfb.pkg_name, s.wfb.pkg_version))
                 return False
 
             der_list = []
-            record = self.ubuntu.lookup(series)
+            record = s.ubuntu.lookup(series)
             if 'derivative-packages' in record:
-                if self.wfb.pkg_name in record['derivative-packages']:
-                    der_list = record['derivative-packages'][self.wfb.pkg_name]
+                if s.wfb.pkg_name in record['derivative-packages']:
+                    der_list = record['derivative-packages'][s.wfb.pkg_name]
             bp_list = []
-            for entry in self.ubuntu.db.itervalues():
+            for entry in s.ubuntu.db.itervalues():
                 if 'backport-packages' in entry:
                     bp_entries = entry['backport-packages']
                     for bp_entry in iter(bp_entries):
-                        if (bp_entries[bp_entry][0] == self.wfb.pkg_name and bp_entries[bp_entry][1] == record['series_version']):
+                        if (bp_entries[bp_entry][0] == s.wfb.pkg_name and bp_entries[bp_entry][1] == record['series_version']):
                             bp_list.append([bp_entry, entry['name']])
 
             der_bug_list = []
             bp_bug_list  = []
             m_bug_list   = []
 
-            tb = TrackingBug(self.lp, self.args.staging)
+            tb = TrackingBug(s.lp, s.args.staging)
             for der_pkg in der_list:
-                if self.args.dryrun:
-                    self.verbose('        ')
-                    self.verbose('Dryrun - Would open tracking bug for derivative package %s\n' % (der_pkg))
+                if s.args.dryrun:
+                    s.verbose('        ')
+                    s.verbose('Dryrun - Would open tracking bug for derivative package %s\n' % (der_pkg))
                     continue
                 try:
                     print('        ')
@@ -925,7 +925,7 @@ class Shank(StdApp):
                 if bug:
                     # Friendly comment on the bug stating that this is a derivative
                     msgder =  "This tracking bug was opened to be worked from "
-                    msgder += "%s-%s update (bug %s)" % (self.wfb.pkg_name, self.wfb.pkg_version, taskobj.bug.id)
+                    msgder += "%s-%s update (bug %s)" % (s.wfb.pkg_name, s.wfb.pkg_version, taskobj.bug.id)
                     subder =  "Derivative package tracking bug"
                     bug.add_comment(msgder, subder)
                     print '        Action: Opened tracking bug %s for derivative package %s\n' % (bug.id, der_pkg)
@@ -934,12 +934,12 @@ class Shank(StdApp):
                     m_bug_list.append('%s' % (der_pkg))
 
             for bp_pkg in bp_list:
-                if self.args.dryrun:
-                    self.verbose('        ')
-                    self.verbose('Dryrun - Would open tracking bug for backport package %s\n' % (bp_pkg[0]))
+                if s.args.dryrun:
+                    s.verbose('        ')
+                    s.verbose('Dryrun - Would open tracking bug for backport package %s\n' % (bp_pkg[0]))
                     continue
                 try:
-                    bug = tb.open(bp_pkg[0], '%s~%s1' % (self.wfb.pkg_version, bp_pkg[1]), self.has_new_abi(), taskobj.bug.id)
+                    bug = tb.open(bp_pkg[0], '%s~%s1' % (s.wfb.pkg_version, bp_pkg[1]), s.has_new_abi(), taskobj.bug.id)
                 except:
                     traceback.print_exc()
                     bug = None
@@ -972,28 +972,28 @@ class Shank(StdApp):
                 msgbody += ' must be handled manually):'
                 for ln in m_bug_list:
                     msgbody += '\n%s' % (ln)
-            task = self.taskbyname[self.projectname]
-            self.send_comment(task, 'Packages available', msgbody)
+            task = s.taskbyname[s.projectname]
+            s.send_comment(task, 'Packages available', msgbody)
 
             # Set promote-to-proposed
-            self.set_task_to_state(taskname, 'Confirmed')
+            s.set_task_to_state(taskname, 'Confirmed')
             # Add time stamp and status
-            if self.projectname == 'kernel-sru-workflow':
-                self.set_tagged_timestamp(taskobj, 'kernel-stable-Prepare-package-end')
-                self.set_tagged_timestamp(taskobj, 'kernel-stable-Promote-to-proposed-start')
-                self.set_phase(taskobj, 'CopyToProposed')
+            if s.projectname == 'kernel-sru-workflow':
+                s.set_tagged_timestamp(taskobj, 'kernel-stable-Prepare-package-end')
+                s.set_tagged_timestamp(taskobj, 'kernel-stable-Promote-to-proposed-start')
+                s.set_phase(taskobj, 'CopyToProposed')
             else:
-                self.set_tagged_timestamp(taskobj, 'kernel-Prepare-package-end')
-                self.set_tagged_timestamp(taskobj, 'kernel-Package-testing-start')
-                self.set_phase(taskobj, 'Testing')
-                self.send_upload_announcement(taskobj, 'proposed')
+                s.set_tagged_timestamp(taskobj, 'kernel-Prepare-package-end')
+                s.set_tagged_timestamp(taskobj, 'kernel-Package-testing-start')
+                s.set_phase(taskobj, 'Testing')
+                s.send_upload_announcement(taskobj, 'proposed')
 
-                cmd = 'ssh zinc.canonical.com \'echo "<html>%s</html>" > /srv/kernel.ubuntu.com/www/kernel-pkg-status/%s.html\'' % (self.wfb.title, series)
+                cmd = 'ssh zinc.canonical.com \'echo "<html>%s</html>" > /srv/kernel.ubuntu.com/www/kernel-pkg-status/%s.html\'' % (s.wfb.title, series)
                 status, result = run_command(cmd)
 
         return False
 
-    def build_status(self, series, package, release, abi, archive, pocket = ''):
+    def build_status(s, series, package, release, abi, archive, pocket = ''):
         """
         Return an status code, the possible assignee responsible and the
         package creator related to the publishing of the package in the
@@ -1058,8 +1058,8 @@ class Shank(StdApp):
                      src_ver.startswith(dep_ver2 + '.'))):
                     matches.append(p)
             if not matches:
-                self.verbose('        ')
-                self.verbose('Can\'t find <%s> (%s) build on %s (pocket:%s)\n' %
+                s.verbose('        ')
+                s.verbose('Can\'t find <%s> (%s) build on %s (pocket:%s)\n' %
                              (package, rel_match, archive.displayname,
                               pocket))
                 return 0, None
@@ -1068,24 +1068,24 @@ class Shank(StdApp):
             for p in ps:
                 matches.append(p)
             if not matches:
-                self.verbose('        ')
-                self.verbose('Can\'t find <%s> %s build on %s (pocket:%s)\n' %
+                s.verbose('        ')
+                s.verbose('Can\'t find <%s> %s build on %s (pocket:%s)\n' %
                              (package, rel_match, archive.displayname,
                               pocket))
                 return 0, None
         res = 0, None
         lst_date = None
         for pkg in matches:
-            src_id = str(pkg.self).rsplit('/', 1)[1]
+            src_id = str(pkg).rsplit('/', 1)[1]
             build_summaries = archive.getBuildSummariesForSourceIds(source_ids=[src_id])[src_id]
             if build_summaries['status'] == 'FULLYBUILT':
-                self.verbose('        ')
-                self.verbose('<%s> %s built (pocket:%s)\n'
+                s.verbose('        ')
+                s.verbose('<%s> %s built (pocket:%s)\n'
                              % (package, rel_match, pocket))
                 bs = 2
             else:
-                self.verbose('        ')
-                self.verbose('<%s> %s not fully built yet, skipping (pocket:%s)\n'
+                s.verbose('        ')
+                s.verbose('<%s> %s not fully built yet, skipping (pocket:%s)\n'
                              % (package, rel_match, pocket))
                 bs = 1
             # prefer newer published items...
@@ -1096,60 +1096,60 @@ class Shank(StdApp):
             res = bs, pkg
         return res
 
-    def package_check(self, bug):
+    def package_check(s, bug):
         """
         Verify the required packages for this update, and determine its
         build status
         """
         # Get the source package names and required versions for this update
-        if not self.wfb.pkg_name or not self.wfb.pkg_version:
-            self.verbose('        Unable to check package builds for this bug:'
+        if not s.wfb.pkg_name or not s.wfb.pkg_version:
+            s.verbose('        Unable to check package builds for this bug:'
                          ' either the package name or\n        version are not'
                          ' properly available yet in the bug title.\n')
             return False
-        pkg_mainver = re.findall('-[0-9]+[^ ]+', self.wfb.pkg_version)
+        pkg_mainver = re.findall('-[0-9]+[^ ]+', s.wfb.pkg_version)
         if pkg_mainver:
-            pkg_mainver = self.wfb.pkg_version.replace(pkg_mainver[0], '', 1)
+            pkg_mainver = s.wfb.pkg_version.replace(pkg_mainver[0], '', 1)
         if not pkg_mainver:
-            self.verbose('        ')
-            self.verbose('WARNING: unable to get main package version\n')
-        pkg_abi = re.findall('-[0-9]+\.', self.wfb.pkg_version)
+            s.verbose('        ')
+            s.verbose('WARNING: unable to get main package version\n')
+        pkg_abi = re.findall('-[0-9]+\.', s.wfb.pkg_version)
         if pkg_abi:
             pkg_abi = pkg_abi[0].lstrip('-').rstrip('.')
         else:
-            self.verbose('        ')
-            self.verbose('WARNING: unable to get ABI from package version\n')
+            s.verbose('        ')
+            s.verbose('WARNING: unable to get ABI from package version\n')
         distro_series = None
-        series = self.ubuntu.series_name(self.wfb.pkg_name, self.wfb.pkg_version)
+        series = s.ubuntu.series_name(s.wfb.pkg_name, s.wfb.pkg_version)
         if series:
-            sc = self.lp.launchpad.distributions["ubuntu"].series_collection
-            for s in sc:
-                if s.name == series:
-                    distro_series = s
+            sc = s.lp.launchpad.distributions["ubuntu"].series_collection
+            for _s in sc:
+                if _s.name == series:
+                    distro_series = _s
                     break
         if not distro_series:
             print("        ")
             print("ERROR: can't figure out the distro series for %s-%s\n"
-                  % (self.wfb.pkg_name, self.wfb.pkg_version))
+                  % (s.wfb.pkg_name, s.wfb.pkg_version))
             return False
         pkgs = {}
-        entry = self.ubuntu.lookup(series)
+        entry = s.ubuntu.lookup(series)
         if entry:
             if 'dependent-packages' in entry:
-                if self.wfb.pkg_name in entry['dependent-packages']:
-                    pkgs.update(entry['dependent-packages'][self.wfb.pkg_name])
-        pkgs['main'] = self.wfb.pkg_name
+                if s.wfb.pkg_name in entry['dependent-packages']:
+                    pkgs.update(entry['dependent-packages'][s.wfb.pkg_name])
+        pkgs['main'] = s.wfb.pkg_name
 
         # Try to verify if there was an abi change in this release. We
         # guess this by looking if there is already a package with same
         # abi in the updates/release pocket.
         new_abi = True
-        main_archive = self.lp.launchpad.distributions["ubuntu"].main_archive
+        main_archive = s.lp.launchpad.distributions["ubuntu"].main_archive
         if pkg_mainver and pkg_abi:
-            st_abi_rel, _ = self.build_status(distro_series, self.wfb.pkg_name,
+            st_abi_rel, _ = s.build_status(distro_series, s.wfb.pkg_name,
                                              pkg_mainver, pkg_abi, main_archive,
                                              'Release')
-            st_abi_upd, _ = self.build_status(distro_series, self.wfb.pkg_name,
+            st_abi_upd, _ = s.build_status(distro_series, s.wfb.pkg_name,
                                              pkg_mainver, pkg_abi, main_archive,
                                              'Updates')
             if st_abi_rel == 2 or st_abi_upd == 2:
@@ -1164,15 +1164,15 @@ class Shank(StdApp):
         pkg_updates = None
         pkg_release = None
         task_status = [ 'New', 'In Progress', 'Fix Released' ]
-        ckt = self.lp.launchpad.people['canonical-kernel-team']
+        ckt = s.lp.launchpad.people['canonical-kernel-team']
         ckt_archive = ckt.getPPAByName(name='ppa')
         for dep in iter(pkgs):
-            if pkgs[dep] == self.wfb.pkg_name:
+            if pkgs[dep] == s.wfb.pkg_name:
                 bug_task = 'prepare-package'
             else:
                 bug_task = 'prepare-package-%s' % (dep)
             abi_num = None
-            pkg_rel = self.wfb.pkg_version
+            pkg_rel = s.wfb.pkg_version
             if dep in [ 'lbm', 'lrm', 'lum', 'meta', 'ports-meta' ] and pkg_abi:
                 abi_num = pkg_abi
                 pkg_rel = pkg_mainver
@@ -1181,23 +1181,23 @@ class Shank(StdApp):
             prepare_status = 0
             prepare_assignee = None
             prepare_uploader = None
-            if self.projectname == 'kernel-sru-workflow':
+            if s.projectname == 'kernel-sru-workflow':
                 promoted_to_release = False
-                status_ckt, pkg_ckt = self.build_status(distro_series,
+                status_ckt, pkg_ckt = s.build_status(distro_series,
                         pkgs[dep], pkg_rel, abi_num, ckt_archive)
-                status_proposed, pkg_proposed = self.build_status(distro_series,
+                status_proposed, pkg_proposed = s.build_status(distro_series,
                         pkgs[dep], pkg_rel, abi_num, main_archive, 'Proposed')
-                status_updates, pkg_updates = self.build_status(distro_series,
+                status_updates, pkg_updates = s.build_status(distro_series,
                         pkgs[dep], pkg_rel, abi_num, main_archive, 'Updates')
-                status_security, pkg_security = self.build_status(distro_series,
+                status_security, pkg_security = s.build_status(distro_series,
                         pkgs[dep], pkg_rel, abi_num, main_archive, 'Security')
                 if status_security != 2:
                     promoted_to_security = False
                 if status_updates != 2:
                     promoted_to_updates = False
-                for s in [ status_ckt, status_proposed, status_updates ]:
-                    if s > prepare_status:
-                        prepare_status = s
+                for _s in [ status_ckt, status_proposed, status_updates ]:
+                    if _s > prepare_status:
+                        prepare_status = _s
                 for c in [ pkg_ckt, pkg_proposed, pkg_updates, pkg_security ]:
                     if c:
                         prepare_assignee = c.package_creator
@@ -1206,9 +1206,9 @@ class Shank(StdApp):
             else:
                 promoted_to_updates = False
                 promoted_to_security = False
-                status_proposed, pkg_proposed = self.build_status(distro_series,
+                status_proposed, pkg_proposed = s.build_status(distro_series,
                         pkgs[dep], pkg_rel, abi_num, main_archive, 'Proposed')
-                status_release, pkg_release = self.build_status(distro_series,
+                status_release, pkg_release = s.build_status(distro_series,
                         pkgs[dep], pkg_rel, abi_num, main_archive, 'Release')
                 if status_release != 2:
                     promoted_to_release = False
@@ -1228,22 +1228,22 @@ class Shank(StdApp):
             # missing. If after 1 hour the builds are still unavailable,
             # then we allow to reset the tasks.
             prop = 'kernel-%s-build-unavailable' % (dep)
-            if (self.taskbyname[bug_task].status == 'Fix Released' and
+            if (s.taskbyname[bug_task].status == 'Fix Released' and
                 prepare_status != 2):
-                self.set_tagged_timestamp(self.taskbyname[bug_task], prop)
+                s.set_tagged_timestamp(s.taskbyname[bug_task], prop)
                 if not prop in bug.properties:
                     continue
                 date_str = bug.properties[prop]
                 timestamp = datetime.strptime(date_str, '%A, %d. %B %Y %H:%M UTC')
                 delta = DeltaTime(timestamp, datetime.utcnow())
                 if delta.hours < 1:
-                    self.verbose('        ')
-                    self.verbose('Builds gone for %s, waiting 1 hour to reset tasks\n'
+                    s.verbose('        ')
+                    s.verbose('Builds gone for %s, waiting 1 hour to reset tasks\n'
                                  % (bug_task))
                     continue
             if prop in bug.properties:
-                self.props.set({prop:None})
-            new_status = self.taskbyname[bug_task].status
+                s.props.set({prop:None})
+            new_status = s.taskbyname[bug_task].status
             if abi_num:
                 if new_abi:
                     new_status = task_status[prepare_status]
@@ -1253,50 +1253,50 @@ class Shank(StdApp):
             else:
                 new_status = task_status[prepare_status]
             if prepare_assignee and new_status != 'Invalid':
-                self.set_task_assignee(bug_task, prepare_assignee)
+                s.set_task_assignee(bug_task, prepare_assignee)
 
-            self.set_task_to_state(bug_task, new_status)
+            s.set_task_to_state(bug_task, new_status)
             # Take care of the upload-to-ppa task if needed
-            if dep == 'main' and 'upload-to-ppa' in self.taskbyname:
+            if dep == 'main' and 'upload-to-ppa' in s.taskbyname:
                 if prepare_uploader:
-                    self.set_task_assignee('upload-to-ppa', prepare_uploader)
+                    s.set_task_assignee('upload-to-ppa', prepare_uploader)
                 if prepare_status >= 1:
-                    self.set_task_to_state('upload-to-ppa', 'Fix Released')
-                elif self.taskbyname['upload-to-ppa'].status != 'Confirmed':
-                    self.set_task_to_state('upload-to-ppa', 'New')
+                    s.set_task_to_state('upload-to-ppa', 'Fix Released')
+                elif s.taskbyname['upload-to-ppa'].status != 'Confirmed':
+                    s.set_task_to_state('upload-to-ppa', 'New')
 
         # Set promotion bug tasks
         if promoted_to_security:
             if pkg_security:
-                self.set_task_assignee('promote-to-security',
+                s.set_task_assignee('promote-to-security',
                                        pkg_security.creator)
-            self.set_task_to_state('promote-to-security', 'Fix Released')
+            s.set_task_to_state('promote-to-security', 'Fix Released')
         #else:
             # TODO: verify promote-to-security task state
         if promoted_to_updates:
             if pkg_updates:
-                self.set_task_assignee('promote-to-updates',
+                s.set_task_assignee('promote-to-updates',
                                        pkg_updates.creator)
-            self.set_task_to_state('promote-to-updates', 'Fix Released')
+            s.set_task_to_state('promote-to-updates', 'Fix Released')
         #else:
             # TODO: verify promote-to-updates task state
         if promoted_to_release:
             if pkg_release:
-                self.set_task_assignee('promote-to-release',
+                s.set_task_assignee('promote-to-release',
                                        pkg_release.creator)
-            self.set_task_to_state('promote-to-release', 'Fix Released')
+            s.set_task_to_state('promote-to-release', 'Fix Released')
         #else:
             # TODO: verify promote-to-updates task state
 
         return True
 
-    def has_prep_task(self, taskname):
-        if taskname in self.taskbyname:
-            if self.taskbyname[taskname].status == "Fix Released":
+    def has_prep_task(s, taskname):
+        if taskname in s.taskbyname:
+            if s.taskbyname[taskname].status == "Fix Released":
                 return True
         return False
 
-    def check_component_in_pocket(self, taskobj, tstamp_prop, dt_utcnow, pocket):
+    def check_component_in_pocket(s, taskobj, tstamp_prop, dt_utcnow, pocket):
         """
         Check if packages for the given tracking bug were properly copied
         to the right component in the given pocket.
@@ -1304,7 +1304,7 @@ class Shank(StdApp):
         bug = taskobj.bug
 
         # Set promote-to-proposed timestamp first, used for checking below
-        self.set_tagged_timestamp(taskobj, tstamp_prop)
+        s.set_tagged_timestamp(taskobj, tstamp_prop)
 
         # Wait publishing tasks to complete. Usually archive admin sets
         # the promote-to-<pocket> task to Fix Released right away after
@@ -1320,19 +1320,19 @@ class Shank(StdApp):
             timestamp = datetime.strptime(date_str, '%A, %d. %B %Y %H:%M UTC')
             delta = DeltaTime(timestamp, dt_utcnow)
             if delta.hours < 1:
-                self.verbose('Waiting 1 hour after promote-to-%s was Fix Released\n'
+                s.verbose('Waiting 1 hour after promote-to-%s was Fix Released\n'
                              % (pocket))
                 return False
         else:
             return False
 
         # Do the checking for proper packages in pocket->component
-        series_name = self.ubuntu.series_name(self.wfb.pkg_name, self.wfb.pkg_version)
-        check_component = CheckComponent(self.lp)
+        series_name = s.ubuntu.series_name(s.wfb.pkg_name, s.wfb.pkg_version)
+        check_component = CheckComponent(s.lp)
         name_meta = 'linux-meta'
         name_ports_meta = 'linux-ports-meta'
         name_signed = 'linux-signed'
-        name_split = self.wfb.pkg_name.split('-', 1)
+        name_split = s.wfb.pkg_name.split('-', 1)
         if len(name_split) > 1:
             name_meta = '%s-meta-%s' % (name_split[0], name_split[1])
             name_ports_meta = '%s-ports-meta-%s' % (name_split[0], name_split[1])
@@ -1343,11 +1343,11 @@ class Shank(StdApp):
                      'prepare-package-meta' : name_meta,
                      'prepare-package-ports-meta' : name_ports_meta,
                      'prepare-package-signed' : name_signed }
-        ver_split = self.wfb.pkg_version.split('-')
+        ver_split = s.wfb.pkg_version.split('-')
         main_version = ver_split[0]
-        pkg_list = [ self.wfb.pkg_name ]
+        pkg_list = [ s.wfb.pkg_name ]
         for name in iter(name_map):
-            if self.has_prep_task(name):
+            if s.has_prep_task(name):
                 if ('lbm' in name) or ('lrm' in name) or ('lum' in name):
                     pkg_list.append('%s-%s' % (name_map[name], main_version))
                 else:
@@ -1362,8 +1362,8 @@ class Shank(StdApp):
             dep_ver2 = '%s.%s' % (main_version, pkg_abi)
         mis_lst = []
         for pkg in pkg_list:
-            if pkg == self.wfb.pkg_name:
-                check_ver = self.wfb.pkg_version
+            if pkg == s.wfb.pkg_name:
+                check_ver = s.wfb.pkg_version
             else:
                 check_ver = None
             ps = check_component.get_published_sources(series_name, pkg,
@@ -1372,18 +1372,18 @@ class Shank(StdApp):
                 if check_ver:
                     missing_pkg.append([pkg, check_ver])
                 elif pkg == name_signed:
-                    missing_pkg.append([pkg, 'for version=%s' % (self.wfb.pkg_version)])
+                    missing_pkg.append([pkg, 'for version=%s' % (s.wfb.pkg_version)])
                 else:
                     missing_pkg.append([pkg, 'with ABI=%s' % (pkg_abi)])
                 continue
             if pkg == name_signed:
                 src_ver = ps[0].source_package_version
-                if src_ver.startswith(self.wfb.pkg_version):
+                if src_ver.startswith(s.wfb.pkg_version):
                     mis_lst.extend(check_component.mismatches_list(series_name,
                                    pkg, ps[0].source_package_version,
                                    pocket, ps))
                 else:
-                    missing_pkg.append([pkg, 'for version=%s' % (self.wfb.pkg_version)])
+                    missing_pkg.append([pkg, 'for version=%s' % (s.wfb.pkg_version)])
             elif not check_ver:
                 src_ver = ps[0].source_package_version
                 # special hardcoded case for lrm on hardy...
@@ -1402,7 +1402,7 @@ class Shank(StdApp):
                                pkg, check_ver, pocket, ps))
         if not missing_pkg:
             if mis_lst:
-                self.set_task_to_state('promote-to-%s' % (pocket), 'Incomplete')
+                s.set_task_to_state('promote-to-%s' % (pocket), 'Incomplete')
                 msgbody  = "The following packages ended up in the wrong"
                 msgbody += " component in the -%s pocket:\n" % (pocket)
                 for item in mis_lst:
@@ -1411,10 +1411,10 @@ class Shank(StdApp):
                 bugbody = msgbody
                 bugbody += "\n\nOnce this is fixed, set the "
                 bugbody += "promote-to-%s to Fix Released again" % (pocket)
-                self.send_comment(taskobj, 'Packages outside of proper component', bugbody)
-                if not self.args.dryrun:
-                    self.props.set({tstamp_prop:None})
-                self.send_email(taskobj, '[bug %s] Packages copied to the wrong component'
+                s.send_comment(taskobj, 'Packages outside of proper component', bugbody)
+                if not s.args.dryrun:
+                    s.props.set({tstamp_prop:None})
+                s.send_email(taskobj, '[bug %s] Packages copied to the wrong component'
                                 % (bug.id), msgbody)
                 return False
         else:
@@ -1424,172 +1424,172 @@ class Shank(StdApp):
             # after promote-to-<pocket> is set to Fix Released the first
             # time
             if delta.days >= 1:
-                self.set_task_to_state('promote-to-%s' % (pocket), 'Incomplete')
+                s.set_task_to_state('promote-to-%s' % (pocket), 'Incomplete')
                 msgbody  = "Promote-to-%s is Fix Released, but " % (pocket)
                 msgbody += "some packages for this update aren't published "
                 msgbody += "in Launchpad, on -%s pocket:\n" % (pocket)
                 for item in missing_pkg:
                     msgbody += '\n%s %s' % (item[0], item[1])
-                self.send_comment(taskobj, 'Can\'t find packages published in -%s' %
+                s.send_comment(taskobj, 'Can\'t find packages published in -%s' %
                                   (pocket), msgbody)
-                if not self.args.dryrun:
-                    self.props.set({tstamp_prop:None})
+                if not s.args.dryrun:
+                    s.props.set({tstamp_prop:None})
                 return False
             for item in missing_pkg:
-                self.verbose('Didn\'t found <%s> <%s> on -%s yet, check on next run\n'
+                s.verbose('Didn\'t found <%s> <%s> on -%s yet, check on next run\n'
                              % (item[0], item[1], pocket))
             return False
 
         return True
 
-    def promote_to_proposed_fix_released(self, taskobj):
+    def promote_to_proposed_fix_released(s, taskobj):
         """
         When promote-to-proposed is set to Fix Released, we begin verification testing by setting
         verification-testing to In Progress, add tags to the bugs, and spam with text
         """
         # Exit if processed already
-        task = self.taskbyname['verification-testing']
+        task = s.taskbyname['verification-testing']
         if task.status != 'New':
             return False
 
         # Check if packages were copied to the right pocket->component
-        if not self.check_component_in_pocket(taskobj,
+        if not s.check_component_in_pocket(taskobj,
                 'kernel-stable-Promote-to-proposed-end',
                 datetime.utcnow(), 'proposed'):
             return False
 
         # Update remaining time stamps and status, send announcement
-        self.set_tagged_timestamp(taskobj, 'kernel-stable-Verification-testing-start')
-        self.set_phase(taskobj, 'Verification')
-        self.set_task_to_state('verification-testing', 'In Progress')
-        self.send_upload_announcement(taskobj, 'proposed')
+        s.set_tagged_timestamp(taskobj, 'kernel-stable-Verification-testing-start')
+        s.set_phase(taskobj, 'Verification')
+        s.set_task_to_state('verification-testing', 'In Progress')
+        s.send_upload_announcement(taskobj, 'proposed')
 
         # Now tag all bugs verification-needed and spam with a comment
         # Automate this in the future but for now send an email
-        print self.printlink,
+        print s.printlink,
         print 'Here is where we would tag and spam the verification bugs'
         return False
 
-    def verification_testing_fix_released(self, taskobj):
+    def verification_testing_fix_released(s, taskobj):
         """
         When verification-testing is set to Fix Released, we set three tasks to Confirmed.
         These are certification-testing, regression-testing, and security-signoff
         """
         # Add time stamp and status
-        if ((self.taskbyname['certification-testing'].status != 'Fix Released' and
-             self.taskbyname['certification-testing'].status != 'Invalid') or
-            (self.taskbyname['security-signoff'].status != 'Fix Released' and
-             self.taskbyname['security-signoff'].status != 'Invalid') or
-            (self.taskbyname['regression-testing'].status != 'Fix Released' and
-             self.taskbyname['regression-testing'].status != 'Invalid')):
-            self.set_tagged_timestamp(taskobj, 'kernel-stable-Verification-testing-end')
-            self.set_phase(taskobj, 'Testing')
+        if ((s.taskbyname['certification-testing'].status != 'Fix Released' and
+             s.taskbyname['certification-testing'].status != 'Invalid') or
+            (s.taskbyname['security-signoff'].status != 'Fix Released' and
+             s.taskbyname['security-signoff'].status != 'Invalid') or
+            (s.taskbyname['regression-testing'].status != 'Fix Released' and
+             s.taskbyname['regression-testing'].status != 'Invalid')):
+            s.set_tagged_timestamp(taskobj, 'kernel-stable-Verification-testing-end')
+            s.set_phase(taskobj, 'Testing')
 
-        if self.taskbyname['certification-testing'].status == 'New':
-            self.set_task_to_state('certification-testing', 'Confirmed')
-            self.set_tagged_timestamp(taskobj, 'kernel-stable-Certification-testing-start')
-        if self.taskbyname['regression-testing'].status == 'New':
-            self.set_task_to_state('regression-testing', 'Confirmed')
-            self.set_tagged_timestamp(taskobj, 'kernel-stable-Regression-testing-start')
-        if self.taskbyname['security-signoff'].status == 'New':
-            self.set_task_to_state('security-signoff', 'Confirmed')
-            self.set_tagged_timestamp(taskobj, 'kernel-stable-Security-signoff-start')
+        if s.taskbyname['certification-testing'].status == 'New':
+            s.set_task_to_state('certification-testing', 'Confirmed')
+            s.set_tagged_timestamp(taskobj, 'kernel-stable-Certification-testing-start')
+        if s.taskbyname['regression-testing'].status == 'New':
+            s.set_task_to_state('regression-testing', 'Confirmed')
+            s.set_tagged_timestamp(taskobj, 'kernel-stable-Regression-testing-start')
+        if s.taskbyname['security-signoff'].status == 'New':
+            s.set_task_to_state('security-signoff', 'Confirmed')
+            s.set_tagged_timestamp(taskobj, 'kernel-stable-Security-signoff-start')
         return False
 
-    def certification_testing_fix_released(self, taskobj):
+    def certification_testing_fix_released(s, taskobj):
         """
         When certification-testing is set to Fix Released, we check the tags
         If tagged certification-testing-failed then we alert people
         If certification-testing-passed then we save the tag and state and trigger
         running of the test to see if we're ready for publishing
         """
-        if 'certification-testing-failed' in self.bugtags:
-            self.verbose('Certification tagged as FAIL\n')
-            self.set_tagged_timestamp(taskobj, 'kernel-stable-Certification-testing-end')
+        if 'certification-testing-failed' in s.bugtags:
+            s.verbose('Certification tagged as FAIL\n')
+            s.set_tagged_timestamp(taskobj, 'kernel-stable-Certification-testing-end')
             # Send email and possibly a status update -spc- TODO
             msgbody = 'The bug was tagged as certification-testing-failed\n'
-            self.send_comment(taskobj, 'Certification FAILURE', msgbody)
+            s.send_comment(taskobj, 'Certification FAILURE', msgbody)
             # stop further processing by this bot
-            self.set_task_to_state(self.projectname, 'Incomplete')
-            self.set_phase(taskobj, 'TestFail')
+            s.set_task_to_state(s.projectname, 'Incomplete')
+            s.set_phase(taskobj, 'TestFail')
             return False
-        elif 'certification-testing-passed' in self.bugtags:
-            self.verbose('Certification tagged as PASSED\n')
-            self.set_tagged_timestamp(taskobj, 'kernel-stable-Certification-testing-end')
+        elif 'certification-testing-passed' in s.bugtags:
+            s.verbose('Certification tagged as PASSED\n')
+            s.set_tagged_timestamp(taskobj, 'kernel-stable-Certification-testing-end')
             # TODO send a status.net update?
-            self.certification_testing_complete = True
+            s.certification_testing_complete = True
             return True
         else:
-            self.verbose('certification-testing task set to Fix Released but no status tag!\n')
+            s.verbose('certification-testing task set to Fix Released but no status tag!\n')
             # Send email and possibly a status update -spc- TODO
             msgbody = 'The certification-testing task was set to Fix Released but neither the certification-testing-passed or certification-testing-failed tag was applied\n'
-            self.send_comment(taskobj, 'Certification completed but no status tags applied', msgbody)
+            s.send_comment(taskobj, 'Certification completed but no status tags applied', msgbody)
             # reset task state so Certification team fixes it
-            self.set_task_to_state('certification-testing', 'Incomplete')
+            s.set_task_to_state('certification-testing', 'Incomplete')
             return False
 
-    def certification_testing_invalid(self, taskobj):
+    def certification_testing_invalid(s, taskobj):
         """
         When certification-testing is set to Invalid, this indicates
         that certification testing will not be performed on this release.
         We consider the task to be 'done' in that we trigger a release test,
         but we don't check any tags
         """
-        self.certification_testing_complete = True
-        self.set_tagged_timestamp(taskobj, 'kernel-stable-Certification-testing-end')
+        s.certification_testing_complete = True
+        s.set_tagged_timestamp(taskobj, 'kernel-stable-Certification-testing-end')
         return True
 
-    def regression_testing_invalid(self, taskobj):
+    def regression_testing_invalid(s, taskobj):
         """
         When regression-testing is Invalid, it means we want to skip
         testing for that update. So just ignore and return the value to
         perform the release test
         """
-        self.regression_testing_complete = True
+        s.regression_testing_complete = True
         return True
 
-    def regression_testing_fix_released(self, taskobj):
+    def regression_testing_fix_released(s, taskobj):
         """
         When regression-testing is set to Fix Released, we check the tags
         If tagged qa-testing-failed then we alert people
         If qa-testing-passed then we save the tag and state and trigger
         running of the test to see if we're ready for publishing
         """
-        if 'qa-testing-failed' in self.bugtags:
-            self.verbose('Regression Testing tagged as FAIL\n')
-            self.set_tagged_timestamp(taskobj, 'kernel-stable-Regression-testing-end')
+        if 'qa-testing-failed' in s.bugtags:
+            s.verbose('Regression Testing tagged as FAIL\n')
+            s.set_tagged_timestamp(taskobj, 'kernel-stable-Regression-testing-end')
             # Send email and possibly a status update -spc- TODO
             msgbody = 'The bug was tagged as qa-testing-failed\n'
-            self.send_comment(taskobj, 'Regression Testing FAILURE', msgbody)
+            s.send_comment(taskobj, 'Regression Testing FAILURE', msgbody)
             # stop further processing by this bot
-            self.set_task_to_state(self.projectname, 'Incomplete')
-            self.set_phase(taskobj, 'TestFail')
+            s.set_task_to_state(s.projectname, 'Incomplete')
+            s.set_phase(taskobj, 'TestFail')
             return False
-        elif 'qa-testing-passed' in self.bugtags:
-            self.verbose('Regression Testing tagged as PASSED\n')
-            self.set_tagged_timestamp(taskobj, 'kernel-stable-Regression-testing-end')
+        elif 'qa-testing-passed' in s.bugtags:
+            s.verbose('Regression Testing tagged as PASSED\n')
+            s.set_tagged_timestamp(taskobj, 'kernel-stable-Regression-testing-end')
             # TODO send a status.net update?
-            self.regression_testing_complete = True
+            s.regression_testing_complete = True
             return True
         else:
-            self.verbose('regression-testing task set to Fix Released but no status tag!\n')
+            s.verbose('regression-testing task set to Fix Released but no status tag!\n')
             # Send email and possibly a status update -spc- TODO
             msgbody = 'The regression-testing task was set to Fix Released but neither the qa-testing-passed or qa-testing-failed tag was applied\n'
-            self.send_comment(taskobj, 'Regression Testing completed but no status tags applied', msgbody)
+            s.send_comment(taskobj, 'Regression Testing completed but no status tags applied', msgbody)
             # reset task so QA team can fix it
-            self.set_task_to_state('regression-testing', 'Incomplete')
+            s.set_task_to_state('regression-testing', 'Incomplete')
             # stop further processing by this bot
-            self.set_task_to_state(self.projectname, 'Incomplete')
-            self.set_phase(taskobj, 'OnHold')
+            s.set_task_to_state(s.projectname, 'Incomplete')
+            s.set_phase(taskobj, 'OnHold')
             return False
 
-    def package_testing_fix_released(self, taskobj):
+    def package_testing_fix_released(s, taskobj):
         """
         When package-testing is set to Fix Released, that means the
         development kernel passed all wanted testing and is acked to go
         to the release pocket by the Ubuntu Kernel Team
         """
-        if self.taskbyname['promote-to-release'].status == 'New':
+        if s.taskbyname['promote-to-release'].status == 'New':
             # if this is a derivative tracking bug, first wait until
             # that packages on the master tracking bug are also ready or
             # already promoted. The way derivative package bugs are
@@ -1599,18 +1599,18 @@ class Shank(StdApp):
 
             # If the master bug's tasks are not completely ready.
             #
-            if self.check_master_task(taskobj.bug, tsk_st) <= 0:
+            if s.check_master_task(taskobj.bug, tsk_st) <= 0:
                 return False
 
             # Set promote-to-proposed
-            self.set_task_to_state('promote-to-released', 'Confirmed')
+            s.set_task_to_state('promote-to-released', 'Confirmed')
             # Add time stamp and status
-            self.set_tagged_timestamp(taskobj, 'kernel-Package-testing-end')
-            self.set_tagged_timestamp(taskobj, 'kernel-Promote-to-release-start')
-            self.set_phase(taskobj, 'CopyToRelease')
+            s.set_tagged_timestamp(taskobj, 'kernel-Package-testing-end')
+            s.set_tagged_timestamp(taskobj, 'kernel-Promote-to-release-start')
+            s.set_phase(taskobj, 'CopyToRelease')
         return False
 
-    def promote_to_release_fix_released(self, taskobj):
+    def promote_to_release_fix_released(s, taskobj):
         """
         When promote-to-release is set to Fix Released, the development
         kernel is copied to the -release pocket, marking the end of the
@@ -1619,43 +1619,43 @@ class Shank(StdApp):
         """
 
         # Ensure all tasks are closed
-        if not self.prepare_package_fixed():
+        if not s.prepare_package_fixed():
             return
-        if (self.taskbyname['package-testing'].status != 'Fix Released' or
-            self.taskbyname['package-testing'].status != 'Invalid'):
-            self.taskbyname['package-testing'].status = "Won't Fix"
+        if (s.taskbyname['package-testing'].status != 'Fix Released' or
+            s.taskbyname['package-testing'].status != 'Invalid'):
+            s.taskbyname['package-testing'].status = "Won't Fix"
 
         # Do we halted processing?
-        if (self.taskbyname[self.projectname].status != 'In Progress'):
-            self.verbose('*** promote-to-release halted on bug with status!=In Progress\n')
+        if (s.taskbyname[s.projectname].status != 'In Progress'):
+            s.verbose('*** promote-to-release halted on bug with status!=In Progress\n')
             return
 
-        if not self.check_component_in_pocket(taskobj,
+        if not s.check_component_in_pocket(taskobj,
                     'kernel-Promote-to-release-end', datetime.utcnow(),
                     'release'):
             return False
 
-        self.set_task_to_state(self.projectname, 'Fix Released')
-        self.set_phase(taskobj, 'Released')
+        s.set_task_to_state(s.projectname, 'Fix Released')
+        s.set_phase(taskobj, 'Released')
         msgbody = 'The package has been published and the bug is being set to Fix Released\n'
-        self.send_comment(taskobj, 'Package Released!', msgbody)
-        self.send_status_update(taskobj, 'has been published.')
+        s.send_comment(taskobj, 'Package Released!', msgbody)
+        s.send_status_update(taskobj, 'has been published.')
 
-    def security_signoff_finished(self, taskobj):
+    def security_signoff_finished(s, taskobj):
         """
         When security-signoff is set to either Invalid or Fix Released, it is done.
         If set to Fix Released, we set a flag to indicate that the package must
         be copied to the -security pocket.
         """
-        self.security_signoff_complete = True
-        self.set_tagged_timestamp(taskobj, 'kernel-stable-Security-signoff-end')
+        s.security_signoff_complete = True
+        s.set_tagged_timestamp(taskobj, 'kernel-stable-Security-signoff-end')
         # Trigger the release test
         return True
 
-    def release_test_state_check(self, taskname, desired_state_list):
-        taskobj = self.taskbyname[taskname]
+    def release_test_state_check(s, taskname, desired_state_list):
+        taskobj = s.taskbyname[taskname]
         if taskobj.status not in desired_state_list:
-            self.verbose('ERROR: %s task set to Unexpected state!\n' % taskname)
+            s.verbose('ERROR: %s task set to Unexpected state!\n' % taskname)
             # Send email and possibly a status update
             msgbody = 'The %s task was not set to one of the following states during the release test:\n' % taskname
             for statename in desired_state_list:
@@ -1663,11 +1663,11 @@ class Shank(StdApp):
             msgbody = msgbody + '\n'
             msgbody = msgbody + '%s task was set to state %s\n' % (taskname, taskobj.status)
             msgbody = msgbody + 'Further processing of this bug by Workflow Manager is halted.\n'
-            self.send_comment(taskobj, '%s task not set to correct state during release test' % taskname, msgbody)
+            s.send_comment(taskobj, '%s task not set to correct state during release test' % taskname, msgbody)
             # stop further processing by this bot
-            self.set_task_to_state(self.projectname, 'Incomplete')
+            s.set_task_to_state(s.projectname, 'Incomplete')
 
-    def hold_updates_security_copy(self):
+    def hold_updates_security_copy(s):
         """
         The security team wants to avoid updates being copied to
         security/updates on Friday before the weekend. If there is some
@@ -1695,60 +1695,60 @@ class Shank(StdApp):
     #
     # perform_release_test
     #
-    def perform_release_test(self):
+    def perform_release_test(s):
         """
         Check results from multiple tasks to see whether release
         to -updates and -security are required
         """
-        self.verbose('*** Performing release test\n')
+        s.verbose('*** Performing release test\n')
 
         # No need to do anything until these three are all complete
-        if (self.certification_testing_complete and self.regression_testing_complete and self.security_signoff_complete):
-            self.verbose('Cert and regression testing and security signoff all complete\n')
+        if (s.certification_testing_complete and s.regression_testing_complete and s.security_signoff_complete):
+            s.verbose('Cert and regression testing and security signoff all complete\n')
 
             # Some general sanity checks before we pull the lever to publish
-            self.release_test_state_check('prepare-package', ['Fix Released'])
-            self.release_test_state_check('promote-to-proposed', ['Fix Released'])
-            self.release_test_state_check('verification-testing', ['Fix Released'])
-            self.release_test_state_check('certification-testing', ['Invalid', 'Fix Released'])
-            self.release_test_state_check('regression-testing', ['Invalid', 'Fix Released'])
-            self.release_test_state_check('security-signoff', ['Invalid', 'Fix Released'])
+            s.release_test_state_check('prepare-package', ['Fix Released'])
+            s.release_test_state_check('promote-to-proposed', ['Fix Released'])
+            s.release_test_state_check('verification-testing', ['Fix Released'])
+            s.release_test_state_check('certification-testing', ['Invalid', 'Fix Released'])
+            s.release_test_state_check('regression-testing', ['Invalid', 'Fix Released'])
+            s.release_test_state_check('security-signoff', ['Invalid', 'Fix Released'])
             # confirmed is in the next two in case we rerun the release test after
             # a dumb failure like email send fail or something
-            self.release_test_state_check('promote-to-security', ['New', 'Confirmed', 'Invalid', 'Incomplete', 'Fix Released'])
-            self.release_test_state_check('promote-to-updates', ['New', 'Confirmed', 'Incomplete', 'Fix Released'])
+            s.release_test_state_check('promote-to-security', ['New', 'Confirmed', 'Invalid', 'Incomplete', 'Fix Released'])
+            s.release_test_state_check('promote-to-updates', ['New', 'Confirmed', 'Incomplete', 'Fix Released'])
 
             # If we found any problems, we've halted processing and set this
-            if (self.taskbyname[self.projectname].status != 'In Progress' or
-                self.taskbyname['promote-to-security'].status == 'Incomplete' or
-                self.taskbyname['promote-to-updates'].status == 'Incomplete'):
-                self.verbose('*** Exiting release test without triggering any publishing\n')
+            if (s.taskbyname[s.projectname].status != 'In Progress' or
+                s.taskbyname['promote-to-security'].status == 'Incomplete' or
+                s.taskbyname['promote-to-updates'].status == 'Incomplete'):
+                s.verbose('*** Exiting release test without triggering any publishing\n')
                 return
 
-            if ((self.taskbyname['promote-to-security'].status == 'Confirmed' or
-                 self.taskbyname['promote-to-security'].status == 'Invalid') and
-                self.taskbyname['promote-to-updates'].status == 'Confirmed'):
-                self.verbose('*** Exiting release test, all set\n')
+            if ((s.taskbyname['promote-to-security'].status == 'Confirmed' or
+                 s.taskbyname['promote-to-security'].status == 'Invalid') and
+                s.taskbyname['promote-to-updates'].status == 'Confirmed'):
+                s.verbose('*** Exiting release test, all set\n')
                 return
 
-            if self.taskbyname['security-signoff'].status == 'Fix Released':
+            if s.taskbyname['security-signoff'].status == 'Fix Released':
                 # publishing to security is required
-                self.security_publishing_required = True
+                s.security_publishing_required = True
 
             # one last check for test results
-            if ('qa-testing-passed' in self.bugtags or self.taskbyname['regression-testing'].status == 'Invalid') and \
-                    ('certification-testing-passed' in self.bugtags or self.taskbyname['certification-testing'].status == 'Invalid'):
+            if ('qa-testing-passed' in s.bugtags or s.taskbyname['regression-testing'].status == 'Invalid') and \
+                    ('certification-testing-passed' in s.bugtags or s.taskbyname['certification-testing'].status == 'Invalid'):
 
                 # We don't publish on Fri/Sat/Sun (see comment on function
                 # hold_updates_security_copy). Also, only allow the
                 # promote-to-{updates,security} on derivative packages
                 # if the master packages are already ready for promotion
                 # or already promoted to the updates/security pockets.
-                tbug = self.taskbyname[self.projectname].bug
+                tbug = s.taskbyname[s.projectname].bug
                 tsk_st = { 'promote-to-updates' : [ 'Confirmed', 'Fix Released' ],
                            'promote-to-security' : [ 'Confirmed', 'Fix Released', 'Invalid' ] }
-                if (not self.hold_updates_security_copy() and self.check_master_task(tbug, tsk_st) > 0):
-                    task = self.taskbyname[self.projectname]
+                if (not s.hold_updates_security_copy() and s.check_master_task(tbug, tsk_st) > 0):
+                    task = s.taskbyname[s.projectname]
                     # If this is a derivative, it's supposed to be
                     # rebased on top of master, or to have security
                     # fixes as master has. Thus, we also enable
@@ -1761,134 +1761,134 @@ class Shank(StdApp):
 
                     # If the master bug's tasks are not completely ready.
                     #
-                    security_master = self.check_master_task(tbug, tsk_st)
+                    security_master = s.check_master_task(tbug, tsk_st)
                     if security_master < 0:
                         return
 
-                    if self.security_publishing_required or security_master == 2:
-                        self.verbose('Requires publishing to the -security pocket\n')
-                        if self.taskbyname['promote-to-security'].status == 'New':
-                            self.set_task_to_state('promote-to-security', 'Confirmed')
+                    if s.security_publishing_required or security_master == 2:
+                        s.verbose('Requires publishing to the -security pocket\n')
+                        if s.taskbyname['promote-to-security'].status == 'New':
+                            s.set_task_to_state('promote-to-security', 'Confirmed')
                     else:
-                        if self.taskbyname['promote-to-security'].status == 'New':
-                            self.set_task_to_state('promote-to-security', 'Invalid')
+                        if s.taskbyname['promote-to-security'].status == 'New':
+                            s.set_task_to_state('promote-to-security', 'Invalid')
 
-                    if self.taskbyname['promote-to-updates'].status == 'New':
-                        self.set_task_to_state('promote-to-updates', 'Confirmed')
-                        self.set_tagged_timestamp(task, 'kernel-stable-Promote-to-updates-start')
-                        self.set_phase(task, 'CopyToUpdates')
+                    if s.taskbyname['promote-to-updates'].status == 'New':
+                        s.set_task_to_state('promote-to-updates', 'Confirmed')
+                        s.set_tagged_timestamp(task, 'kernel-stable-Promote-to-updates-start')
+                        s.set_phase(task, 'CopyToUpdates')
                     # Now send a happy email 
                     msgbody = 'All tests are complete and the publishing tasks have been set to Confirmed\n'
-                    #self.send_email(task, 'Package is ready for publication', msgbody)
-                    #self.send_status_update(task, 'available for publication.')
+                    #s.send_email(task, 'Package is ready for publication', msgbody)
+                    #s.send_status_update(task, 'available for publication.')
                 else:
-                    self.verbose('Unable to set promote-to-{updates,security} ')
-                    self.verbose('tasks. We are either near\nthe weekend, when ')
-                    self.verbose('no publising is done, or this is a derivative ')
-                    self.verbose('bug\nwhere the master bug isn\'t ready for ')
-                    self.verbose('release or released yet\n')
+                    s.verbose('Unable to set promote-to-{updates,security} ')
+                    s.verbose('tasks. We are either near\nthe weekend, when ')
+                    s.verbose('no publising is done, or this is a derivative ')
+                    s.verbose('bug\nwhere the master bug isn\'t ready for ')
+                    s.verbose('release or released yet\n')
 
             else:
                 # don't have required testing signoffs
-                self.verbose('ERROR: test completion tags not found during release test!\n')
+                s.verbose('ERROR: test completion tags not found during release test!\n')
                 # Send email and possibly a status update
                 msgbody = 'During the release test either the certification-testing-passed or the qa-testing-passed tag was not found\n'
                 msgbody = msgbody + 'Tags on this bug are:\n'
-                for ftag in self.bugtags:
+                for ftag in s.bugtags:
                     msgbody = msgbody + '    ' + ftag + '\n'
                 msgbody = msgbody + '\n'
                 msgbody = msgbody + 'Further processing of this bug by Workflow Manager is halted.\n'
-                self.send_comment(self.taskbyname[self.projectname], 'Test completion tags not found during release test', msgbody)
+                s.send_comment(s.taskbyname[s.projectname], 'Test completion tags not found during release test', msgbody)
                 # stop further processing by this bot
-                self.set_task_to_state(self.projectname, 'Incomplete')
-                self.set_phase(self.taskbyname[self.projectname], 'OnHold')
+                s.set_task_to_state(s.projectname, 'Incomplete')
+                s.set_phase(s.taskbyname[s.projectname], 'OnHold')
         # this method is not associated with a task state transition so no status returned
         return 
 
-    def check_for_final_close(self, taskobj):
+    def check_for_final_close(s, taskobj):
         """
         If either of the publishing tasks is set to complete (Fix Released) we
         make a check to see whether we can set the entire tracking bug to Fix Released (done)
         """
-        self.verbose('*** Performing check for final close test\n')
+        s.verbose('*** Performing check for final close test\n')
 
-        if self.taskbyname[self.projectname].status == 'Fix Released':
+        if s.taskbyname[s.projectname].status == 'Fix Released':
             print ' Bug already closed, aborting check'
             return False
 
-        if (( self.taskbyname['promote-to-updates'].status == 'Fix Released') and
-            (self.taskbyname['promote-to-security'].status == 'Invalid' or
-            self.taskbyname['promote-to-security'].status == 'Fix Released')):
+        if (( s.taskbyname['promote-to-updates'].status == 'Fix Released') and
+            (s.taskbyname['promote-to-security'].status == 'Invalid' or
+            s.taskbyname['promote-to-security'].status == 'Fix Released')):
 
             # Check if packages were copied to the right pocket->component
             current_time = datetime.utcnow()
             pok_sec = True
-            if self.taskbyname['promote-to-security'].status == 'Fix Released':
-                pok_sec = self.check_component_in_pocket(taskobj,
+            if s.taskbyname['promote-to-security'].status == 'Fix Released':
+                pok_sec = s.check_component_in_pocket(taskobj,
                             'kernel-stable-Promote-to-updates-end',
                             current_time, 'security')
-            pok_upd = self.check_component_in_pocket(taskobj,
+            pok_upd = s.check_component_in_pocket(taskobj,
                         'kernel-stable-Promote-to-updates-end',
                         current_time, 'updates')
             if not (pok_sec and pok_upd):
                 return False
 
-            print self.printlink,
+            print s.printlink,
             print ' Everything is done, setting bug to Fix Released'
-            self.set_task_to_state(self.projectname, 'Fix Released')
-            self.set_phase(taskobj, 'Released')
+            s.set_task_to_state(s.projectname, 'Fix Released')
+            s.set_phase(taskobj, 'Released')
 
             # Send email and possibly a status update -spc- TODO
             msgbody = 'The package has been published and the bug is being set to Fix Released\n'
-            self.send_comment(taskobj, 'Package Released!', msgbody)
+            s.send_comment(taskobj, 'Package Released!', msgbody)
 
-            task = self.taskbyname['promote-to-updates']
-            self.send_status_update(task, 'has been published.')
+            task = s.taskbyname['promote-to-updates']
+            s.send_status_update(task, 'has been published.')
 
         # We should never trigger a release test from this, since it should have lready been done
         return False
 
     # initialize
     #
-    def initialize(self):
+    def initialize(s):
         '''
         There are certain things (like connecting to LP) that I don't like to do
         in the constructor because they are so time consuming. Those thinngs are
         done here.
         '''
-        self.defaults['launchpad_client_name'] = 'kernel-team-sru-workflow-manager'
-        if self.args.staging:
-            self.defaults['launchpad_services_root'] = 'qastaging'
-        self.lp = LaunchpadService(self.defaults)
-        self.ubuntu = Ubuntu()
+        s.defaults['launchpad_client_name'] = 'kernel-team-sru-workflow-manager'
+        if s.args.staging:
+            s.defaults['launchpad_services_root'] = 'qastaging'
+        s.lp = LaunchpadService(s.defaults)
+        s.ubuntu = Ubuntu()
 
         # The service.distributions property is a collection of distributions. We
         # pretty much only care about one, 'ubuntu'.
         #
-        self.distro = self.lp.distributions['ubuntu']
+        s.distro = s.lp.distributions['ubuntu']
 
         # Get set up for email and status messages
-        if 'mail_notify' in self.cfg:
-            mcfg = self.cfg['mail_notify']
-            self.email = Email(mcfg['smtp_server'].encode('UTF-8'), mcfg['smtp_user'].encode('UTF-8'), mcfg['smtp_pass'].encode('UTF-8'))
+        if 'mail_notify' in s.cfg:
+            mcfg = s.cfg['mail_notify']
+            s.email = Email(mcfg['smtp_server'].encode('UTF-8'), mcfg['smtp_user'].encode('UTF-8'), mcfg['smtp_pass'].encode('UTF-8'))
 
-        scfg = self.cfg['status_net']
-        self.status = Status(scfg['url'], scfg['user'], scfg['pass'])
+        scfg = s.cfg['status_net']
+        s.status = Status(scfg['url'], scfg['user'], scfg['pass'])
 
         # Get the text for spamming bugs
-        spamtextpath =  path.join(path.dirname(__file__), self.cfg['bug_spam']['text_filename'])
-        self.verbose('Bug spam text is from file %s\n' % spamtextpath)
-        self.spamtext = open(spamtextpath, 'r').read()
+        spamtextpath =  path.join(path.dirname(__file__), s.cfg['bug_spam']['text_filename'])
+        s.verbose('Bug spam text is from file %s\n' % spamtextpath)
+        s.spamtext = open(spamtextpath, 'r').read()
 
-        self.taskbyname = {}
+        s.taskbyname = {}
 
-        self.printlink = "(No link)"
+        s.printlink = "(No link)"
 
         return
 
     # main
     #
-    def main(self):
+    def main(s):
         '''
         This drives the overall process. It gets a list of the bugs that need to
         be worked (if not specified) and then runs through each of them.
@@ -1898,21 +1898,21 @@ class Shank(StdApp):
             #
             cfg_path = path.dirname(__file__) + '/sru-workflow.cfg'
             with open(cfg_path, 'r') as f:
-                self.cfg = json.load(f)
+                s.cfg = json.load(f)
 
-            self.initialize()
+            s.initialize()
 
-            self.projects_tracked = [ 'kernel-development-workflow', 'kernel-sru-workflow' ]
-            if self.args.bugs:
-                for bugid in self.args.bugs:
-                    self.shank(bugid)
+            s.projects_tracked = [ 'kernel-development-workflow', 'kernel-sru-workflow' ]
+            if s.args.bugs:
+                for bugid in s.args.bugs:
+                    s.shank(bugid)
 
             else:
-                for project in self.projects_tracked:
+                for project in s.projects_tracked:
                     info('Project: %s' % project)
 
-                    for bugid in self.get_buglist(project):
-                        self.shank(bugid)
+                    for bugid in s.get_buglist(project):
+                        s.shank(bugid)
 
         # Handle the user presses <ctrl-C>.
         #
