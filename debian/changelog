@@ -1,3 +1,9 @@
+linux-signed (3.8.0-24.35) raring; urgency=low
+
+  * Version 3.8.0-24.35
+
+ -- Steve Conklin <sconklin@canonical.com>  Fri, 31 May 2013 08:56:01 -0500
+
 linux-signed (3.8.0-23.34) raring-proposed; urgency=low
 
   * Version 3.8.0-23.34
