@@ -504,7 +504,7 @@ class Shank(StdApp):
                 action = s.state_map[task.name][task.status]['action']
 
                 if action is None:
-                    info('            Action: No action for task %s in state %s\n' % (task.name, task.status))
+                    info('            Action: No action for task %s in state %s' % (task.name, task.status))
                 else:
                     res_action = action(t)
                     if s.projectname == 'kernel-sru-workflow' and res_action:
