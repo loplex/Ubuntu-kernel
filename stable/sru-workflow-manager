@@ -33,6 +33,9 @@ def verbose(msg, color='green'):
 def cinfo(msg, color='green'):
     info(colored(msg, color))
 
+def cdebug(msg, color='red'):
+    debug(colored(msg, color))
+
 # WorkflowBugTask
 #
 class WorkflowBugTask(object):
@@ -438,7 +441,7 @@ class Shank(StdApp):
 
                 else:
                     info('        Needs work')
-                    p.determine_build_status(bug)
+                    p.determine_build_status()
 
                 s.process_bug_tasks(bug)
 
@@ -786,9 +789,9 @@ class Shank(StdApp):
         not_derivative         = 1
 
         retval = not_derivative
-        if s.is_dervative_package(bug):
+        if s.is_derivative_package(bug):
             try:
-                master = s.master_bug
+                master = s.master_bug(bug)
 
                 retval = master_bug_good_status
                 for task in master.tasks:
