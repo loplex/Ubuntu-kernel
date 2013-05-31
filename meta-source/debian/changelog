@@ -1,3 +1,9 @@
+linux-ports-meta (2.6.32.48.40) lucid; urgency=low
+
+  * Bump ABI
+
+ -- Steve Conklin <sconklin@canonical.com>  Fri, 31 May 2013 13:48:29 -0500
+
 linux-ports-meta (2.6.32.47.39) lucid-proposed; urgency=low
 
   * Bump ABI
