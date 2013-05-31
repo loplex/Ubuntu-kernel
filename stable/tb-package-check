@@ -1,0 +1,127 @@
+#!/usr/bin/env python
+#
+
+from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
+from logging                            import info, debug, error, warning, basicConfig, INFO, DEBUG, WARNING
+
+from datetime                           import datetime
+from lpltk.LaunchpadService             import LaunchpadService
+
+from sb.package                         import Package, PackageError
+from sb.workflow_bug                    import WorkflowBug
+from sb.log                             import cinfo
+
+# TheApp
+#
+class TheApp():
+    '''
+    This class is just the engine that makes everything go.
+    '''
+
+    # __init__
+    #
+    def __init__(s, args):
+        '''
+        When instantiated, we go ahead and make our initial connection to Launchpad and
+        get signed in.
+        '''
+        s.args = args
+
+        lp_cfg = {}
+        lp_cfg['launchpad_client_name'] = 'kernel-team-sru-workflow-manager'
+        if s.args.staging:
+            lp_cfg['launchpad_services_root'] = 'qastaging'
+            s.lpserver = 'bugs.qastaging.launchpad.net'
+        else:
+            s.lpserver = 'bugs.launchpad.net'
+        s.lp = LaunchpadService(lp_cfg)
+
+        s.projects_tracked = [ 'kernel-development-workflow', 'kernel-sru-workflow' ]
+
+    def bug_url(s, bug_id):
+        if s.args.staging:
+            lpserver = 'bugs.qastaging.launchpad.net'
+        else:
+            lpserver = 'bugs.launchpad.net'
+        retval = 'https://%s/bugs/%s' % (lpserver, bug_id)
+        return retval
+
+    # check
+    #
+    def check(s, bugid):
+        s.printlink =  '%s : (%s)' % (bugid, s.bug_url(bugid)),
+        cinfo('')
+        cinfo('Processing: %s' % s.printlink)
+
+        bug = WorkflowBug(s.lp, s.projects_tracked, bugid, s.args.sauron)
+        if bug.is_valid:
+            try:
+                p = Package(s.lp, bug)
+                p.determine_build_status()
+                cinfo('')
+                if p.is_released:
+                    cinfo('        The package has been promoted to the approriate release directories. Nothing more to be done.')
+
+                elif p.is_prepd:
+                    cinfo('        The package and all of it\'s dependents have been fully prepared.')
+
+                else:
+                    cinfo('        Needs work')
+
+            except PackageError:
+                pass
+
+    # main
+    #
+    def main(s):
+        retval = 1
+        try:
+            for bugid in s.args.bugs:
+                s.check(bugid)
+
+            retval = 0
+
+        # Handle the user presses <ctrl-C>.
+        #
+        except KeyboardInterrupt:
+            error("Aborting ...")
+
+        if retval > 0:
+            error("")
+            error("Due to the above error(s), this script is unable to continue and is terminating.")
+            error("")
+
+        debug('That\'s All Folks!')
+        return retval
+
+if __name__ == '__main__':
+    # Command line argument setup and initial processing
+    #
+    app_description = '''
+I look at the packaging for the spcified tracking bug(s) and tell
+you how things stand.
+    '''
+    app_epilog = '''
+examples:
+    tb-package-check 1134424,1133589
+    '''
+    parser = ArgumentParser(description=app_description, epilog=app_epilog, formatter_class=RawDescriptionHelpFormatter)
+    parser.add_argument('--verbose', action='store_true', default=False, help='Print out a lot of messages about what is going on.')
+    parser.add_argument('--staging', action='store_true', default=False, help='Use the staging LP service instead of the production one.')
+    parser.add_argument('--sauron',  action='store_true', default=False, help='I\'m a professional, I know what I\'m doing. (will work on bugs marked \'invalid\')')
+    parser.add_argument('bugs',   metavar='bugs',   type=str, nargs='+', help='One or more LP bug ids that are to be reset.')
+    args = parser.parse_args()
+
+    # If logging parameters were set on the command line, handle them
+    # here.
+    #
+    log_format = "%(levelname)s - %(message)s"
+    if args.verbose:
+        basicConfig(level=DEBUG, format=log_format)
+    else:
+        basicConfig(level=INFO, format=log_format)
+
+    app = TheApp(args)
+    exit(app.main())
+
+# vi:set ts=4 sw=4 expandtab syntax=python:
