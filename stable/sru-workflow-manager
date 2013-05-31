@@ -27,15 +27,10 @@ from argparse                           import ArgumentParser, RawDescriptionHel
 from logging                            import info, debug, error, warning, basicConfig, INFO, DEBUG, WARNING
 from sb.package                         import Package, PackageError
 from sb.workflow_bug                    import WorkflowBug
+from sb.loggin                          import cinfo
 
 def verbose(msg, color='green'):
     stdo(colored(msg, color))
-
-def cinfo(msg, color='green'):
-    info(colored(msg, color))
-
-def cdebug(msg, color='red'):
-    debug(colored(msg, color))
 
 # TaskActions
 #
