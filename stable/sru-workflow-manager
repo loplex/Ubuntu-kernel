@@ -37,6 +37,33 @@ def cinfo(msg, color='green'):
 def cdebug(msg, color='red'):
     debug(colored(msg, color))
 
+# TaskActions
+#
+class TaskActions(dict):
+    '''
+    For every workflow task there is one or more action(s) that are to
+    be perfomed on it. The action the be performed depends on the current
+    state (status) of that task.
+
+    This class (a dictionary) helps building the master dictionary of
+    tasks and actions.
+    '''
+    # __init__
+    #
+    def __init__(s, d, *args):
+        dict.__init__(s, *args)
+        s.actions = {}
+
+        # Initialize them all to 'None'
+        #
+        for t in ['New', 'Incomplete', 'Opinion', 'Invalid', 'Won\'t Fix', 'Expired', 'Confirmed', 'Triaged', 'In Progress', 'Fix Committed', 'Fix Released', 'Unknown']:
+            s[t] = None
+
+        # Set the individual ones that have a non-None value
+        #
+        for k in d:
+            s[k] = d[k]
+
 # Shank
 #
 class Shank(StdApp):
@@ -49,230 +76,23 @@ class Shank(StdApp):
         s.args = args
 
         s.state_map = {
-            # Task, Current State, Action
-            # Note: some tasks are only for and present in Kernel
-            # Development Workflow, others only on SRU workflow
-            'prepare-package'         : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':None},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.prep_package_fix_released},
-                                         'Unknown' : {'action':None},
-                                         },
-            'upload-to-ppa'           : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':None},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':s.upload_to_ppa_confirmed},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':None},
-                                         'Unknown' : {'action':None},
-                                         },
-            'prepare-package-lbm'     : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':None},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.prep_package_fix_released},
-                                         'Unknown' : {'action':None},
-                                         },
-            'prepare-package-lrm'     : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':None},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.prep_package_fix_released},
-                                         'Unknown' : {'action':None},
-                                         },
-            'prepare-package-lum'     : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':None},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.prep_package_fix_released},
-                                         'Unknown' : {'action':None},
-                                         },
-            'prepare-package-meta'    : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':None},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.prep_package_fix_released},
-                                         'Unknown' : {'action':None},
-                                         },
-            'prepare-package-ports-meta':{'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':None},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.prep_package_fix_released},
-                                         'Unknown' : {'action':None},
-                                         },
-            'prepare-package-signed'   : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':None},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.prep_package_fix_released},
-                                         'Unknown' : {'action':None},
-                                         },
-            'promote-to-proposed'     : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':None},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.promote_to_proposed_fix_released},
-                                         'Unknown' : {'action':None},
-                                         },
-            'verification-testing'    : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':None},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.verification_testing_fix_released},
-                                         'Unknown' : {'action':None},
-                                         },
-            'certification-testing'   : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':s.certification_testing_invalid},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.certification_testing_fix_released},
-                                         'Unknown' : {'action':None},
-                                         },
-            'regression-testing'      : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':s.regression_testing_invalid},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.regression_testing_fix_released},
-                                         'Unknown' : {'action':None},
-                                         },
-            'package-testing'         : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':None},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.package_testing_fix_released},
-                                         'Unknown' : {'action':None},
-                                         },
-            'promote-to-updates'      : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':None},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.check_for_final_close},
-                                         'Unknown' : {'action':None},
-                                         },
-            'promote-to-security'     : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':None},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.check_for_final_close},
-                                         'Unknown' : {'action':None},
-                                         },
-            'promote-to-release'      : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':None},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.promote_to_release_fix_released},
-                                         'Unknown' : {'action':None},
-                                         },
-            'security-signoff'        : {'New' : {'action':None},
-                                         'Incomplete' : {'action':None},
-                                         'Opinion' : {'action':None},
-                                         'Invalid' : {'action':s.security_signoff_finished},
-                                         "Won't Fix" : {'action':None},
-                                         'Expired' : {'action':None},
-                                         'Confirmed' : {'action':None},
-                                         'Triaged' : {'action':None},
-                                         'In Progress' : {'action':None},
-                                         'Fix Committed' : {'action':None},
-                                         'Fix Released' : {'action':s.security_signoff_finished},
-                                         'Unknown' : {'action':None},
-                                         },
+            'upload-to-ppa'             : TaskActions({'Confirmed'    : s.upload_to_ppa_confirmed}),
+            'prepare-package'           : TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'prepare-package-lbm'       : TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'prepare-package-lrm'       : TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'prepare-package-lum'       : TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'prepare-package-meta'      : TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'prepare-package-ports-meta': TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'prepare-package-signed'    : TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'promote-to-proposed'       : TaskActions({'Fix Released' : s.promote_to_proposed_fix_released}),
+            'verification-testing'      : TaskActions({'Fix Released' : s.verification_testing_fix_released}),
+            'certification-testing'     : TaskActions({'Invalid'      : s.certification_testing_invalid, 'Fix Released' : s.certification_testing_fix_released}),
+            'regression-testing'        : TaskActions({'Invalid'      : s.regression_testing_invalid,    'Fix Released' : s.regression_testing_fix_released}),
+            'package-testing'           : TaskActions({'Fix Released' : s.package_testing_fix_released}),
+            'promote-to-updates'        : TaskActions({'Fix Released' : s.check_for_final_close}),
+            'promote-to-security'       : TaskActions({'Fix Released' : s.check_for_final_close}),
+            'promote-to-release'        : TaskActions({'Fix Released' : s.promote_to_release_fix_released}),
+            'security-signoff'          : TaskActions({'Invalid'      : s.security_signoff_finished,     'Fix Released' : s.security_signoff_finished}),
         }
 
     def verbose(s, msg, color='green'):
@@ -380,13 +200,8 @@ class Shank(StdApp):
             therest = task_name[len(master_task_name)+1:].strip()
             task_name = therest
 
-            if workflow_task_name not in s.state_map:
-                info('            ' + s.printlink)
-                info('            Warning: I don\'t know how to handle the task <%s>, skipping' % (workflow_task_name))
-                continue
-
             try:
-                action = s.state_map[task.name][task.status]['action']
+                action = s.state_map[workflow_task_name][task.status]
 
                 if action is None:
                     info('            Action: No action for task %s in state %s' % (task.name, task.status))
@@ -1323,7 +1138,7 @@ class Shank(StdApp):
                 # promote-to-{updates,security} on derivative packages
                 # if the master packages are already ready for promotion
                 # or already promoted to the updates/security pockets.
-                tbug = s.wfb.tasks_by_name[s.projectname].bug
+                tbug = s.wfb.lpbug
                 tsk_st = { 'promote-to-updates' : [ 'Confirmed', 'Fix Released' ],
                            'promote-to-security' : [ 'Confirmed', 'Fix Released', 'Invalid' ] }
                 if (not s.hold_updates_security_copy() and s.check_master_task(tbug, tsk_st) > 0):
