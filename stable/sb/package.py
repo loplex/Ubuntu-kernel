@@ -11,7 +11,8 @@ from lpltk.LaunchpadService             import LaunchpadService
 from ktl.bugs                           import DeltaTime
 from ktl.ubuntu                         import Ubuntu
 
-from sb.exceptions                      import GeneralError
+from sb.exceptions                      import GeneralError, ErrorExit
+from sb.log                             import cinfo
 
 # PackageError
 #
@@ -89,14 +90,14 @@ class WorkflowBug():
         s.is_valid = s.check_is_valid(s.lpbug)
 
         if s.is_valid:
-            info('    Targeted Project:')
-            info('        %s' % s.targeted_project)
-            info('')
+            cinfo('    Targeted Project:')
+            cinfo('        %s' % s.targeted_project)
+            cinfo('')
             s.properties = s.lpbug.properties
             if len(s.properties) > 0:
-                info('    Properties:')
+                cinfo('    Properties:')
                 for prop in s.properties:
-                    info('        %s: %s' % (prop, s.properties[prop]))
+                    cinfo('        %s: %s' % (prop, s.properties[prop]))
 
             s.tasks_by_name = s.create_tasks_by_name()
 
@@ -114,8 +115,8 @@ class WorkflowBug():
                 if t.status == 'In Progress':
                     continue
                 else:
-                    info('        Not processing this bug because master task state is set to %s' % (t.status))
-                    info('        Quitting this bug')
+                    cinfo('        Not processing this bug because master task state is set to %s' % (t.status))
+                    cinfo('        Quitting this bug')
                     retval = False
 
         return retval
@@ -129,8 +130,8 @@ class WorkflowBug():
         '''
         taskbyname = {}
 
-        info('')
-        info('    Scanning bug tasks:')
+        cinfo('')
+        cinfo('    Scanning bug tasks:')
 
         for t in s.lpbug.tasks:
             task_name       = t.bug_target_name
@@ -140,9 +141,9 @@ class WorkflowBug():
                     task_name = task_name[len(s.targeted_project)+1:].strip()
                 taskbyname[task_name] = WorkflowBugTask(t, task_name)
             else:
-                info('')
-                info('        %-25s' % (task_name))
-                info('            Action: Skipping non-workflow task')
+                cinfo('')
+                cinfo('        %-25s' % (task_name))
+                cinfo('            Action: Skipping non-workflow task')
 
         return taskbyname
 
@@ -204,6 +205,10 @@ class Package():
             s.is_stable_package = True
         else:
             s.is_stable_package = False
+
+        s.package_version_not_found  = 0
+        s.package_version_building   = 1
+        s.package_version_in_archive = 2
 
     # distro_series
     #
@@ -284,11 +289,23 @@ class Package():
         pkg_security = None
         pkg_updates = None
         pkg_release = None
+        changes = None
 
-        info('    Processing depenent packages:')
+        cinfo('    Determining Build Status')
+        deps = []
         for dep in iter(s.pkgs):
-            info('')
-            info('        %s:' % dep)
+            deps.append(dep)
+
+        cinfo('        Dependent packages:')
+        cinfo('')
+        cinfo('            %s' % ' '.join(deps))
+        cinfo('')
+
+
+        cinfo('        Processing depedent packages:')
+        for dep in iter(s.pkgs):
+            cinfo('')
+            cinfo('            %s:' % dep, 'yellow')
 
             abi_num = None
             pkg_rel = s.package.version
@@ -303,16 +320,18 @@ class Package():
             prepare_uploader = None
 
             if s.is_stable_package:
+                cinfo('                Stable Package', 'cyan')
+                cinfo('')
                 promoted_to_release = False
                 status_ckt,      pkg_ckt      = s.build_status(s.pkgs[dep], abi_num, s.ckt_ppa,    pkg_rel)
                 status_proposed, pkg_proposed = s.build_status(s.pkgs[dep], abi_num, s.main_archive, pkg_rel, 'Proposed')
 
                 status_security, pkg_security = s.build_status(s.pkgs[dep], abi_num, s.main_archive, pkg_rel, 'Security')
-                if status_security != 2:
+                if status_security != s.package_version_in_archive:
                     promoted_to_security = False # Not in the Security pocket
 
                 status_updates,  pkg_updates  = s.build_status(s.pkgs[dep], abi_num, s.main_archive, pkg_rel, 'Updates')
-                if status_updates != 2:
+                if status_updates != s.package_version_in_archive:
                     promoted_to_updates = False  # Not in the Updates pocket
 
                 for st in [ status_ckt, status_proposed, status_updates ]:
@@ -325,11 +344,13 @@ class Package():
                         prepare_uploader = c.package_signer
                         break
             else:
+                cinfo('                Development Package', 'cyan')
+                cinfo('')
                 promoted_to_updates = False
                 promoted_to_security = False
 
                 status_release,  pkg_release  = s.build_status(s.pkgs[dep], abi_num, s.main_archive, pkg_rel, 'Release')
-                if status_release != 2:
+                if status_release != s.package_version_in_archive:
                     promoted_to_release = False
                 if pkg_release:
                     prepare_assignee = pkg_release.package_creator
@@ -368,7 +389,7 @@ class Package():
                 timestamp = datetime.strptime(date_str, '%A, %d. %B %Y %H:%M UTC')
                 delta = DeltaTime(timestamp, datetime.utcnow())
                 if delta.hours < 1:
-                    info('        Builds gone for %s, waiting 1 hour to reset tasks' % (prep_task_name))
+                    cinfo('            Builds gone for %s, waiting 1 hour to reset tasks' % (prep_task_name))
                     warning('Fix Released bug not fully built?!? (waiting)')
                     continue # Nothing further to do, process the next dependent package.
 
@@ -388,44 +409,54 @@ class Package():
             else:
                 new_status = task_status[prepare_status]
 
-            # FIXME bjf - if prepare_assignee and new_status != 'Invalid':
-            # FIXME bjf -     s.set_task_assignee(prep_task_name, prepare_assignee)
+            if prep_task_status != new_status:
+                changes = {}
+                changes[prep_task_name] = {}
+                if prepare_assignee and new_status != 'Invalid':
+                    changes[prep_task_name]['assignee'] = prepare_uploader
 
-            # FIXME bjf - s.set_task_to_state(prep_task_name, new_status)
-            info('            %s - current: %s; new: %s' % (prep_task_name, prep_task_status, new_status))
+                changes[prep_task_name]['status'] = new_status
 
-            # Take care of the upload-to-ppa task if needed
-            # FIXME bjf - if dep == 'main' and 'upload-to-ppa' in s.bug.tasks_by_name:
-            # FIXME bjf -     if prepare_uploader:
-            # FIXME bjf -         s.set_task_assignee('upload-to-ppa', prepare_uploader)
-            # FIXME bjf -     if prepare_status >= 1:
-            # FIXME bjf -         s.set_task_to_state('upload-to-ppa', 'Fix Released')
-            # FIXME bjf -     elif s.bug.tasks_by_name['upload-to-ppa'].status != 'Confirmed':
-            # FIXME bjf -         s.set_task_to_state('upload-to-ppa', 'New')
-
-        info('')
-        info('    promoted_to_security: %s' % promoted_to_security)
-        info('     promoted_to_updates: %s' % promoted_to_updates)
-        info('     promoted_to_release: %s' % promoted_to_release)
-        ###################################################################
-        #
-        return # FIXME bjf -debug
+                # Take care of the upload-to-ppa task if needed
+                if dep == 'main' and 'upload-to-ppa' in s.bug.tasks_by_name:
+                    changes['upload-to-ppa'] = {}
+                    if prepare_uploader:
+                        changes['upload-to-ppa']['assignee'] = prepare_uploader
+                    if (prepare_status == s.package_version_building) or (prepare_status == s.package_version_in_archive):
+                        changes['upload-to-ppa']['status'] = 'Fix Released'
+                    elif s.bug.tasks_by_name['upload-to-ppa'].status != 'Confirmed':
+                        changes['upload-to-ppa']['status'] = 'New'
 
         # Set promotion bug tasks
         if promoted_to_security:
+            if changes is None:
+                changes = {}
+            changes['promote-to-security'] = {}
             if pkg_security:
-                s.set_task_assignee('promote-to-security', pkg_security.creator)
-            s.set_task_to_state('promote-to-security', 'Fix Released')
+                changes['promote-to-security']['assignee'] = pkg_security.creator
+            changes['promote-to-security']['status'] = 'Fix Released'
 
         if promoted_to_updates:
+            if changes is None:
+                changes = {}
+            changes['promote-to-updates'] = {}
             if pkg_updates:
-                s.set_task_assignee('promote-to-updates', pkg_updates.creator)
-            s.set_task_to_state('promote-to-updates', 'Fix Released')
+                changes['promote-to-updates']['assignee'] = pkg_updates.creator
+            changes['promote-to-updates']['status'] = 'Fix Released'
 
         if promoted_to_release:
+            if changes is None:
+                changes = {}
+            changes['promote-to-release'] = {}
             if pkg_release:
                 s.set_task_assignee('promote-to-release', pkg_release.creator)
-            s.set_task_to_state('promote-to-release', 'Fix Released')
+                changes['promote-to-release']['assignee'] = pkg_release.creator
+            changes['promote-to-release']['status'] = 'Fix Released'
+
+        if changes is not None:
+            cinfo('')
+            for key in changes:
+                cinfo('                %s - status: %s  assignee: %s' % (key, changes[key]['status'], changes[key]['assignee']), 'magenta')
 
     # is_released
     #
@@ -453,7 +484,7 @@ class Package():
         Determine if the main package and all it's dependents have been prepared.
         '''
         retval = True
-        info('    Prep\'d Check:')
+        cinfo('        Prep\'d Check:')
         for dep in iter(s.pkgs):
             if s.pkgs[dep] == s.package.name:  # if 'linux' == 'linux'
                 prep_task_name = 'prepare-package'
@@ -462,11 +493,11 @@ class Package():
 
             prep_task_status = s.bug.tasks_by_name[prep_task_name].status
             if prep_task_status != 'Fix Released':
-                info('        %s: not fully prep\'d' % dep)
+                cinfo('            %s: not fully prep\'d' % dep)
                 retval = False
                 break
             else:
-                info('        %s: fully prep\'d' % dep)
+                cinfo('            %s: fully prep\'d' % dep)
 
         return retval
 
@@ -474,17 +505,13 @@ class Package():
         if release is not None:
             if pocket != '':
                 ps = archive.getPublishedSources(distro_series=s.distro_series, exact_match=True, source_name=package, status='Published', version=release, pocket=pocket)
-                #error('get_sources #1')
             else:
                 ps = archive.getPublishedSources(distro_series=s.distro_series, exact_match=True, source_name=package, status='Published', version=release)
-                #error('get_sources #2')
         else:
             if pocket != '':
                 ps = archive.getPublishedSources(distro_series=s.distro_series, exact_match=True, source_name=package, status='Published', pocket=pocket)
-                #error('get_sources #3')
             else:
                 ps = archive.getPublishedSources(distro_series=s.distro_series, exact_match=True, source_name=package, status='Published')
-                #error('get_sources #4')
         return ps
 
     def build_status(s, package, abi, archive, release=None, pocket=''):
@@ -510,30 +537,26 @@ class Package():
                       the specified pocket
         """
 
-        info('            ---------------------------------------------------------------------------')
-        info('            Build Status')
-        info('')
-        info('                package: %s' % package)
-        info('                    abi: %s' % abi)
-        info('                archive: %s' % archive)
-        info('                release: %s' % release)
-        info('                 pocket: %s' % pocket)
-        info('')
+        cinfo('                ---------------------------------------------------------------------------')
+        cinfo('                Build Status')
+        cinfo('')
+        cinfo('                    package: %s' % package)
+        cinfo('                        abi: %s' % abi)
+        cinfo('                    archive: %s' % archive)
+        cinfo('                    release: %s' % release)
+        if pocket == '':
+            cinfo('                     pocket: ppa')
+        else:
+            cinfo('                     pocket: %s' % pocket)
+        cinfo('')
 
-        #ps = s.get_sources(archive, package, release, pocket)
-        #if not abi:
-        #    ps = s.get_sources(archive, package, release, pocket)
         if pocket and not abi:
-            #error('build_status #1')
             ps = s.get_sources(archive, package, release, pocket)
         elif not pocket and not abi:
-            #error('build_status #2')
             ps = s.get_sources(archive, package, release)
         elif pocket and abi:
-            #error('build_status #3')
             ps = s.get_sources(archive, package, pocket=pocket)
         else:
-            #error('build_status #4')
             ps = s.get_sources(archive, package)
 
         matches = []
@@ -543,7 +566,7 @@ class Package():
             rel_match = '<%s> or <%s>' % (dep_ver1, dep_ver2)
             for p in ps:
                 src_ver = p.source_package_version
-                info('                src_ver: %s' % src_ver)
+                cinfo('                    src_ver: %s' % src_ver)
                 if ((src_ver.startswith(dep_ver1 + '.') or src_ver.startswith(dep_ver2 + '.'))):
                     matches.append(p)
         else:
@@ -551,20 +574,23 @@ class Package():
             for p in ps:
                 matches.append(p)
 
-        retval = 0, None
+        retval = s.package_version_not_found, None
+        status = 'missing'
         if not matches:
-            info('                Can\'t find <%s> (%s) build on %s (pocket:%s)' % (package, rel_match, archive.displayname, pocket))
+            cinfo('                    Can\'t find "%s" (%s) build on %s (pocket:%s)' % (package, rel_match, archive.displayname, pocket))
         else:
             lst_date = None
             for pkg in matches:
                 src_id = str(pkg.self).rsplit('/', 1)[1]
                 build_summaries = archive.getBuildSummariesForSourceIds(source_ids=[src_id])[src_id]
                 if build_summaries['status'] == 'FULLYBUILT':
-                    info('                <%s> %s built (pocket:%s)' % (package, rel_match, pocket))
-                    bs = 2
+                    cinfo('                    "%s" %s built (pocket:%s)' % (package, rel_match, pocket))
+                    bs = s.package_version_in_archive
+                    status = 'built'
                 else:
-                    info('                <%s> %s not fully built yet, skipping (pocket:%s)' % (package, rel_match, pocket))
-                    bs = 1
+                    cinfo('                    "%s" %s not fully built yet, skipping (pocket:%s)' % (package, rel_match, pocket))
+                    bs = s.package_version_building
+                    status = 'building'
                 # prefer newer published items...
                 if lst_date:
                     if lst_date > pkg.date_published:
@@ -572,6 +598,6 @@ class Package():
                 lst_date = pkg.date_published
                 retval = bs, pkg
 
-        info('                result: %d, %s' % retval)
+        cinfo('                    result: %s, %s' % (status, retval[1]), 'red')
         return retval
 
