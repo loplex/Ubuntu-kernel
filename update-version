@@ -24,7 +24,7 @@ master_version=`(cd "$master_dir" && LC_ALL=C dpkg-parsechangelog $changelog | g
 #echo "master_version: <$master_version>"
 
 if dpkg --compare-versions "$here_version" lt "$master_version"; then
-	dch --newversion "$master_version" "Version $master_version"
+	dch --distribution "$here_series" --newversion "$master_version" "Version $master_version"
 	dch --distribution "$here_series" --release ""
 	echo "Updated to version: $master_version"
 
