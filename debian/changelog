@@ -1,3 +1,11 @@
+linux-backports-modules-3.2.0 (3.2.0-48.36) precise; urgency=low
+
+  [ Steve Conklin ]
+
+  * Bump ABI for Precise 3.2.0-48.73
+
+ -- Steve Conklin <sconklin@canonical.com>  Thu, 06 Jun 2013 09:59:58 -0500
+
 linux-backports-modules-3.2.0 (3.2.0-47.35) precise; urgency=low
 
   [ Steve Conklin ]
