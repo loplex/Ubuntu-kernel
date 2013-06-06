@@ -1,3 +1,11 @@
+linux-meta (3.2.0.48.57) precise; urgency=low
+
+  [ Steve Conklin ]
+
+  * Bump ABI
+
+ -- Steve Conklin <sconklin@canonical.com>  Mon, 06 Jun 2013 09:52:01 -0500
+
 linux-meta (3.2.0.47.56) precise; urgency=low
 
   [ Steve Conklin ]
