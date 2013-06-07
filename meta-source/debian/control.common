@@ -4,5 +4,12 @@ Priority: optional
 Maintainer: Ubuntu Kernel Team <kernel-team@lists.ubuntu.com>
 Standards-Version: 3.6.1
 Build-Depends: dpkg (>= 1.13.19), debhelper (>= 5), gawk
-Vcs-Git: git://kernel.ubuntu.com/ubuntu/ubuntu-raring-meta.git nexus7
+Vcs-Git: git://kernel.ubuntu.com/ubuntu/ubuntu-saucy-meta.git grouper
 
+Package: linux-grouper-tools
+Architecture: armhf
+Section: kernel
+Depends: ${misc:Depends}, linux-grouper-tools-${kernel-abi-version}
+Description: Linux kernel versioned Tools
+ This package will always depend on the latest Linux kernel versioned tools
+ available. The Ubuntu patches have been applied.
