@@ -150,8 +150,10 @@ class Shank(StdApp):
                             except KeyError:
                                 pass
                             try:
-                                #bug.tasks_by_name[task].assignee = p.updates[task]['assignee']
-                                bug.tasks_by_name[task].assignee = s.lp.launchpad.people['brad-figg']  # FIXME bjf - for debugging
+                                if s.args.debug_assignee:
+                                    bug.tasks_by_name[task].assignee = s.lp.launchpad.people[s.args.debug_assignee]
+                                else:
+                                    bug.tasks_by_name[task].assignee = p.updates[task]['assignee']
                             except KeyError:
                                 pass
 
@@ -249,13 +251,13 @@ class Shank(StdApp):
             s.verbose('Dryrun - Adding comment to tracking bug\n')
         else:
             s.verbose('Adding comment to tracking bug\n')
-            taskobj.bug.add_comment(body, subject)
+            taskobj.lp_task.bug.add_comment(body, subject)
 
     def send_email(s, taskobj, subject, body, to_address=None):
         """
         Send email to the configured list or recipient
         """
-        if s.args.dryrun:
+        if s.args.dryrun or s.args.dryrun_email:
             s.verbose('Dryrun - Sending email\n')
             return
 
@@ -1308,7 +1310,9 @@ examples:
     parser = ArgumentParser(description=app_description, epilog=app_epilog, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('--verbose', action='store_true', default=False, help='Print out a lot of messages about what is going on.')
     parser.add_argument('--debug',   action='store_true', default=False, help='')
+    parser.add_argument('--debug-assignee',               default=None,  help='')
     parser.add_argument('--dryrun',  action='store_true', default=False, help='Don\'t modify the bug(s). Should be used with --verbose.')
+    parser.add_argument('--dryrun-email',  action='store_true', default=False, help='')
     parser.add_argument('--staging', action='store_true', default=False, help='Use the staging LP service instead of the production one.')
     parser.add_argument('--sauron',  action='store_true', default=False, help='I\'m a professional, I know what I\'m doing. (will work on bugs marked \'invalid\')')
     parser.add_argument('--bugs',                         default=None,  help='A comma seperated list of bug ids. Only these bug ids will be processed.')
