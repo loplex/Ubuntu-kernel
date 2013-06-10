@@ -14,29 +14,77 @@ def cinfo(msg, color='green'):
 class WorkflowBugTask(object):
     # __init__
     #
-    def __init__(s, lp_task, task_name):
+    def __init__(s, lp_task, task_name, dryrun):
+        s.dryrun = dryrun
+        s.__status   = None
+        s.__assignee = None
         setattr(s, 'name', task_name)
-        setattr(s, 'status', lp_task.status)
         setattr(s, 'importance', lp_task.importance)
         setattr(s, 'lp_task', lp_task)
 
-        assignee    = lp_task.assignee
-        if assignee is None:
-            setattr(s, 'assignee', '*Unassigned')
+    # status
+    #
+    @property
+    def status(s):
+        if s.__status is None:
+            s.__status = s.lp_task.status
+        return s.__status
+
+    @status.setter
+    def status(s, val):
+        if s.dryrun:
+            cinfo('        ')
+            cinfo('Dryrun - Set task %s to state %s' % (s.name, val), 'red')
         else:
-            setattr(s, 'assignee', assignee.display_name)
+            if s.status != val:
+                s.lp_task.status = val
+                s.__status = None
+                cinfo('        Setting %s to %s' % (s.name, val), 'red')
+            else:
+                cinfo('        Task <%s> already in state <%s>' % (s.name, val), 'red')
+
+    # assignee
+    #
+    @property
+    def assignee(s):
+        if s.__assignee is None:
+            assignee = s.lp_task.assignee
+            if assignee is None:
+                s.__assignee = '*Unassigned'
+            else:
+                s.__assignee = assignee.display_name
+
+    @assignee.setter
+    def assignee(s, val):
+        if s.dryrun:
+            cinfo('        ')
+            cinfo('Dryrun - Assign task %s to %s' % (s.name, val), 'red')
+        else:
+            new_assignee = None
+            current_assignee = s.assignee
+            if current_assignee and current_assignee.username != val.name:
+                new_assignee = val
+            elif not current_assignee:
+                new_assignee = val
+            if new_assignee:
+                cinfo('        Assigning Task <%s> to <%s>' % (s.name, val), 'red')
+                s.lp_task.assignee = val
+                s.__assignee = None
+            else:
+                cinfo('        Task <%s> already assigned to <%s>' % (s.name, val), 'red')
 
 # WorkflowBug
 #
 class WorkflowBug():
     # __init__
     #
-    def __init__(s, lp, projects, bugid, sauron=False):
+    def __init__(s, lp, projects, bugid, sauron=False, dryrun=False):
         s.lp = lp
         s.lpbug = s.lp.get_bug(bugid)
         s.projects = projects
         s.sauron = sauron
         s.title = s.lpbug.title
+        s.dryrun = dryrun
 
         s.__package_name = None
 
@@ -117,7 +165,7 @@ class WorkflowBug():
             if task_name.startswith(s.targeted_project):
                 if '/' in task_name:
                     task_name = task_name[len(s.targeted_project)+1:].strip()
-                tasks_by_name[task_name] = WorkflowBugTask(t, task_name)
+                tasks_by_name[task_name] = WorkflowBugTask(t, task_name, s.dryrun)
             else:
                 info('')
                 info('        %-25s' % (task_name))

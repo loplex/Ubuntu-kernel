@@ -27,7 +27,7 @@ from argparse                           import ArgumentParser, RawDescriptionHel
 from logging                            import info, debug, error, warning, basicConfig, INFO, DEBUG, WARNING
 from sb.package                         import Package, PackageError
 from sb.workflow_bug                    import WorkflowBug
-from sb.loggin                          import cinfo
+from sb.log                             import cinfo, cdebug
 
 def verbose(msg, color='green'):
     stdo(colored(msg, color))
@@ -128,7 +128,7 @@ class Shank(StdApp):
         info('')
         info('Processing: %s' % s.printlink)
 
-        bug = WorkflowBug(s.lp, s.projects_tracked, bugid, sauron)
+        bug = WorkflowBug(s.lp, s.projects_tracked, bugid, sauron, s.args.dryrun)
         if bug.is_valid:
             try:
                 p = Package(s.lp, bug)
@@ -142,6 +142,18 @@ class Shank(StdApp):
                 else:
                     info('        Needs work')
                     p.determine_build_status()
+
+                    if p.updates is not None:
+                        for task in p.updates:
+                            try:
+                                bug.tasks_by_name[task].status = p.updates[task]['status']
+                            except KeyError:
+                                pass
+                            try:
+                                #bug.tasks_by_name[task].assignee = p.updates[task]['assignee']
+                                bug.tasks_by_name[task].assignee = s.lp.launchpad.people['brad-figg']  # FIXME bjf - for debugging
+                            except KeyError:
+                                pass
 
                 s.process_bug_tasks(bug)
 
@@ -347,47 +359,14 @@ class Shank(StdApp):
         Assign the task for the given assignee
         returns True if we changed the state and False if it was already at the desired state
         """
-        if s.args.dryrun:
-            s.verbose('        ')
-            s.verbose('Dryrun - Assign task %s to %s\n' % (taskname, assignee))
-            return
-
-        # TODO could add error handling and retries here if needed
-        new_assignee = None
-        current_assignee = s.wfb.tasks_by_name[taskname].assignee
-        if current_assignee and current_assignee.username != assignee.name:
-            new_assignee = assignee
-        elif not current_assignee:
-            new_assignee = assignee
-        if new_assignee:
-            print('        Assigning Task <%s> to <%s>' % (taskname, assignee))
-            s.wfb.tasks_by_name[taskname].assignee = assignee
-            return True
-        else:
-            s.verbose('        ')
-            s.verbose('Task <%s> already assigned to <%s>\n' % (taskname, assignee))
-            return False
+        s.wfb.tasks_by_name[taskname].assignee = assignee
 
     def set_task_to_state(s, taskname, state):
         """
         Set a task with a given name to the desired state
         returns True if we changed the state and False if it was already at the desired state
         """
-        if s.args.dryrun:
-            s.verbose('        ')
-            s.verbose('Dryrun - Set task %s to state %s\n' % (taskname, state))
-            return
-
-        s.verbose('        Setting %s to %s\n' % (taskname, state), 'red')
-        # TODO could add error handling and retries here if needed
-        if s.wfb.tasks_by_name[taskname].status != state:
-            print('        Setting Task <%s> to State <%s>' % (taskname, state))
-            s.wfb.tasks_by_name[taskname].status = state
-            return True
-        else:
-            s.verbose('        ')
-            s.verbose('Task <%s> already in state <%s>\n' % (taskname, state))
-            return False
+        s.wfb.tasks_by_name[taskname].status = state
 
     # set_tagged_timestamp
     #
@@ -523,7 +502,9 @@ class Shank(StdApp):
         return True
 
     def upload_to_ppa_confirmed(s, taskobj):
+        cdebug('upload_to_ppa_confirmed enter')
         s.set_phase(taskobj, 'ReadyToBePackaged')
+        cdebug('upload_to_ppa_confirmed leave (True)')
         return True
 
     def prep_package_fix_released(s, taskobj):
@@ -1326,7 +1307,8 @@ examples:
     '''
     parser = ArgumentParser(description=app_description, epilog=app_epilog, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('--verbose', action='store_true', default=False, help='Print out a lot of messages about what is going on.')
-    parser.add_argument('--dryrun', action='store_true',  default=False, help='Don\'t modify the bug(s). Should be used with --verbose.')
+    parser.add_argument('--debug',   action='store_true', default=False, help='')
+    parser.add_argument('--dryrun',  action='store_true', default=False, help='Don\'t modify the bug(s). Should be used with --verbose.')
     parser.add_argument('--staging', action='store_true', default=False, help='Use the staging LP service instead of the production one.')
     parser.add_argument('--sauron',  action='store_true', default=False, help='I\'m a professional, I know what I\'m doing. (will work on bugs marked \'invalid\')')
     parser.add_argument('--bugs',                         default=None,  help='A comma seperated list of bug ids. Only these bug ids will be processed.')
@@ -1337,10 +1319,12 @@ examples:
     # here.
     #
     log_format = "%(levelname)s - %(message)s"
-    if args.verbose:
+    if args.debug:
         basicConfig(filename=args.logfile, level=DEBUG, format=log_format)
-    else:
+    elif args.verbose:
         basicConfig(filename=args.logfile, level=INFO, format=log_format)
+    else:
+        basicConfig(filename=args.logfile, level=WARNING, format=log_format)
 
     if args.bugs:
         args.bugs = args.bugs.replace(' ', '')

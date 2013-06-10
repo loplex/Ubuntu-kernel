@@ -12,7 +12,7 @@ from ktl.bugs                           import DeltaTime
 from ktl.ubuntu                         import Ubuntu
 
 from sb.exceptions                      import GeneralError, ErrorExit
-from sb.log                             import cinfo
+from sb.log                             import cinfo, cdebug
 
 # PackageError
 #
@@ -290,6 +290,7 @@ class Package():
         pkg_updates = None
         pkg_release = None
         changes = None
+        s.updates = None
 
         cinfo('    Determining Build Status')
         deps = []
@@ -371,6 +372,8 @@ class Package():
             else:
                 prep_task_name = 'prepare-package-%s' % (dep)
             prep_task_status = s.bug.tasks_by_name[prep_task_name].status
+            cdebug('prep_task_name: %s' % prep_task_name)
+            cdebug('prep_task_status: %s' % prep_task_status)
 
             # When things are moved from one pocket to another, things
             # may be unavailable for some time, and we may think no
@@ -379,7 +382,7 @@ class Package():
             # missing. If after 1 hour the builds are still unavailable,
             # then we allow to reset the tasks.
             prop = 'kernel-%s-build-unavailable' % (dep)
-            if (s.bug.tasks_by_name[prep_task_name].status == 'Fix Released' and prepare_status != 2):
+            if (s.bug.tasks_by_name[prep_task_name].status == 'Fix Released' and prepare_status != s.package_version_in_archive):
                 s.set_tagged_timestamp(s.bug.tasks_by_name[prep_task_name], prop)
                 if not prop in s.bug.lpbug.properties:
                     warning('Fix Released bug not fully built?!?')
@@ -397,6 +400,7 @@ class Package():
             # confuse anyone looking at the bug.
             #
             if prop in s.bug.lpbug.properties:
+                cdebug('clearing the timestamp')
                 s.props.set({prop:None})
 
             new_status = s.bug.tasks_by_name[prep_task_name].status
@@ -408,9 +412,11 @@ class Package():
                         new_status = 'Invalid'
             else:
                 new_status = task_status[prepare_status]
+            cdebug('new_status: %s' % new_status)
 
             if prep_task_status != new_status:
-                changes = {}
+                if changes is None:
+                    changes = {}
                 changes[prep_task_name] = {}
                 if prepare_assignee and new_status != 'Invalid':
                     changes[prep_task_name]['assignee'] = prepare_uploader
@@ -449,14 +455,18 @@ class Package():
                 changes = {}
             changes['promote-to-release'] = {}
             if pkg_release:
-                s.set_task_assignee('promote-to-release', pkg_release.creator)
                 changes['promote-to-release']['assignee'] = pkg_release.creator
             changes['promote-to-release']['status'] = 'Fix Released'
 
         if changes is not None:
             cinfo('')
             for key in changes:
-                cinfo('                %s - status: %s  assignee: %s' % (key, changes[key]['status'], changes[key]['assignee']), 'magenta')
+                try:
+                    cinfo('                %25s - status: %s  assignee: %s' % (key, changes[key]['status'], changes[key]['assignee']), 'magenta')
+                except KeyError:
+                    cinfo('                %25s - status: %s' % (key, changes[key]['status']), 'magenta')
+
+        s.updates = changes
 
     # is_released
     #
