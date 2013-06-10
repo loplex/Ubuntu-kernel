@@ -6,7 +6,7 @@ Standards-Version: 3.6.1
 Build-Depends: dpkg (>= 1.13.19), debhelper (>= 5), gawk
 Vcs-Git: git://kernel.ubuntu.com/ubuntu/ubuntu-saucy-meta.git maguro
 
-Package: linux-grouper-tools
+Package: linux-maguro-tools
 Architecture: armhf
 Section: kernel
 Depends: ${misc:Depends}, linux-maguro-tools-${kernel-abi-version}
