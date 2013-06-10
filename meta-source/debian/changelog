@@ -1,3 +1,9 @@
+linux-meta-maguro (3.0.0.2.4) saucy; urgency=low
+
+  * Fix cut and paste error
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Mon, 10 Jun 2013 13:05:38 -0600
+
 linux-meta-maguro (3.0.0.2.3) saucy; urgency=low
 
   * ABI: 3.0.0-2
