@@ -5,9 +5,7 @@ import re
 
 from ktl.termcolor                      import colored
 from ktl.ubuntu                         import Ubuntu
-
-def cinfo(msg, color='green'):
-    info(colored(msg, color))
+from sb.log                             import cinfo
 
 # WorkflowBugTask
 #
@@ -21,6 +19,7 @@ class WorkflowBugTask(object):
         setattr(s, 'name', task_name)
         setattr(s, 'importance', lp_task.importance)
         setattr(s, 'lp_task', lp_task)
+        s.bug = lp_task.bug
 
     # status
     #
@@ -39,9 +38,9 @@ class WorkflowBugTask(object):
             if s.status != val:
                 s.lp_task.status = val
                 s.__status = None
-                cinfo('        Setting %s to %s' % (s.name, val), 'red')
+                cinfo('            Task %s status: %s' % (s.name, val), 'red')
             else:
-                cinfo('        Task <%s> already in state <%s>' % (s.name, val), 'red')
+                cinfo('            Task %s already %s' % (s.name, val), 'red')
 
     # assignee
     #
@@ -67,11 +66,11 @@ class WorkflowBugTask(object):
             elif not current_assignee:
                 new_assignee = val
             if new_assignee:
-                cinfo('        Assigning Task <%s> to <%s>' % (s.name, val), 'red')
+                cinfo('            Task %s assigned to: %s' % (s.name, val), 'red')
                 s.lp_task.assignee = val
                 s.__assignee = None
             else:
-                cinfo('        Task <%s> already assigned to <%s>' % (s.name, val), 'red')
+                cinfo('            Task %s already assigned to %s' % (s.name, val), 'red')
 
 # WorkflowBug
 #
@@ -113,14 +112,14 @@ class WorkflowBug():
         s.is_valid = s.check_is_valid(s.lpbug)
 
         if s.is_valid:
-            info('    Targeted Project:')
-            info('        %s' % s.targeted_project)
-            info('')
+            cinfo('    Targeted Project:', 'cyan')
+            cinfo('        %s' % s.targeted_project)
+            cinfo('')
             s.properties = s.lpbug.properties
             if len(s.properties) > 0:
-                info('    Properties:')
+                cinfo('    Properties:', 'cyan')
                 for prop in s.properties:
-                    info('        %s: %s' % (prop, s.properties[prop]))
+                    cinfo('        %s: %s' % (prop, s.properties[prop]))
 
             s.tasks_by_name = s.create_tasks_by_name()
 
@@ -141,8 +140,8 @@ class WorkflowBug():
                 else:
                     if s.sauron:
                         continue
-                    info('        Not processing this bug because master task state is set to %s' % (t.status))
-                    info('        Quitting this bug')
+                    cinfo('        Not processing this bug because master task state is set to %s' % (t.status))
+                    cinfo('        Quitting this bug')
                     retval = False
 
         return retval
@@ -156,8 +155,8 @@ class WorkflowBug():
         '''
         tasks_by_name = {}
 
-        info('')
-        info('    Scanning bug tasks:')
+        cinfo('')
+        cinfo('    Scanning bug tasks:', 'cyan')
 
         for t in s.lpbug.tasks:
             task_name       = t.bug_target_name
@@ -167,9 +166,9 @@ class WorkflowBug():
                     task_name = task_name[len(s.targeted_project)+1:].strip()
                 tasks_by_name[task_name] = WorkflowBugTask(t, task_name, s.dryrun)
             else:
-                info('')
-                info('        %-25s' % (task_name))
-                info('            Action: Skipping non-workflow task')
+                cinfo('')
+                cinfo('        %-25s' % (task_name))
+                cinfo('            Action: Skipping non-workflow task')
 
         return tasks_by_name
 

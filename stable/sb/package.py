@@ -2,17 +2,15 @@
 #
 
 from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
-from logging                            import info, debug, error, warning, basicConfig, INFO, DEBUG, WARNING
 import re
 
 from datetime                           import datetime
-from lpltk.LaunchpadService             import LaunchpadService
 
 from ktl.bugs                           import DeltaTime
 from ktl.ubuntu                         import Ubuntu
 
 from sb.exceptions                      import GeneralError, ErrorExit
-from sb.log                             import cinfo, cdebug
+from sb.log                             import cinfo, cdebug, cerror, cwarn
 
 # PackageError
 #
@@ -54,7 +52,7 @@ class PackageInfo():
             s.valid = True
 
         if not matched:
-            warning(' ** None of the regular expressions matched the title (%s)' % txt)
+            cwarn(' ** None of the regular expressions matched the title (%s)' % txt)
 
 # WorkflowBugTask
 #
@@ -194,8 +192,8 @@ class Package():
         #
         s.package = PackageInfo(s.bug.lpbug.title)
         if not s.package.valid:
-            warning('        Unable to check package builds for this bug: either the package name or')
-            warning('        the version are not properly indicated in the bug title.')
+            cwarn('        Unable to check package builds for this bug: either the package name or')
+            cwarn('        the version are not properly indicated in the bug title.')
             raise PackageError(['Unable to check package builds for this bug: either the package name or',
                                 'the version are not properly indicated in the bug title.'])
 
@@ -229,7 +227,7 @@ class Package():
 
             if s.__distro_series is None:
                 emsg = "        ERROR: can't figure out the distro series for %s-%s\n" % (s.package.name, s.package.version)
-                error(emsg)
+                cerror(emsg)
                 raise ErrorExit(emsg)
 
         return s.__distro_series
@@ -385,7 +383,7 @@ class Package():
             if (s.bug.tasks_by_name[prep_task_name].status == 'Fix Released' and prepare_status != s.package_version_in_archive):
                 s.set_tagged_timestamp(s.bug.tasks_by_name[prep_task_name], prop)
                 if not prop in s.bug.lpbug.properties:
-                    warning('Fix Released bug not fully built?!?')
+                    cwarn('Fix Released bug not fully built?!?')
                     continue # Nothing further to do, process the next dependent package.
 
                 date_str = s.bug.lpbug.properties[prop]
@@ -393,7 +391,7 @@ class Package():
                 delta = DeltaTime(timestamp, datetime.utcnow())
                 if delta.hours < 1:
                     cinfo('            Builds gone for %s, waiting 1 hour to reset tasks' % (prep_task_name))
-                    warning('Fix Released bug not fully built?!? (waiting)')
+                    cwarn('Fix Released bug not fully built?!? (waiting)')
                     continue # Nothing further to do, process the next dependent package.
 
             # Clear the timestamp property if it was set. We just clean it up so it doesn't
@@ -459,12 +457,12 @@ class Package():
             changes['promote-to-release']['status'] = 'Fix Released'
 
         if changes is not None:
-            cinfo('')
+            cdebug('')
             for key in changes:
                 try:
-                    cinfo('                %25s - status: %s  assignee: %s' % (key, changes[key]['status'], changes[key]['assignee']), 'magenta')
+                    cdebug('                %25s - status: %s  assignee: %s' % (key, changes[key]['status'], changes[key]['assignee']), 'magenta')
                 except KeyError:
-                    cinfo('                %25s - status: %s' % (key, changes[key]['status']), 'magenta')
+                    cdebug('                %25s - status: %s' % (key, changes[key]['status']), 'magenta')
 
         s.updates = changes
 
@@ -494,7 +492,7 @@ class Package():
         Determine if the main package and all it's dependents have been prepared.
         '''
         retval = True
-        cinfo('        Prep\'d Check:')
+        cinfo('    Prep\'d Check:', 'cyan')
         for dep in iter(s.pkgs):
             if s.pkgs[dep] == s.package.name:  # if 'linux' == 'linux'
                 prep_task_name = 'prepare-package'
@@ -503,11 +501,11 @@ class Package():
 
             prep_task_status = s.bug.tasks_by_name[prep_task_name].status
             if prep_task_status != 'Fix Released':
-                cinfo('            %s: not fully prep\'d' % dep)
+                cinfo('        %s: not fully prep\'d' % dep)
                 retval = False
                 break
             else:
-                cinfo('            %s: fully prep\'d' % dep)
+                cinfo('        %s: fully prep\'d' % dep)
 
         return retval
 
