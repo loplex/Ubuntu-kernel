@@ -1,3 +1,9 @@
+linux-meta-mako (3.4.0.1.3) saucy; urgency=low
+
+  * Switch naming to mako.
+
+ -- Andy Whitcroft <apw@canonical.com>  Thu, 02 May 2013 19:06:53 +0100
+
 linux-meta-nexus4 (3.4.0.1.2) raring; urgency=low
 
   * ABI Ubuntu-3.4.0-1

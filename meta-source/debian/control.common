@@ -1,8 +1,8 @@
-Source: linux-meta-nexus4
+Source: linux-meta-mako
 Section: devel
 Priority: optional
 Maintainer: Ubuntu Kernel Team <kernel-team@lists.ubuntu.com>
 Standards-Version: 3.6.1
 Build-Depends: dpkg (>= 1.13.19), debhelper (>= 5), gawk
-Vcs-Git: git://kernel.ubuntu.com/ubuntu/ubuntu-raring-meta.git nexus4
+Vcs-Git: git://kernel.ubuntu.com/ubuntu/ubuntu-saucy-meta.git mako
 

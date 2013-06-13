@@ -1,0 +1,51 @@
+Package: linux-headers-mako
+Architecture: armhf
+Section: devel
+Priority: optional
+Depends: ${misc:Depends}, linux-headers-${kernel-abi-version}-mako 
+Description: Linux kernel headers for the Nexus4 (mako).
+ This package will always depend on the latest kernel headers available
+ for Nexus4 (mako).
+
+Package: linux-image-mako
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-mako, linux-firmware
+Description: Linux kernel image for the Nexus4 (mako).
+ This package will always depend on the latest kernel image available
+ for Nexus4 (mako).
+
+Package: linux-mako
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-image-mako (= ${binary:Version}), linux-headers-mako (= ${binary:Version})
+Description: Complete Linux kernel for the Nexus4 (mako).
+ This package will always depend on the latest complete Linux kernel available
+ for Nexus4 (mako).
+
+Package: linux-headers-nexus4
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-headers-mako (= ${binary:Version})
+Description: Transitional package
+ This package will always depend on linux-headers-mako
+
+Package: linux-image-nexus4
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-image-mako (= ${binary:Version})
+Description: Transitional package
+ This package will always depend on linux-image-mako
+
+Package: linux-nexus4
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-mako (= ${binary:Version})
+Description: Transitional package
+ This package will always depend on linux-mako
+
