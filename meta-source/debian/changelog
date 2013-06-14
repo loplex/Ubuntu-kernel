@@ -1,3 +1,9 @@
+linux-meta (3.9.0.6.7) saucy; urgency=low
+
+  * linux ABI 3.9.0-6
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Fri, 14 Jun 2013 09:44:21 -0600
+
 linux-meta (3.9.0.5.6) saucy; urgency=low
 
   * linux ABI 3.9.0-5
