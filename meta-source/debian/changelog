@@ -1,3 +1,11 @@
+linux-meta (3.5.0.35.51) quantal; urgency=low
+
+  [ Steve Conklin ]
+
+  * Bump ABI
+
+ -- Steve Conklin <sconklin@canonical.com>  Wed, 18 May 2013 10:55:37 -0500
+
 linux-meta (3.5.0.34.50) quantal; urgency=low
 
   [ Steve Conklin ]
