@@ -1,3 +1,9 @@
+linux-meta-manta (3.4.0.4.3) saucy; urgency=low
+
+  * ABI: 3.4.0-4
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Tue, 18 Jun 2013 08:14:22 -0600
+
 linux-meta-manta (3.4.0.3.2) saucy; urgency=low
 
   * ABI: 3.4.0-3
