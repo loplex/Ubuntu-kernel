@@ -1,3 +1,9 @@
+linux-signed (3.5.0-35.56) quantal; urgency=low
+
+  * Version 3.5.0-35.56
+
+ -- Steve Conklin <sconklin@canonical.com>  Tue, 18 Jun 2013 11:02:39 -0500
+
 linux-signed (3.5.0-34.55) quantal; urgency=low
 
   * Version 3.5.0-34.55
