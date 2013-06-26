@@ -260,10 +260,10 @@ class Shank(StdApp):
         Send email to the configured list or recipient
         """
         if s.args.dryrun or s.args.dryrun_email:
-            s.verbose('Dryrun - Sending email\n')
+            cinfo('Dryrun - Sending email')
             return
 
-        s.verbose('Sending email\n')
+        cinfo('Sending email')
 
         if not 'mail_notify' in s.cfg:
             s.verbose('No mail_notify config found, can\'t send email\n')
@@ -384,6 +384,10 @@ class Shank(StdApp):
             tstamp = date_to_string(now)
             props = {keyvalue:tstamp}
             s.props.set(props)
+
+        else:
+            if s.args.dryrun and keyvalue not in taskobj.bug.properties:
+                cinfo('dryrun:         Adding tagged timestamp <%s> to tracking bug' % keyvalue)
 
     # set_phase
     #
@@ -716,6 +720,7 @@ class Shank(StdApp):
             name_meta = '%s-meta-%s' % (name_split[0], name_split[1])
             name_ports_meta = '%s-ports-meta-%s' % (name_split[0], name_split[1])
             name_signed = '%s-signed-%s' % (name_split[0], name_split[1])
+
         name_map = { 'prepare-package-lbm' : 'linux-backports-modules',
                      'prepare-package-lrm' : 'linux-restricted-modules',
                      'prepare-package-lum' : 'linux-ubuntu-modules',
@@ -727,10 +732,11 @@ class Shank(StdApp):
         pkg_list = [ s.wfb.pkg_name ]
         for name in iter(name_map):
             if s.has_prep_task(name):
-                if ('lbm' in name) or ('lrm' in name) or ('lum' in name):
+                if 'lbm' in name:
                     pkg_list.append('%s-%s' % (name_map[name], main_version))
                 else:
                     pkg_list.append(name_map[name])
+
         missing_pkg = []
         pkg_abi = ''
         dep_ver1 = main_version
@@ -745,8 +751,7 @@ class Shank(StdApp):
                 check_ver = s.wfb.pkg_version
             else:
                 check_ver = None
-            ps = check_component.get_published_sources(series_name, pkg,
-                                                       check_ver, pocket)
+            ps = check_component.get_published_sources(series_name, pkg, check_ver, pocket)
             if not ps:
                 if check_ver:
                     missing_pkg.append([pkg, check_ver])
@@ -755,6 +760,7 @@ class Shank(StdApp):
                 else:
                     missing_pkg.append([pkg, 'with ABI=%s' % (pkg_abi)])
                 continue
+
             if pkg == name_signed:
                 src_ver = ps[0].source_package_version
                 if src_ver.startswith(s.wfb.pkg_version):
@@ -766,10 +772,6 @@ class Shank(StdApp):
             elif not check_ver:
                 src_ver = ps[0].source_package_version
                 # special hardcoded case for lrm on hardy...
-                if pkg == 'linux-restricted-modules-2.6.24':
-                    src_split = src_ver.split('-')
-                    if src_split[0].startswith(main_version) and len(src_split) > 1:
-                        src_ver = '%s-%s' % (main_version, src_split[1])
                 if src_ver.startswith(dep_ver1) or src_ver.startswith(dep_ver2):
                     mis_lst.extend(check_component.mismatches_list(series_name,
                                    pkg, ps[0].source_package_version,
@@ -779,14 +781,16 @@ class Shank(StdApp):
             else:
                 mis_lst.extend(check_component.mismatches_list(series_name,
                                pkg, check_ver, pocket, ps))
+
         if not missing_pkg:
+            cdebug('                    missing_pkg is set')
             if mis_lst:
+                cdebug('                    mis_lst is set')
                 s.set_task_to_state('promote-to-%s' % (pocket), 'Incomplete')
                 msgbody  = "The following packages ended up in the wrong"
                 msgbody += " component in the -%s pocket:\n" % (pocket)
                 for item in mis_lst:
-                    msgbody += '\n%s %s - is in %s instead of %s' % (item[0],
-                               item[1], item[2], item[3])
+                    msgbody += '\n%s %s - is in %s instead of %s' % (item[0], item[1], item[2], item[3])
                 bugbody = msgbody
                 bugbody += "\n\nOnce this is fixed, set the "
                 bugbody += "promote-to-%s to Fix Released again" % (pocket)
@@ -811,8 +815,7 @@ class Shank(StdApp):
                 msgbody += "in Launchpad, on -%s pocket:\n" % (pocket)
                 for item in missing_pkg:
                     msgbody += '\n%s %s' % (item[0], item[1])
-                s.send_comment(taskobj, 'Can\'t find packages published in -%s' %
-                                  (pocket), msgbody)
+                s.send_comment(taskobj, 'Can\'t find packages published in -%s' % (pocket), msgbody)
                 if not s.args.dryrun:
                     s.props.set({tstamp_prop:None})
                 cdebug('                check_component_in_pocket leave (False)')
@@ -1016,8 +1019,11 @@ class Shank(StdApp):
         everything is ok
         """
 
+        cdebug('            promote_to_release_fix_released enter')
+
         # Ensure all tasks are closed
         if not s.prepare_package_fixed():
+            cdebug('            promote_to_release_fix_released leave')
             return
         if (s.wfb.tasks_by_name['package-testing'].status != 'Fix Released' or
             s.wfb.tasks_by_name['package-testing'].status != 'Invalid'):
@@ -1025,12 +1031,14 @@ class Shank(StdApp):
 
         # Do we halted processing?
         if (s.wfb.tasks_by_name[s.projectname].status != 'In Progress'):
-            s.verbose('*** promote-to-release halted on bug with status!=In Progress\n')
+            cwarn('*** promote-to-release halted on bug with status!=In Progress\n')
+            cdebug('            promote_to_release_fix_released leave')
             return
 
         if not s.check_component_in_pocket(taskobj,
                     'kernel-Promote-to-release-end',
                     'release'):
+            cdebug('            promote_to_release_fix_released leave: False')
             return False
 
         s.set_task_to_state(s.projectname, 'Fix Released')
@@ -1038,6 +1046,8 @@ class Shank(StdApp):
         msgbody = 'The package has been published and the bug is being set to Fix Released\n'
         s.send_comment(taskobj, 'Package Released!', msgbody)
         s.send_status_update(taskobj, 'has been published.')
+
+        cdebug('            promote_to_release_fix_released leave (fell out the bottom)')
 
     def security_signoff_finished(s, taskobj):
         """
@@ -1296,10 +1306,11 @@ class Shank(StdApp):
         If either of the publishing tasks is set to complete (Fix Released) we
         make a check to see whether we can set the entire tracking bug to Fix Released (done)
         """
-        s.verbose('*** Performing check for final close test\n')
+        cdebug('            check_for_final_close enter')
 
         if s.wfb.tasks_by_name[s.projectname].status == 'Fix Released':
             print ' Bug already closed, aborting check'
+            cdebug('            check_for_final_close leave: False')
             return False
 
         if (( s.wfb.tasks_by_name['promote-to-updates'].status == 'Fix Released') and
@@ -1317,6 +1328,7 @@ class Shank(StdApp):
                         'kernel-stable-Promote-to-updates-end',
                         'updates')
             if not (pok_sec and pok_upd):
+                cdebug('            check_for_final_close leave: False')
                 return False
 
             print s.printlink,
@@ -1332,6 +1344,7 @@ class Shank(StdApp):
             s.send_status_update(task, 'has been published.')
 
         # We should never trigger a release test from this, since it should have lready been done
+        cdebug('            check_for_final_close leave: False')
         return False
 
     # initialize
