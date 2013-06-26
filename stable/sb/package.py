@@ -290,7 +290,8 @@ class Package():
         changes = None
         s.updates = None
 
-        cinfo('    Determining Build Status')
+        cinfo('')
+        cinfo('    Determining Build Status', 'cyan')
         deps = []
         for dep in iter(s.pkgs):
             deps.append(dep)
@@ -369,7 +370,14 @@ class Package():
                 prep_task_name = 'prepare-package'
             else:
                 prep_task_name = 'prepare-package-%s' % (dep)
-            prep_task_status = s.bug.tasks_by_name[prep_task_name].status
+
+            try:
+                prep_task_status = s.bug.tasks_by_name[prep_task_name].status
+            except KeyError:
+                for key in s.bug.tasks_by_name:
+                    cdebug(key)
+                    raise
+
             cdebug('prep_task_name: %s' % prep_task_name)
             cdebug('prep_task_status: %s' % prep_task_status)
 
