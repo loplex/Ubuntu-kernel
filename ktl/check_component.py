@@ -144,7 +144,7 @@ class CheckComponent():
             # for hardy and lucid, where we had some things on universe
             # etc., so we use the linux_abi_component that will check
             # also where packages were on 'release' pocket
-            if series in [ 'hardy', 'lucid' ]:
+            if series in [ 'lucid' ]:
                 return self.linux_abi_component
             return self.main_component
         if (package == 'linux-meta'):
@@ -157,17 +157,13 @@ class CheckComponent():
             return self.override_component
         if package.startswith('linux-backports-modules-'):
             return self.linux_abi_component
-        if package.startswith('linux-restricted-modules-'):
-            return self.linux_abi_component
-        if package.startswith('linux-ubuntu-modules-'):
-            return self.linux_abi_component
         if (package.startswith('linux-lts-') or
             package.startswith('linux-meta-lts-') or
             package.startswith('linux-signed-lts-')):
             return self.main_component
-        if package in ['linux-ec2', 'linux-fsl-imx51', 'linux-ti-omap4',
-                       'linux-mvl-dove', 'linux-armadaxp']:
+        if package in ['linux-ec2', 'linux-ti-omap4', 'linux-armadaxp', 'linux-ppc']:
             return self.main_component
+
         return self.default_component
 
     def get_published_sources(self, series, package, version, pocket):
