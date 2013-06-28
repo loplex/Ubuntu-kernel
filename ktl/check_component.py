@@ -18,73 +18,54 @@ from buildenv_lib                       import GetUploadVersion
 #
 class CheckComponent():
 
-    def __init__(self, lp):
-        self.lp = lp
+    def __init__(s, lp):
+        s.lp = lp
         # note: for package names with ABI in the name, replace the
         # number with the string 'ABI'
-        self.override_db = { 'hardy': {
-                               'linux-meta' : {
-                                 'linux-restricted-modules-server' : 'restricted'
-                               },
-                               'linux-backports-modules-2.6.24' : {
-                                 'updates-modules-2.6.24-ABI-lpia-di' : 'main'
-                               }
-                             }
-                           }
-        self.release_db = {}
-        self.abi_db = {}
+        s.release_db = {}
+        s.abi_db = {}
+        s.ubuntu = s.lp.launchpad.distributions["ubuntu"]
+        s.main_archive = s.ubuntu.main_archive
         return
 
-    def load_release_components(self, series, package):
-        ubuntu = self.lp.launchpad.distributions["ubuntu"]
-        archive = ubuntu.main_archive
-        lp_series = ubuntu.getSeries(name_or_version=series)
+    def load_release_components(s, series, package):
+        lp_series = s.ubuntu.getSeries(name_or_version=series)
         rel_ver = GetUploadVersion(series, package, pocket="release")
         if rel_ver:
-            pkg_rel = archive.getPublishedSources(exact_match=True,
+            pkg_rel = s.main_archive.getPublishedSources(exact_match=True,
                         source_name=package,
                         distro_series=lp_series,
                         pocket='Release',
                         version=rel_ver)
             if pkg_rel:
                 src_pkg = pkg_rel[0]
-                self.release_db[package] = {}
-                self.release_db[package][None] = src_pkg.component_name
+                s.release_db[package] = {}
+                s.release_db[package][None] = src_pkg.component_name
                 for bin_pkg in src_pkg.getPublishedBinaries():
                     bname = bin_pkg.binary_package_name
                     bcomponent = bin_pkg.component_name
-                    self.release_db[package][bname] = bcomponent
+                    s.release_db[package][bname] = bcomponent
         return
 
-    def entry_override_db(self, series, package, bin_pkg, default):
-        if series in self.override_db:
-            if package in self.override_db[series]:
-                if bin_pkg in self.override_db[series][package]:
-                    return self.override_db[series][package][bin_pkg]
-        return default
-
-    def default_component(self, dcomponent, series, package, bin_pkg):
-        if not self.release_db:
-            self.load_release_components(series, package)
-        if package in self.release_db:
-            if bin_pkg in self.release_db[package]:
-                return self.release_db[package][bin_pkg]
+    def default_component(s, dcomponent, series, package, bin_pkg):
+        if not s.release_db:
+            s.load_release_components(series, package)
+        if package in s.release_db:
+            if bin_pkg in s.release_db[package]:
+                return s.release_db[package][bin_pkg]
         return dcomponent
 
-    def override_component(self, dcomponent, series, package, bin_pkg):
-        comp = self.entry_override_db(series, package, bin_pkg, None)
-        if comp:
-            return comp
+    def override_component(s, dcomponent, series, package, bin_pkg):
         if series != 'hardy' and package == 'linux-meta':
             if (bin_pkg and bin_pkg.startswith('linux-backports-modules-') and
                 (not bin_pkg.endswith('-preempt'))):
                 return 'main'
-        return self.default_component(dcomponent, series, package, bin_pkg)
+        return s.default_component(dcomponent, series, package, bin_pkg)
 
-    def main_component(self, dcomponent, series, package, bin_pkg):
+    def main_component(s, dcomponent, series, package, bin_pkg):
         return 'main'
 
-    def name_abi_transform(self, name):
+    def name_abi_transform(s, name):
         if not name:
             return name
         abi = re.findall('([0-9]+\.[^ ]+)', name)
@@ -103,80 +84,71 @@ class CheckComponent():
                                         '%s-ABI' % version)
         return name
 
-    def linux_abi_component(self, dcomponent, series, package, bpkg):
-        if package in self.abi_db:
-            mpkg = self.name_abi_transform(bpkg)
-            if mpkg in self.abi_db[package]:
-                return self.entry_override_db(series, package, mpkg,
-                                              self.abi_db[package][mpkg])
-            else:
-                if package.startswith('linux-backports-modules-'):
-                    if not bpkg or not bpkg.endswith('-preempt'):
-                        return 'main'
-                return 'universe'
+    def linux_abi_component(s, dcomponent, series, package, bpkg):
+        if package in s.abi_db:
+            if package.startswith('linux-backports-modules-'):
+                if not bpkg or not bpkg.endswith('-preempt'):
+                    return 'main'
+            return 'universe'
 
-        ubuntu = self.lp.launchpad.distributions["ubuntu"]
-        archive = ubuntu.main_archive
-        lp_series = ubuntu.getSeries(name_or_version=series)
+        lp_series = s.ubuntu.getSeries(name_or_version=series)
         rel_ver = GetUploadVersion(series, package, pocket="release")
         if rel_ver:
-            pkg_rel = archive.getPublishedSources(exact_match=True,
+            pkg_rel = s.main_archive.getPublishedSources(exact_match=True,
                         source_name=package,
                         distro_series=lp_series,
                         pocket='Release',
                         version=rel_ver)
             if pkg_rel:
                 src_pkg = pkg_rel[0]
-                self.abi_db[package] = {}
-                self.abi_db[package][None] = src_pkg.component_name
+                s.abi_db[package] = {}
+                s.abi_db[package][None] = src_pkg.component_name
                 for bin_pkg in src_pkg.getPublishedBinaries():
-                    bname = self.name_abi_transform(bin_pkg.binary_package_name)
-                    self.abi_db[package][bname] = bin_pkg.component_name
+                    bname = s.name_abi_transform(bin_pkg.binary_package_name)
+                    s.abi_db[package][bname] = bin_pkg.component_name
             else:
-                self.abi_db[package] = {}
+                s.abi_db[package] = {}
         else:
-            self.abi_db[package] = {}
-        return self.linux_abi_component(dcomponent, series, package, bpkg)
+            s.abi_db[package] = {}
+        return s.linux_abi_component(dcomponent, series, package, bpkg)
 
-    def component_function(self, series, package):
+    def component_function(s, series, package):
         if (package == 'linux') or (package == 'linux-signed') or (package == 'linux-ppc'):
             # Everything on linux package should be on 'main'. Except
             # for hardy and lucid, where we had some things on universe
             # etc., so we use the linux_abi_component that will check
             # also where packages were on 'release' pocket
             if series in [ 'lucid' ]:
-                return self.linux_abi_component
-            return self.main_component
+                return s.linux_abi_component
+            return s.main_component
         if (package == 'linux-meta'):
             # Some precise meta packages were new and never released
             # originally, so they will default to 'universe' in the
             # checker. All of them should be on main anyway, so always
             # return 'main'
             if series in [ 'precise' ]:
-                return self.main_component
-            return self.override_component
+                return s.main_component
+            return s.override_component
         if package.startswith('linux-backports-modules-'):
-            return self.linux_abi_component
+            return s.linux_abi_component
         if (package.startswith('linux-lts-') or
             package.startswith('linux-meta-lts-') or
             package.startswith('linux-signed-lts-')):
-            return self.main_component
+            return s.main_component
         if package in ['linux-ec2', 'linux-ti-omap4', 'linux-armadaxp', 'linux-ppc']:
-            return self.main_component
+            return s.main_component
 
-        return self.default_component
+        return s.default_component
 
-    def get_published_sources(self, series, package, version, pocket):
+    def get_published_sources(s, series, package, version, pocket):
         if not version:
             version = GetUploadVersion(series, package, pocket=pocket)
             if not version:
                 error("No upload of %s for %s is currently available in"
                       " the %s pocket" % (package, series, pocket))
                 return None
-        ubuntu = self.lp.launchpad.distributions["ubuntu"]
-        archive = ubuntu.main_archive
-        lp_series = ubuntu.getSeries(name_or_version=series)
-        ps = archive.getPublishedSources(exact_match=True,
+        lp_series = s.ubuntu.getSeries(name_or_version=series)
+        ps = s.main_archive.getPublishedSources(exact_match=True,
                                          source_name=package,
                                          distro_series=lp_series,
                                          pocket=pocket.title(),
@@ -185,10 +157,10 @@ class CheckComponent():
             error("No results returned by getPublishedSources")
         return ps
 
-    def components_list(self, series, package, version, pocket, ps = None):
+    def components_list(s, series, package, version, pocket, ps = None):
         clist = []
         if not ps:
-            ps = self.get_published_sources(series, package, version, pocket)
+            ps = s.get_published_sources(series, package, version, pocket)
         if ps:
             src_pkg = ps[0]
             clist.append([src_pkg.source_package_name,
@@ -200,13 +172,13 @@ class CheckComponent():
                               bin_pkg.component_name])
         return clist
 
-    def mismatches_list(self, series, package, version, pocket, ps = None):
+    def mismatches_list(s, series, package, version, pocket, ps = None):
         mlist = []
-        self.release_db = {}
-        self.abi_db = {}
-        get_component = self.component_function(series, package)
+        s.release_db = {}
+        s.abi_db = {}
+        get_component = s.component_function(series, package)
         if not ps:
-            ps = self.get_published_sources(series, package, version, pocket)
+            ps = s.get_published_sources(series, package, version, pocket)
         if ps:
             src_pkg = ps[0]
             component = get_component('universe', series, package, None)
