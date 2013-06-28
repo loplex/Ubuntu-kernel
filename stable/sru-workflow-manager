@@ -74,8 +74,6 @@ class Shank(StdApp):
             'upload-to-ppa'             : TaskActions({'Confirmed'    : s.upload_to_ppa_confirmed}),
             'prepare-package'           : TaskActions({'Fix Released' : s.prep_package_fix_released}),
             'prepare-package-lbm'       : TaskActions({'Fix Released' : s.prep_package_fix_released}),
-            'prepare-package-lrm'       : TaskActions({'Fix Released' : s.prep_package_fix_released}),
-            'prepare-package-lum'       : TaskActions({'Fix Released' : s.prep_package_fix_released}),
             'prepare-package-meta'      : TaskActions({'Fix Released' : s.prep_package_fix_released}),
             'prepare-package-ports-meta': TaskActions({'Fix Released' : s.prep_package_fix_released}),
             'prepare-package-signed'    : TaskActions({'Fix Released' : s.prep_package_fix_released}),
@@ -280,9 +278,7 @@ class Shank(StdApp):
         return
 
     def has_new_abi(s):
-        tasks_abi = [ 'prepare-package-lbm', 'prepare-package-lrm',
-                      'prepare-package-lum', 'prepare-package-meta',
-                      'prepare-package-ports-meta' ]
+        tasks_abi = [ 'prepare-package-lbm', 'prepare-package-meta', 'prepare-package-ports-meta' ]
         for taskname in tasks_abi:
             if taskname in s.wfb.tasks_by_name:
                 if s.wfb.tasks_by_name[taskname].status != "Fix Released":
@@ -546,8 +542,6 @@ class Shank(StdApp):
             tsk_st = {
                 'prepare-package'            : [ 'Fix Released' ],
                 'prepare-package-lbm'        : [ 'Fix Released', 'Invalid' ],
-                'prepare-package-lrm'        : [ 'Fix Released', 'Invalid' ],
-                'prepare-package-lum'        : [ 'Fix Released', 'Invalid' ],
                 'prepare-package-meta'       : [ 'Fix Released', 'Invalid' ],
                 'prepare-package-ports-meta' : [ 'Fix Released', 'Invalid' ],
                 'prepare-package-signed'     : [ 'Fix Released' ],
@@ -722,8 +716,6 @@ class Shank(StdApp):
             name_signed = '%s-signed-%s' % (name_split[0], name_split[1])
 
         name_map = { 'prepare-package-lbm' : 'linux-backports-modules',
-                     'prepare-package-lrm' : 'linux-restricted-modules',
-                     'prepare-package-lum' : 'linux-ubuntu-modules',
                      'prepare-package-meta' : name_meta,
                      'prepare-package-ports-meta' : name_ports_meta,
                      'prepare-package-signed' : name_signed }
