@@ -1,194 +1,127 @@
 #!/usr/bin/env python
 #
 
-from sys                                import argv
-from getopt                             import getopt, GetoptError
-from ktl.check_component                import CheckComponent
-from ktl.utils                          import stdo, error
-from ktl.std_app                        import StdApp
+from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
+from logging                            import basicConfig, INFO, DEBUG, info, warning
 from lpltk.LaunchpadService             import LaunchpadService
+from ktl.check_component                import CheckComponent
 
-# This script uses the CheckComponent class for listing components or
-# checking for component mismatches using the launchpad api
+# Checker
+#
+class Checker():
 
-# CmdlineError
-#
-# The type of exception that will be raised by Cmdline.process() if there
-# are command line processing errors.
-#
-class CmdlineError(Exception):
     # __init__
     #
-    def __init__(self, error):
-        self.msg = error
-
-# Cmdline
-#
-class Cmdline:
-    """
-    Handle all the command line processing for the application.
-    """
-    # __init__
-    #
-    def __init__(self):
-        self.cfg = {}
-
-    # error
-    #
-    def error(self, e, defaults):
-        """
-        Simple helper which prints out an error message and then prints out the usage.
-        """
-        if e != '': error(e)
-        self.usage(defaults)
-
-    # usage
-    #
-    def usage(self, defaults):
-        """
-        Prints out the help text which explains the command line options.
-        """
-        stdo("    Usage:                                                                                   \n")
-        stdo("        %s <series> <source package>                                                         \n" % self.cfg['app_name'])
-        stdo("                                                                                             \n")
-        stdo("    Options:                                                                                 \n")
-        stdo("        --help           Prints this text.                                                   \n")
-        stdo("                                                                                             \n")
-        stdo("        --staging                                                                            \n")
-        stdo("                         Use the staging LP service instead of the production one.           \n")
-        stdo("                                                                                             \n")
-        stdo("        --pocket=<pocket>                                                                    \n")
-        stdo("                         Use the specified pocket instead of the default (proposed)          \n")
-        stdo("                                                                                             \n")
-        stdo("        --package_version=<version>                                                          \n")
-        stdo("                         Don't use the latest version from the archive, use the specified    \n")
-        stdo("                         package version                                                     \n")
-        stdo("                                                                                             \n")
-        stdo("        --list                                                                               \n")
-        stdo("                         Just list the component where the packages are in, don't do any     \n")
-        stdo("                         mismatch check                                                      \n")
-        stdo("                                                                                             \n")
-        stdo("    Examples:                                                                                \n")
-        stdo("        %s oneiric linux                                                                     \n" % self.cfg['app_name'])
-
-    # process
-    #
-    def process(self, argv, defaults):
-        """
-        This method is responsible for calling the getopt function to process the command
-        line. All parameters are processed into class variables for use by other methods.
-        """
-        self.cfg['app_name'] = argv[0]
-        result = True
-        try:
-            optsShort = ''
-            optsLong  = ['help', 'staging', 'pocket=', 'package_version=',
-                         'list']
-            opts, args = getopt(argv[1:], optsShort, optsLong)
-
-            for opt, val in opts:
-                if (opt == '--help'):
-                    raise CmdlineError('')
-
-                elif (opt == '--staging'):
-                    self.cfg['staging'] = True
-
-                elif opt in '--pocket':
-                    self.cfg['pocket'] = val
-
-                elif opt in '--package_version':
-                    self.cfg['package_version'] = val
-
-                elif opt in '--list':
-                    self.cfg['list'] = True
-
-            if len(args) < 2:
-                raise CmdlineError('Missing series and/or package arguments')
-            self.cfg['series'] = args[0]
-            self.cfg['package'] = args[1]
-
-        except GetoptError, error:
-            print(error, defaults)
-            raise CmdlineError('')
-
-        return self.cfg
-
-    # verify_options
-    #
-    def verify_options(self, cfg):
-        """
-        Used to verify that all required parameters are present and correct.
-        """
-        return
-
-
-# CheckComponentCli
-#
-class CheckComponentCli(StdApp):
-    # __init__
-    #
-    def __init__(self):
-        StdApp.__init__(self)
-        self.defaults = {}
+    def __init__(s, args):
+        info('Checker::__init__')
+        s.args = args
 
     # initialize
     #
-    def initialize(self):
+    def initialize(s):
         """
         A separate initialize that we can control when it gets called (not
         when the object is instantiated).
         """
-        self.defaults['launchpad_client_name'] = 'kernel-team-check-component'
-        if 'staging' in self.cfg:
-            self.defaults['launchpad_services_root'] = 'qastaging'
-        self.defaults['pocket'] = 'proposed'
-        self.defaults['read_only'] = True
-        self.lp = LaunchpadService(self.defaults)
+        params = {}
+        params['launchpad_client_name'] = 'kernel-team-check-component'
+        params['read_only'] = True
+        s.lp = LaunchpadService(params)
         return
+
+    # doit
+    #
+    def doit(s):
+        s.initialize()
+
+        series = s.args.series
+        package = s.args.src_pkg
+        pocket = s.args.pocket
+        if s.args.version:
+            version = s.args.version
+        else:
+            version = None
+
+        check_component = CheckComponent(s.lp)
+        if s.args.show:
+            clist = check_component.components_list(series, package, version, pocket)
+            for item in clist:
+                print("%s %s - in %s" % (item[0], item[1], item[2]))
+        else:
+            mlist = check_component.mismatches_list(series, package, version, pocket)
+            for item in mlist:
+                print("%s %s - is in %s instead of %s" % 
+                      (item[0], item[1], item[2], item[3]))
+
+# TheApp
+#
+class TheApp():
+    '''
+    This class is just the engine that makes everything go.
+    '''
+
+    # __init__
+    #
+    def __init__(s, args):
+        '''
+        '''
+        s.args = args
 
     # main
     #
-    def main(self):
-        cmdline = Cmdline()
+    def main(s):
+        '''
+        '''
+        retval = 1
+
         try:
-            self.initialize()
-            self.merge_config_options(self.defaults, cmdline.process(argv, self.defaults))
-            cmdline.verify_options(self.cfg)
+            retval = 0
 
-            series = self.cfg['series']
-            package = self.cfg['package']
-            pocket = self.cfg['pocket']
-            if 'package_version' in self.cfg:
-                version = self.cfg['package_version']
-            else:
-                version = None
-
-            check_component = CheckComponent(self.lp)
-            if not 'list' in self.cfg:
-                mlist = check_component.mismatches_list(series, package, version, pocket)
-                for item in mlist:
-                    print("%s %s - is in %s instead of %s" % 
-                          (item[0], item[1], item[2], item[3]))
-            else:
-                clist = check_component.components_list(series, package, version, pocket)
-                for item in clist:
-                    print("%s %s - in %s" % (item[0], item[1], item[2]))
+            checker = Checker(s.args)
+            checker.doit()
 
         # Handle the user presses <ctrl-C>.
         #
         except KeyboardInterrupt:
-            pass
+            warning("Aborting ...")
 
-        # Handle command line errors.
-        #
-        except CmdlineError as e:
-            cmdline.error(e.msg, self.defaults)
-
-        return
+        return retval
 
 if __name__ == '__main__':
-    app = CheckComponentCli()
-    app.main()
+    # Command line argument setup and initial processing
+    #
+    app_description = '''
+I'm a application skeleton, your job is to make me into something useful.
+    '''
+    app_epilog = '''
+examples:
+    Checker --help
+    '''
+    parser = ArgumentParser(description=app_description, epilog=app_epilog, formatter_class=RawDescriptionHelpFormatter)
+
+    parser.add_argument('--verbose',      action='store_true', default=False, help='Print out a lot of messages about what is going on.')
+    parser.add_argument('--list', '-l', dest='show', action='store_true', default=False, help='Print out all the individual components produced by the source package.')
+    parser.add_argument('--pocket', '-p',       type=str,  default='proposed', help='Use the specified pocket instead of the default (proposed).')
+    parser.add_argument('--version', '-v',      type=str,            help='Don\'t use the latest version from the archive, use this version.')
+    parser.add_argument('series',     metavar='series',   type=str, nargs=1, help='The Ubuntu series that is to be used with the source package.')
+    parser.add_argument('src_pkg',    metavar='package',  type=str, nargs=1, help='The source package whose components are to be checked.')
+
+    args = parser.parse_args()
+    args.series = args.series[0]
+    args.src_pkg = args.src_pkg[0]
+
+    # If logging parameters were set on the command line, handle them
+    # here.
+    #
+    log_format = "%(levelname)s - %(message)s"
+    if args.verbose:
+        basicConfig(level=DEBUG, format=log_format)
+    else:
+        basicConfig(level=INFO, format=log_format)
+
+    app = TheApp(args)
+    exit(app.main())
+
 
 # vi:set ts=4 sw=4 expandtab:
 
