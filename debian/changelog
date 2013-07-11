@@ -1,3 +1,9 @@
+linux-signed (3.10.0-2.11) saucy; urgency=low
+
+  * Version 3.10.0-2.11
+
+ -- Tim Gardner <rtg@salmon>  Thu, 11 Jul 2013 16:08:26 +0000
+
 linux-signed (3.10.0-2.10) saucy; urgency=low
 
   * Version 3.10.0-2.10
