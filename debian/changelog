@@ -1,3 +1,11 @@
+linux-signed (3.10.0-2.12) UNRELEASED; urgency=low
+
+  * Fix the version number constraint between linux and linux-signed to be
+    '=' to ensure we cannot migrate linux without linux-signed being in
+    lock step.  (LP: #1201444)
+
+ -- Andy Whitcroft <apw@canonical.com>  Mon, 15 Jul 2013 16:02:10 +0100
+
 linux-signed (3.10.0-2.11) saucy; urgency=low
 
   * Version 3.10.0-2.11
