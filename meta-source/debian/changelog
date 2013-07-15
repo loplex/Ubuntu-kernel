@@ -1,3 +1,9 @@
+linux-meta (3.10.0.3.12) saucy; urgency=low
+
+  * linux ABI 3.10.0-3
+
+ -- Andy Whitcroft <apw@canonical.com>  Mon, 15 Jul 2013 17:47:41 +0100
+
 linux-meta (3.10.0.2.11) saucy; urgency=low
 
   * linux ABI 3.10.0-2
