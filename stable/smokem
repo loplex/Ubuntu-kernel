@@ -1,0 +1,242 @@
+#!/usr/bin/env python
+#
+# Executes a set of tests to verify that certain scripts and
+# libraries are still working properly.
+#
+
+from argparse                           import ArgumentParser, RawDescriptionHelpFormatter
+from logging                            import basicConfig, INFO, DEBUG
+import json
+
+from lpltk.LaunchpadService             import LaunchpadService
+
+from ktl.tracking_bug                   import TrackingBug
+from ktl.workflow                       import Workflow
+from ktl.kernel_bug                     import KernelBug
+from ktl.bugs                           import Bugs
+from ktl.ubuntu                         import Ubuntu
+from smokem_data                        import MockSmoke
+
+from sb.log                             import cinfo, cwarn
+
+def results(label, result):
+    cinfo('%40s: %s' % (label, result))
+
+# TrackingBugsTester
+#
+class TrackingBugsTester():
+    # __init__
+    #
+    def __init__(s, mock):
+        s.defaults = {}
+        s.defaults['launchpad_client_name'] = 'kernel-team-smoker'
+        s.lp_production = LaunchpadService(s.defaults)  # Some things are only available on the production
+
+        s.defaults['launchpad_services_root'] = 'qastaging'  # All testing is done using the qastaging LP service
+        s.lp = LaunchpadService(s.defaults)
+        s.__mock = mock
+        s.wf = Workflow()
+        s.tracker = TrackingBug(s.lp, True)
+
+    # workflow_project
+    #
+    def workflow_project(s, series):
+        '''
+        Given the series, return either 'Kernel SRU Workflow' or 'Kernel Development Workflow'.
+        '''
+        if Ubuntu().is_development_series(series):
+            workflow_task = 'Kernel Development Workflow'
+            workflow_project = 'kernel-development-workflow'
+        else:
+            workflow_task = 'Kernel SRU Workflow'
+            workflow_project = 'kernel-sru-workflow'
+
+        return workflow_project
+
+    # verify_task
+    #
+    def verify_task(s, bug_info, expected_task, expected_status, expected_assignee):
+        verified = False
+        task_found = False
+        for task in bug_info['tasks']:
+            target_name = task['target-name'].replace('/', ' ')
+            if expected_task == target_name:
+                task_found = True
+                if expected_status == task['status']:
+                    if expected_assignee == task['assignee-name']:
+                        verified = True
+                    else:
+                        cwarn('assignee expected: %s, found: %s' % (expected_assignee, task['assignee-name']))
+                else:
+                    cwarn('status expected: %s, found: %s' % (expected_status, task['status']))
+                break
+
+        if not task_found:
+            cwarn('Did not find the expected task: %s ' % (expected_task))
+
+        return verified
+
+    # verify_workflow_task
+    #
+    def verify_workflow_task(s, bug_info, series):
+        '''
+        We support two kinds of SRU Workflow bugs, one for SRU kernels and one
+        for development kernels. Based on the series, verify that this bug
+        has the correct workflow task.
+        '''
+        results('Verify correct workflow task', s.verify_task(bug_info, s.workflow_project(series), 'In Progress', 'unassigned'))
+
+    # verify_package_task
+    #
+    def verify_package_task(s, bug_info, package, series):
+        '''
+        In addition to the kernel workflow project, each tracking bug also has
+        a task for the package and a nomination for the series.
+        '''
+        if package == 'linux':
+            expected_status = 'Invalid'
+        else:
+            expected_status = 'New'
+        results('Verify correct package task', s.verify_task(bug_info, '%s (Ubuntu)' % package, expected_status, 'unassigned'))
+        results('Verify nomination for package task', s.verify_task(bug_info, '%s (Ubuntu %s)' % (package, series.title()), 'New', 'unassigned'))
+
+    # verify_sru_tasks
+    #
+    def verify_sru_tasks(s, bug_info, package, series):
+        '''
+        '''
+        lp = s.lp.launchpad
+        lp_project = lp.projects[s.workflow_project(series)]
+
+        sc = lp_project.series_collection
+        expected_tasks = []
+        for series in sc:
+            if package == 'linux':
+                if s.tracker.valid_series(series, None, None, package):
+                    expected_tasks.append(series.name)
+            else:
+                if s.tracker.valid_series(series, series, series, package):
+                    expected_tasks.append(series.name)
+
+        for task in expected_tasks:
+            expected_status = 'New'
+            expected_assignee = s.wf.assignee(package, task, Ubuntu().is_development_series(series))
+            if expected_assignee is None:
+                expected_assignee = 'unassigned'
+                expected_status = 'Invalid'
+
+            results('Verify %s task' % task, s.verify_task(bug_info, '%s %s' % (s.workflow_project(series), task), expected_status, expected_assignee))
+
+    # verify
+    #
+    def verify(s, info, package, series):
+        #s.verify_workflow_task(info, series)
+        s.verify_package_task(info, package, series)
+        #s.verify_sru_tasks(info, package, series)
+
+    # Test
+    #
+    def Test(s):
+        #for project in ['linux-lowlatency', 'linux-ppc']:
+        #    cinfo(project, 'cyan')
+        #    if s.__mock:
+        #        s.verify(MockSmoke[project], project, 'raring')
+        #    else:
+        #        bug = s.tracker.open(project, '<version to be filled>', True, '1105416', 'raring')
+        #        cinfo("https://bugs.qastaging.launchpad.net/bugs/%s" % (bug.id))
+        #        kbug = KernelBug(bug)
+        #        kbug_info = Bugs.bug_info(kbug, None)
+        #        print(json.dumps(kbug_info, sort_keys=True, indent=4))
+        #        s.verify(kbug_info, project, 'raring')
+        #    cinfo('')
+
+        #for version in ['3.8.0-28.41', '2.6.32-16.25', '3.2.0-50.76', '3.5.0-37.58', '3.10.0-3.12']:
+        for version in ['3.8.0-28.41', '2.6.32-16.25', '3.2.0-50.76', '3.5.0-37.58']:
+            cinfo('linux: %s' % version, 'cyan')
+            series = Ubuntu().series_name('linux', version)
+            if s.__mock:
+                s.verify(MockSmoke['linux'][series], 'linux', series)
+            else:
+                bug = s.tracker.open('linux', version, True, None, None)
+                cinfo("https://bugs.qastaging.launchpad.net/bugs/%s" % (bug.id))
+                kbug = KernelBug(bug)
+                kbug_info = Bugs.bug_info(kbug, None)
+                print(json.dumps(kbug_info, sort_keys=True, indent=4))
+                s.verify(kbug_info, 'linux', series)
+            cinfo('')
+
+# Smokem
+#
+class Smokem():
+
+    # __init__
+    #
+    def __init__(s, mock):
+        pass
+        s.__mock = mock
+
+    def main(s):
+        TrackingBugsTester(s.__mock).Test()
+
+# TheApp
+#
+class TheApp():
+    '''
+    This class is just the engine that makes everything go.
+    '''
+
+    # __init__
+    #
+    def __init__(s, args):
+        '''
+        '''
+        s.args = args
+
+    # main
+    #
+    def main(s):
+        '''
+        '''
+        retval = 1
+
+        try:
+            Smokem(s.args.mock).main()
+            retval = 0
+
+        # Handle the user presses <ctrl-C>.
+        #
+        except KeyboardInterrupt:
+            cwarn("Aborting ...")
+
+        return retval
+
+if __name__ == '__main__':
+    # Command line argument setup and initial processing
+    #
+    app_description = '''
+I'm a application skeleton, your job is to make me into something useful.
+    '''
+    app_epilog = '''
+examples:
+    Smokem --help
+    '''
+    parser = ArgumentParser(description=app_description, epilog=app_epilog, formatter_class=RawDescriptionHelpFormatter)
+    parser.add_argument('--debug', action='store_true', default=False, help='Print out a lot of messages about what is going on.')
+    parser.add_argument('--mock', action='store_true', default=False, help='Don\'t create and use data from a bug but use the hardcoded data instead.')
+    args = parser.parse_args()
+
+    # If logging parameters were set on the command line, handle them
+    # here.
+    #
+    log_format = "%(levelname)s - %(message)s"
+    if args.debug:
+        basicConfig(level=DEBUG, format=log_format)
+    else:
+        basicConfig(level=INFO, format=log_format)
+
+    app = TheApp(args)
+    exit(app.main())
+
+
+# vi:set ts=4 sw=4 expandtab:
+
