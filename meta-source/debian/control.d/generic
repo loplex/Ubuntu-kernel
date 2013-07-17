@@ -1,5 +1,5 @@
 Package: linux-headers-generic-lts-raring
-Architecture: i386 amd64
+Architecture: i386 amd64 armhf
 Section: devel
 Priority: optional
 Depends: ${misc:Depends}, linux-headers-${kernel-abi-version}-generic
@@ -8,7 +8,7 @@ Description: Generic Linux kernel headers
  available.
 
 Package: linux-image-generic-lts-raring
-Architecture: i386 amd64
+Architecture: i386 amd64 armhf
 Section: metapackages
 Priority: optional
 Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-generic, linux-firmware
@@ -17,7 +17,7 @@ Description: Generic Linux kernel image
  available.
 
 Package: linux-generic-lts-raring
-Architecture: i386 amd64
+Architecture: i386 amd64 armhf
 Section: metapackages
 Priority: optional
 Depends: ${misc:Depends}, linux-image-generic-lts-raring, linux-headers-generic-lts-raring
@@ -28,7 +28,7 @@ Description: Generic Linux kernel image and headers
 # Update this meta package to depend on the 14.04 LTS kernel when Raring goes EOL.
 
 Package: linux-generic-lts-raring-eol-upgrade
-Architecture: amd64
+Architecture: amd64 armhf
 Section: metapackages
 Priority: optional
 Depends: ${misc:Depends}, linux-generic-lts-raring

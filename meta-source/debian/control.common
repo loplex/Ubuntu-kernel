@@ -7,7 +7,7 @@ Build-Depends: dpkg (>= 1.13.19), debhelper (>= 5), gawk
 Vcs-Git: http://kernel.ubuntu.com/git-repos/ubuntu/ubuntu-precise-meta.git lts-backport-raring
 
 Package: linux-tools-lts-raring
-Architecture: i386 amd64
+Architecture: i386 amd64 armhf
 Section: kernel
 Depends: ${misc:Depends}, linux-tools-${kernel-abi-version} [i386 amd64]
 Description: Linux kernel versioned Tools
