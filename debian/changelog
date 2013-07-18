@@ -1,3 +1,9 @@
+linux-signed (3.10.0-4.13) saucy; urgency=low
+
+  * Version 3.10.0-4.13
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Thu, 18 Jul 2013 19:16:22 +0000
+
 linux-signed (3.10.0-3.12) saucy; urgency=low
 
   * Fix the version number constraint between linux and linux-signed to be
