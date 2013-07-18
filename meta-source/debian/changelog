@@ -1,3 +1,9 @@
+linux-meta-lts-saucy (3.10.0.4.10) precise; urgency=low
+
+  * Ubuntu-lts-3.10.0-4
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Thu, 18 Jul 2013 15:05:27 -0600
+
 linux-meta-lts-saucy (3.10.0.3.9) precise; urgency=low
 
   * Ubuntu-lts-3.10.0-3
