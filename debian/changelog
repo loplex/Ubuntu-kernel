@@ -1,3 +1,9 @@
+linux-signed (3.10.0-5.14) saucy; urgency=low
+
+  * Version 3.10.0-5.14
+
+ -- Andy Whitcroft <apw@canonical.com>  Mon, 22 Jul 2013 16:13:03 +0100
+
 linux-signed (3.10.0-4.13) saucy; urgency=low
 
   * Version 3.10.0-4.13
