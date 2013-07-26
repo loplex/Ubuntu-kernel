@@ -1,3 +1,11 @@
+linux-backports-modules-3.5.0 (3.5.0-38.27) quantal; urgency=low
+
+  [ Brad Figg ]
+
+  * Bump ABI for Quantal 3.5.0-38.59
+
+ -- Brad Figg <brad.figg@canonical.com>  Fri, 26 Jul 2013 13:39:42 -0700
+
 linux-backports-modules-3.5.0 (3.5.0-37.26) quantal; urgency=low
 
   [ Brad Figg ]
