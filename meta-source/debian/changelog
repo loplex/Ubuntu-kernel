@@ -1,3 +1,9 @@
+linux-meta (3.8.0.28.46) raring; urgency=low
+
+  * linux ABI 3.8.0-28
+
+ -- Brad Figg <brad.figg@canonical.com>  Fri, 26 Jul 2013 09:12:43 -0700
+
 linux-meta (3.8.0.27.45) raring; urgency=low
 
   * linux ABI 3.8.0-27
