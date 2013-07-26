@@ -1,3 +1,9 @@
+linux-signed (3.10.0-6.17) saucy; urgency=low
+
+  * Version 3.10.0-6.17
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Fri, 26 Jul 2013 18:43:37 +0000
+
 linux-signed (3.10.0-5.15) saucy; urgency=low
 
   * Version 3.10.0-5.15
