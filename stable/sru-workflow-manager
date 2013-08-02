@@ -365,7 +365,7 @@ class Shank(StdApp):
         returns True if we changed the state and False if it was already at the desired state
         """
         try:
-            status = s.wfb.tasks_by_name[taskname].status
+            s.wfb.tasks_by_name[taskname].status = state
         except KeyError:
             cdebug('set_task_to_state: KeyError')
             cdebug('    Failed to find the \'%s\' task.' % taskname)
