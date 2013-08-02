@@ -121,7 +121,7 @@ class Shank(StdApp):
     # shank
     #
     def shank(s, bugid, sauron):
-        s.printlink =  '%s : (%s)' % (bugid, s.bug_url(bugid)),
+        s.printlink =  '%s : (%s)' % (bugid, s.bug_url(bugid))
         cinfo('')
         cinfo('Processing: %s' % s.printlink, 'cyan')
 
@@ -364,7 +364,18 @@ class Shank(StdApp):
         Set a task with a given name to the desired state
         returns True if we changed the state and False if it was already at the desired state
         """
-        s.wfb.tasks_by_name[taskname].status = state
+        try:
+            status = s.wfb.tasks_by_name[taskname].status
+        except KeyError:
+            cdebug('set_task_to_state: KeyError')
+            cdebug('    Failed to find the \'%s\' task.' % taskname)
+            cdebug('    tasks_by_name:')
+            for task in s.wfb.tasks_by_name:
+                cdebug('        %s' % task)
+        try:
+            status = state
+        except:
+            cdebug('BAD')
 
     # set_tagged_timestamp
     #
@@ -982,6 +993,7 @@ class Shank(StdApp):
         development kernel passed all wanted testing and is acked to go
         to the release pocket by the Ubuntu Kernel Team
         """
+        cdebug('            package_testing_fix_released enter')
         if s.wfb.tasks_by_name['promote-to-release'].status == 'New':
             # if this is a derivative tracking bug, first wait until
             # that packages on the master tracking bug are also ready or
@@ -993,14 +1005,16 @@ class Shank(StdApp):
             # If the master bug's tasks are not completely ready.
             #
             if s.verify_master_bug_tasks(taskobj.bug, tsk_st) <= 0:
+                cdebug('            package_testing_fix_released leave (False)')
                 return False
 
             # Set promote-to-proposed
-            s.set_task_to_state('promote-to-released', 'Confirmed')
+            s.set_task_to_state('promote-to-release', 'Confirmed')
             # Add time stamp and status
             s.set_tagged_timestamp(taskobj, 'kernel-Package-testing-end')
             s.set_tagged_timestamp(taskobj, 'kernel-Promote-to-release-start')
             s.set_phase(taskobj, 'CopyToRelease')
+        cdebug('            package_testing_fix_released leave (False)')
         return False
 
     def promote_to_release_fix_released(s, taskobj):
