@@ -1,3 +1,9 @@
+linux-ti-omap4 (3.5.0-230.44) quantal; urgency=low
+
+  * Fixup the upload package changelog
+
+ -- Brad Figg <brad.figg@canonical.com>  Mon, 05 Aug 2013 03:50:31 -0700
+
 linux-ti-omap4 (3.5.0-230.43) quantal; urgency=low
 
   * Release Tracking Bug
