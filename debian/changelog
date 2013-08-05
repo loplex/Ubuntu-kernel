@@ -1,5 +1,8 @@
-autotest (0.15.0-rc0-54-g1568d) raring; urgency=low
+autotest (0.0.8-1) raring; urgency=low
 
-  * Initial release.
+  [Steve Conklin]
 
- -- Lucas Meneghel Rodrigues (lmr) <lookkas@gmail.com>  Thu, 27 Dec 2012 06:49:43 -0200
+  * Increment version to test current state before upstreaming sauce patches
+  * Revert this changelog to upstream's after confirmation that it works
+
+ -- Steve Conklin <sconklin@canonical.com>  Mon, 05 Aug 2013 12:05:33 -0000
