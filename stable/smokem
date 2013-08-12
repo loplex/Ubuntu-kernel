@@ -167,6 +167,26 @@ class TrackingBugsTester():
 
 # Smokem
 #
+# Testing sru-workflow-manager (swm)
+#   1. Create a tracking bug
+#
+#   2. run the sru-workflow-manager on that tracking bug with fake "archive" data
+#     a. there should be no change to the tracking bug
+#
+#   3. run the swm again, but with data that shows the package is in the ppa
+#     a. verify that the promote to -proposed task is set correctly as well
+#        as any other tasks for this stage.
+#
+#   4. set the "verification" task to "Fix Released"
+#
+#   5. run swm
+#     a. verify that the next set of tasks have been properly set.
+#
+#   6. set the "testing" tasks to "Fix Released"
+#
+#   5. run swm
+#     a. verify that the next set of tasks have been properly set.
+
 class Smokem():
 
     # __init__
