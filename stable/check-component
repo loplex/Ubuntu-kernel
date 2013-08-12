@@ -13,7 +13,6 @@ class Checker():
     # __init__
     #
     def __init__(s, args):
-        info('Checker::__init__')
         s.args = args
 
     # initialize
