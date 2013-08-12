@@ -27,7 +27,7 @@ from argparse                           import ArgumentParser, RawDescriptionHel
 from logging                            import basicConfig, INFO, DEBUG, WARNING
 from sb.package                         import Package, PackageError
 from sb.workflow_bug                    import WorkflowBug
-from sb.log                             import Clog, cinfo, cdebug, cwarn, cnotice
+from sb.log                             import Clog, cinfo, cdebug, cwarn, cnotice, cerror
 
 def verbose(msg, color='green'):
     stdo(colored(msg, color))
@@ -72,7 +72,7 @@ class Shank(StdApp):
 
         s.state_map = {
             'upload-to-ppa'             : TaskActions({'Confirmed'    : s.upload_to_ppa_confirmed}),
-            'prepare-package'           : TaskActions({'Fix Released' : s.prep_package_fix_released}),
+            'prepare-package'           : TaskActions({'New'          : s.prep_package_new, 'Fix Released' : s.prep_package_fix_released}),
             'prepare-package-lbm'       : TaskActions({'Fix Released' : s.prep_package_fix_released}),
             'prepare-package-meta'      : TaskActions({'Fix Released' : s.prep_package_fix_released}),
             'prepare-package-ports-meta': TaskActions({'Fix Released' : s.prep_package_fix_released}),
@@ -128,33 +128,34 @@ class Shank(StdApp):
         bug = WorkflowBug(s.lp, s.projects_tracked, bugid, sauron, s.args.dryrun)
         if bug.is_valid:
             try:
-                p = Package(s.lp, bug)
-                cinfo('')
-                if p.is_released:
-                    cinfo('        The package has been promoted to the approriate release directories. Nothing more to be done.')
+                if False:
+                    p = Package(s.lp_production, bug)
+                    cinfo('')
+                    if p.is_released:
+                        cinfo('        The package has been promoted to the approriate release directories. Nothing more to be done.')
 
-                elif p.is_prepd:
-                    cinfo('        The package and all of it\'s dependents have been fully prepared.')
+                    elif p.is_prepd:
+                        cinfo('        The package and all of it\'s dependents have been fully prepared.')
 
-                else:
-                    cinfo('        Needs work')
-                    p.determine_build_status()
+                    else:
+                        cinfo('        Needs work')
+                        p.determine_build_status()
 
-                    if p.updates is not None:
-                        cinfo('')
-                        cinfo('        Based on the build status of packages:', 'cyan')
-                        for task in p.updates:
-                            try:
-                                bug.tasks_by_name[task].status = p.updates[task]['status']
-                            except KeyError:
-                                pass
-                            try:
-                                if s.args.debug_assignee:
-                                    bug.tasks_by_name[task].assignee = s.lp.launchpad.people[s.args.debug_assignee]
-                                else:
-                                    bug.tasks_by_name[task].assignee = p.updates[task]['assignee']
-                            except KeyError:
-                                pass
+                        if p.updates is not None:
+                            cinfo('')
+                            cinfo('        Based on the build status of packages:', 'cyan')
+                            for task in p.updates:
+                                try:
+                                    bug.tasks_by_name[task].status = p.updates[task]['status']
+                                except KeyError:
+                                    pass
+                                try:
+                                    if s.args.debug_assignee:
+                                        bug.tasks_by_name[task].assignee = s.lp.launchpad.people[s.args.debug_assignee]
+                                    else:
+                                        bug.tasks_by_name[task].assignee = p.updates[task]['assignee']
+                                except KeyError:
+                                    pass
 
                 s.process_bug_tasks(bug)
 
@@ -518,6 +519,36 @@ class Shank(StdApp):
         cdebug('upload_to_ppa_confirmed leave (True)')
         return True
 
+    def prep_package_new(s, taskobj):
+        '''
+             Task: prepare_package
+            State: New
+        '''
+        cdebug('            prep_package_new enter')
+
+        p = Package(s.lp_production, s.wfb)
+        cinfo('        Needs work')
+        p.determine_build_status()
+
+        if p.updates is not None:
+            cinfo('')
+            cinfo('        Based on the build status of packages:', 'cyan')
+            for task in p.updates:
+                try:
+                    s.wfb.tasks_by_name[task].status = p.updates[task]['status']
+                except KeyError:
+                    pass
+                try:
+                    if s.args.debug_assignee:
+                        s.wfb.tasks_by_name[task].assignee = s.lp.launchpad.people[s.args.debug_assignee]
+                    else:
+                        s.wfb.tasks_by_name[task].assignee = s.lp.launchpad.people[p.updates[task]['assignee']]
+                except KeyError:
+                    pass
+
+        cdebug('            prep_package_new leave')
+        return False
+
     def prep_package_fix_released(s, taskobj):
         """
         when the prep-package task is set to Fix Released and there is
@@ -589,9 +620,9 @@ class Shank(StdApp):
             bp_bug_list  = []
             m_bug_list   = []
 
-            #tb = TrackingBug(s.lp, s.args.staging)
-            tb = TrackingBug(s.lp, True)
+            tb = TrackingBug(s.lp, s.args.staging)
             for der_pkg in der_list:
+                cdebug('                    derivative package: %s' % der_pkg)
                 if s.args.dryrun or s.args.dryrun_derivative_trackers:
                     cinfo('        Dryrun - Would open tracking bug for derivative package %s' % (der_pkg))
                     continue
@@ -613,6 +644,7 @@ class Shank(StdApp):
                     m_bug_list.append('%s' % (der_pkg))
 
             for bp_pkg in bp_list:
+                cdebug('                    backport package: %s' % bp_pkg)
                 if s.args.dryrun: # or s.args.dryrun_derivative_trackers:
                     cinfo('        Dryrun - Would open tracking bug for backport package %s' % (bp_pkg[0]))
                     continue
@@ -716,7 +748,7 @@ class Shank(StdApp):
 
         # Do the checking for proper packages in pocket->component
         series_name = s.ubuntu.series_name(s.wfb.pkg_name, s.wfb.pkg_version)
-        check_component = CheckComponent(s.lp)
+        check_component = CheckComponent(s.lp_production)
         name_meta = 'linux-meta'
         name_ports_meta = 'linux-ports-meta'
         name_signed = 'linux-signed'
@@ -1077,7 +1109,7 @@ class Shank(StdApp):
         '''
         taskobj = s.wfb.tasks_by_name[task_name]
         if taskobj.status not in required_states:
-            error('%s set to invalid state.' % task_name)
+            cerror('%s set to invalid state.' % task_name)
 
             # Send email and possibly a status update
             #
@@ -1362,6 +1394,8 @@ class Shank(StdApp):
         done here.
         '''
         s.defaults['launchpad_client_name'] = 'kernel-team-sru-workflow-manager'
+        s.lp_production = LaunchpadService(s.defaults)  # Some things are only available on the production
+                                                        # service.
         if s.args.staging:
             s.defaults['launchpad_services_root'] = 'qastaging'
         s.lp = LaunchpadService(s.defaults)
