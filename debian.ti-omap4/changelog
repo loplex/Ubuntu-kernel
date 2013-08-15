@@ -1,3 +1,22 @@
+linux-ti-omap4 (3.5.0-231.47) quantal; urgency=low
+
+  [ Brad Figg ]
+
+  * Release Tracking Bug
+    - LP: #1212046
+
+  [ Paolo Pisati ]
+
+  * rebased on Ubuntu-3.5.0-39.60
+
+  [ Upstream Kernel Changes ]
+
+  * Revert "veth: avoid a NULL deref in veth_stats_one"
+  * Revert "veth: extend device features"
+  * Revert "veth: reduce stat overhead"
+
+ -- Brad Figg <brad.figg@canonical.com>  Thu, 15 Aug 2013 10:03:42 -0700
+
 linux-ti-omap4 (3.5.0-230.44) quantal; urgency=low
 
   * Fixup the upload package changelog
