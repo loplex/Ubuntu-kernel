@@ -1,3 +1,11 @@
+linux-meta (3.5.0.40.56) quantal; urgency=low
+
+  [ Brad Figg ]
+
+  * Bump ABI
+
+ -- Brad Figg <brad.figg@canonical.com>  Wed, 21 Aug 2013 14:25:14 -0700
+
 linux-meta (3.5.0.39.55) quantal; urgency=low
 
   [ Brad Figg ]
