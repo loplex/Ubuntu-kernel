@@ -1,3 +1,9 @@
+linux-signed (3.5.0-40.62) quantal; urgency=low
+
+  * Version 3.5.0-40.62
+
+ -- Brad Figg <brad.figg@canonical.com>  Wed, 21 Aug 2013 22:15:52 -0700
+
 linux-signed (3.5.0-40.61) quantal; urgency=low
 
   * Version 3.5.0-40.61
