@@ -1,0 +1,27 @@
+Package: linux-headers-goldfish
+Architecture: armhf
+Section: devel
+Priority: optional
+Depends: ${misc:Depends}, linux-headers-${kernel-abi-version}-goldfish 
+Description: Linux kernel headers for the goldfish kernel.
+ This package will always depend on the latest kernel headers available
+ for the goldfish kernel.
+
+Package: linux-image-goldfish
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-goldfish
+Description: Linux kernel image for the goldfish kernel.
+ This package will always depend on the latest kernel image available
+ for the goldfish kernel.
+
+Package: linux-goldfish
+Architecture: armhf
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends}, linux-image-goldfish (= ${source:Version}), linux-headers-goldfish (= ${source:Version})
+Description: Complete Linux kernel for the goldfish kernel.
+ This package will always depend on the latest complete Linux kernel available
+ for the goldfish kernel.
+
