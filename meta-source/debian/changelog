@@ -1,3 +1,9 @@
+linux-meta-goldfish (3.4.0.0.2) UNRELEASED; urgency=low
+
+  * Follow changes to linux-tools naming (LP: #1205284).
+
+ -- Andy Whitcroft <apw@canonical.com>  Thu, 12 Sep 2013 14:59:01 +0100
+
 linux-meta-goldfish (3.4.0.0.1) saucy; urgency=low
 
   * ABI: 3.4.0-0

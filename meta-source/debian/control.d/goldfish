@@ -16,6 +16,16 @@ Description: Linux kernel image for the goldfish kernel.
  This package will always depend on the latest kernel image available
  for the goldfish kernel.
 
+Package: linux-tools-goldfish
+Architecture: armhf
+Section: kernel
+Priority: optional
+Provides: linux-tools
+Depends: ${misc:Depends}, linux-tools-${kernel-abi-version}-goldfish
+Description: Linux kernel tools for the goldfish kernel.
+ This package will always depend on the latest kernel tools available
+ for the goldfish kernel.
+
 Package: linux-goldfish
 Architecture: armhf
 Section: kernel
