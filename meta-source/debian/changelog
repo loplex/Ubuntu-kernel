@@ -1,3 +1,9 @@
+linux-meta (3.11.0.7.9) UNRELEASED; urgency=low
+
+  * Follow changes to linux-tools naming (LP: #1205284).
+
+ -- Andy Whitcroft <apw@canonical.com>  Wed, 11 Sep 2013 14:47:01 +0100
+
 linux-meta (3.11.0.7.8) saucy; urgency=low
 
   * linux ABI 3.11.0-7

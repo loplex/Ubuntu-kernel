@@ -16,6 +16,16 @@ Description: Generic Linux kernel image
  This package will always depend on the latest generic-lpae kernel image
  available.
 
+Package: linux-tools-generic-lpae
+Architecture: armhf
+Section: kernel
+Priority: optional
+Provides: linux-tools
+Depends: ${misc:Depends}, linux-tools-${kernel-abi-version}-generic-lpae
+Description: Generic Linux kernel tools
+ This package will always depend on the latest generic-lpae kernel tools
+ available.
+
 Package: linux-generic-lpae
 Architecture: armhf
 Section: kernel

@@ -16,6 +16,16 @@ Description: Generic Linux kernel image
  This package will always depend on the latest generic kernel image
  available.
 
+Package: linux-tools-generic
+Architecture: i386 amd64 armhf
+Section: kernel
+Priority: optional
+Provides: linux-tools
+Depends: ${misc:Depends}, linux-tools-${kernel-abi-version}-generic
+Description: Generic Linux kernel tools
+ This package will always depend on the latest generic kernel tools
+ available.
+
 Package: linux-generic
 Architecture: i386 amd64 armhf
 Section: kernel

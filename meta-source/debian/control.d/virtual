@@ -15,6 +15,16 @@ Description: This package will always depend on the latest minimal generic kerne
  This package will always depend on the latest minimal generic kernel image
  used for virtual instances.
 
+Package: linux-tools-virtual
+Architecture: i386 amd64
+Section: kernel
+Priority: optional
+Provides: linux-tools
+Depends: ${misc:Depends}, linux-tools-${kernel-abi-version}-generic
+Description: This package will always depend on the latest minimal generic kernel tools.
+ This package will always depend on the latest minimal generic kernel tools
+ used for virtual instances.
+
 Package: linux-virtual
 Architecture: i386 amd64
 Section: kernel
