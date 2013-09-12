@@ -1,3 +1,9 @@
+linux-meta-lts-quantal (3.5.0.41.47) precise; urgency=low
+
+  * Ubuntu-lts-3.5.0-41.62
+
+ -- Brad Figg <brad.figg@canonical.com>  Thu, 12 Sep 2013 09:35:46 -0700
+
 linux-meta-lts-quantal (3.5.0.40.46) precise; urgency=low
 
   * Ubuntu-lts-3.5.0-40.61
