@@ -4,6 +4,165 @@ linux-ti-omap4 (3.5.0-233.49) UNRELEASED; urgency=low
   CHANGELOG: Use the printchanges target to see the curent changes.
   CHANGELOG: Use the insertchanges target to create the final log.
 
+  [ Ubuntu: 3.5.0-41.64 ]
+
+  * Release Tracking Bug
+    - LP: #1223451
+  * kernel-doc: bugfix - multi-line macros
+    - LP: #1223920
+  * Revert "zram: use zram->lock to protect zram_free_page() in swap free
+    notify path"
+    - LP: #1215513
+  * x86 thermal: Delete power-limit-notification console messages
+    - LP: #1215748
+  * x86 thermal: Disable power limit notification interrupt by default
+    - LP: #1215748
+  * ARM: 7810/1: perf: Fix array out of bounds access in
+    armpmu_map_hw_event()
+    - LP: #1216442
+    - CVE-2013-4254
+  * ARM: 7809/1: perf: fix event validation for software group leaders
+    - LP: #1216442
+    - CVE-2013-4254
+  * veth: reduce stat overhead
+    - LP: #1201869
+  * veth: extend device features
+    - LP: #1201869
+  * veth: avoid a NULL deref in veth_stats_one
+    - LP: #1201869
+  * veth: fix a NULL deref in netif_carrier_off
+    - LP: #1201869
+  * veth: fix NULL dereference in veth_dellink()
+    - LP: #1201869
+  * Bluetooth: Add support for Atheros [0cf3:3121]
+    - LP: #1202477
+  * efivars: explicitly calculate length of VariableName
+    - LP: #1217745
+  * xfs: fix _xfs_buf_find oops on blocks beyond the filesystem end
+    - LP: #1151527
+    - CVE-2013-1819
+  * drm/i915/lvds: ditch ->prepare special case
+    - LP: #1221791
+  * serial: mxs: fix buffer overflow
+    - LP: #1221791
+  * fs/proc/task_mmu.c: fix buffer overflow in add_page_map()
+    - LP: #1221791
+  * af_key: initialize satype in key_notify_policy_flush()
+    - LP: #1221791
+  * vm: add no-mmu vm_iomap_memory() stub
+    - LP: #1221791
+  * iwl4965: set power mode early
+    - LP: #1221791
+  * iwl4965: reset firmware after rfkill off
+    - LP: #1221791
+  * ASoC: cs42l52: Reorder Min/Max and update to SX_TLV for Beep Volume
+    - LP: #1221791
+  * can: pcan_usb: fix wrong memcpy() bytes length
+    - LP: #1221791
+  * ALSA: 6fire: make buffers DMA-able (pcm)
+    - LP: #1221791
+  * ALSA: 6fire: make buffers DMA-able (midi)
+    - LP: #1221791
+  * jbd2: Fix use after free after error in jbd2_journal_dirty_metadata()
+    - LP: #1221791
+  * USB-Serial: Fix error handling of usb_wwan
+    - LP: #1221791
+  * USB: mos7840: fix big-endian probe
+    - LP: #1221791
+  * USB: adutux: fix big-endian device-type reporting
+    - LP: #1221791
+  * USB: ti_usb_3410_5052: fix big-endian firmware handling
+    - LP: #1221791
+  * m68k/atari: ARAnyM - Fix NatFeat module support
+    - LP: #1221791
+  * m68k: Truncate base in do_div()
+    - LP: #1221791
+  * usb: add two quirky touchscreen
+    - LP: #1221791
+  * USB: mos7720: fix broken control requests
+    - LP: #1221791
+  * USB: keyspan: fix null-deref at disconnect and release
+    - LP: #1221791
+  * MIPS: Expose missing pci_io{map,unmap} declarations
+    - LP: #1221791
+  * microblaze: Update microblaze defconfigs
+    - LP: #1221791
+  * sound: Fix make allmodconfig on MIPS
+    - LP: #1221791
+  * sound: Fix make allmodconfig on MIPS correctly
+    - LP: #1221791
+  * alpha: makefile: don't enforce small data model for kernel builds
+    - LP: #1221791
+  * MIPS: Rewrite pfn_valid to work in modules, too.
+    - LP: #1221791
+  * xtensa: fix linker script transformation for .text.unlikely
+    - LP: #1221791
+  * wusbcore: fix kernel panic when disconnecting a wireless USB->serial
+    device
+    - LP: #1221791
+  * iwlwifi: dvm: fix calling ieee80211_chswitch_done() with NULL
+    - LP: #1221791
+  * iwlwifi: pcie: disable L1 Active after pci_enable_device
+    - LP: #1221791
+  * zd1201: do not use stack as URB transfer_buffer
+    - LP: #1221791
+  * Hostap: copying wrong data prism2_ioctl_giwaplist()
+    - LP: #1221791
+  * ARM: at91/DT: fix at91sam9n12ek memory node
+    - LP: #1221791
+  * drm/i915: Invalidate TLBs for the rings after a reset
+    - LP: #1221791
+  * libata: apply behavioral quirks to sil3826 PMP
+    - LP: #1221791
+  * ARM: davinci: nand: specify ecc strength
+    - LP: #1221791
+  * ARM: 7816/1: CONFIG_KUSER_HELPERS: fix help text
+    - LP: #1221791
+  * sata_fsl: save irqs while coalescing
+    - LP: #1221791
+  * xen/events: initialize local per-cpu mask for all possible events
+    - LP: #1221791
+  * of: fdt: fix memory initialization for expanded DT
+    - LP: #1221791
+  * zfcp: fix lock imbalance by reworking request queue locking
+    - LP: #1221791
+  * zfcp: fix schedule-inside-lock in scsi_device list loops
+    - LP: #1221791
+  * nilfs2: remove double bio_put() in nilfs_end_bio_write() for
+    BIO_EOPNOTSUPP error
+    - LP: #1221791
+  * nilfs2: fix issue with counting number of bio requests for
+    BIO_EOPNOTSUPP error detection
+    - LP: #1221791
+  * workqueue: fix possible stall on try_to_grab_pending() of a delayed
+    work item
+    - LP: #1221791
+  * x86/xen: do not identity map UNUSABLE regions in the machine E820
+    - LP: #1221791
+  * jfs: fix readdir cookie incompatibility with NFSv4
+    - LP: #1221791
+  * powerpc: Don't Oops when accessing /proc/powerpc/lparcfg without
+    hypervisor
+    - LP: #1221791
+  * powerpc: Work around gcc miscompilation of __pa() on 64-bit
+    - LP: #1221791
+  * powerpc/hvsi: Increase handshake timeout from 200ms to 400ms.
+    - LP: #1221791
+  * drivers/base/memory.c: fix show_mem_removable() to handle missing
+    sections
+    - LP: #1221791
+  * x86 get_unmapped_area: Access mmap_legacy_base through mm_struct member
+    - LP: #1221791
+  * Linux 3.5.7.21
+    - LP: #1221791
+  * mfd: rtsx: Read vendor setting from config space
+    - LP: #1201698
+  * cifs: don't instantiate new dentries in readdir for inodes that need to
+    be revalidated immediately
+    - LP: #1222442
+  * SAUCE: Bluetooth: use hci_send_cmd instead of usb_control_msg
+    - LP: #1065400
+
  -- Paolo Pisati <paolo.pisati@canonical.com>  Fri, 13 Sep 2013 10:03:29 +0200
 
 linux-ti-omap4 (3.5.0-232.48) quantal; urgency=low
