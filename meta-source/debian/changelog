@@ -1,4 +1,4 @@
-linux-meta (3.11.0.7.9) UNRELEASED; urgency=low
+linux-meta (3.11.0.7.9) saucy; urgency=low
 
   * Follow changes to linux-tools naming (LP: #1205284).
 
