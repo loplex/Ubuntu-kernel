@@ -1,3 +1,9 @@
+linux-meta (3.11.0.8.10) saucy; urgency=low
+
+  * linux ABI 3.11.0-8
+
+ -- Tim Gardner <tim.gardner@canonical.com>  Thu, 19 Sep 2013 22:06:42 -0600
+
 linux-meta (3.11.0.7.9) saucy; urgency=low
 
   * Follow changes to linux-tools naming (LP: #1205284).
